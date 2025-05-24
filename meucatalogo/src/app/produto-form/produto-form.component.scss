@@ -1,0 +1,44 @@
+.form-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.form-card {
+  margin-bottom: 24px;
+}
+
+.variacao-item {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed #e8e8e8;
+}
+
+.variacao-item:last-child {
+  border-bottom: none;
+}
+
+.variacao-actions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 8px;
+}
+
+.add-variacao {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.form-actions {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.form-actions button {
+  margin-right: 8px;
+}
+
+.form-actions button:last-child {
+  margin-right: 0;
+}

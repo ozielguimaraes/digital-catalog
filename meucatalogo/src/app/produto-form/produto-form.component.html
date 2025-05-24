@@ -1,0 +1,111 @@
+<div class="form-container">
+  <h2 nz-typography>Cadastro de Produto</h2>
+  <nz-divider></nz-divider>
+
+  <form nz-form [formGroup]="produtoForm" (ngSubmit)="submitForm()">
+    <!-- Informações Básicas -->
+    <nz-card nzTitle="Informações Básicas" class="form-card">
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired nzFor="nome">Nome do Produto</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Por favor, informe o nome do produto!">
+          <input nz-input formControlName="nome" id="nome" placeholder="Nome do produto" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired nzFor="categoria">Categoria</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Por favor, selecione uma categoria!">
+          <nz-select formControlName="categoria" id="categoria" nzPlaceHolder="Selecione uma categoria">
+            <nz-option *ngFor="let categoria of categorias" [nzValue]="categoria" [nzLabel]="categoria"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+    </nz-card>
+
+    <!-- Variau00e7u00f5es do Produto -->
+    <nz-card nzTitle="Variau00e7u00f5es do Produto" class="form-card">
+      <div formArrayName="variacoes">
+        <div *ngFor="let variacao of variacoes.controls; let i = index" [formGroupName]="i" class="variacao-item">
+          <div nz-row [nzGutter]="8">
+            <div nz-col [nzSpan]="10">
+              <nz-form-item>
+                <nz-form-label nzRequired>Nome da Variau00e7ão</nz-form-label>
+                <nz-form-control nzErrorTip="Nome da variau00e7ão u00e9 obrigatu00f3rio!">
+                  <input nz-input formControlName="nome" placeholder="Ex: Cor, Tamanho, etc" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="10">
+              <nz-form-item>
+                <nz-form-label nzRequired>Valor</nz-form-label>
+                <nz-form-control nzErrorTip="Valor da variau00e7ão u00e9 obrigatu00f3rio!">
+                  <input nz-input formControlName="valor" placeholder="Ex: Vermelho, G, etc" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="4" class="variacao-actions">
+              <button nz-button nzType="default" nzDanger (click)="removerVariacao(i)" type="button">
+                <span nz-icon nzType="delete"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="add-variacao">
+        <button nz-button nzType="dashed" (click)="adicionarVariacao()" type="button">
+          <span nz-icon nzType="plus"></span> Adicionar Variau00e7ão
+        </button>
+      </div>
+    </nz-card>
+
+    <!-- Preu00e7os -->
+    <nz-card nzTitle="Preu00e7os" class="form-card">
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired nzFor="preco">Preu00e7o (R$)</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Por favor, informe o preu00e7o!">
+          <nz-input-number formControlName="preco" id="preco" [nzMin]="0" [nzStep]="0.01" [nzFormatter]="formatterReal" [nzParser]="parserReal" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="precoComDesconto">Preu00e7o com Desconto (R$)</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24">
+          <nz-input-number formControlName="precoComDesconto" id="precoComDesconto" [nzMin]="0" [nzStep]="0.01" [nzFormatter]="formatterReal" [nzParser]="parserReal" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+    </nz-card>
+
+    <!-- Estoque -->
+    <nz-card nzTitle="Estoque" class="form-card" formGroupName="estoque">
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="quantidade">Quantidade Disponu00edvel</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24">
+          <nz-input-number formControlName="quantidade" id="quantidade" [nzMin]="0" [nzStep]="1" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="ilimitado">Estoque Ilimitado</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24">
+          <nz-switch formControlName="ilimitado" id="ilimitado" (ngModelChange)="onEstoqueIlimitadoChange($event)"></nz-switch>
+        </nz-form-control>
+      </nz-form-item>
+    </nz-card>
+
+    <!-- Informau00e7u00f5es Adicionais -->
+    <nz-card nzTitle="Informau00e7u00f5es Adicionais" class="form-card">
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="informacoesAdicionais">Descriu00e7ão Adicional</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24">
+          <textarea nz-input formControlName="informacoesAdicionais" id="informacoesAdicionais" [nzAutosize]="{ minRows: 4, maxRows: 8 }" placeholder="Informau00e7u00f5es adicionais sobre o produto"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </nz-card>
+
+    <!-- Botu00f5es de Au00e7ão -->
+    <div class="form-actions">
+      <button nz-button nzType="primary" [disabled]="produtoForm.invalid">Salvar Produto</button>
+      <button nz-button nzType="default" type="button" (click)="produtoForm.reset()">Limpar</button>
+    </div>
+  </form>
+</div>
