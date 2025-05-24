@@ -8,14 +8,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using MeuCatalogo.API.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
-builder.Services.AddControllers(options =>
+builder.Services.AddControllers();
+builder.Services.AddRouting(options =>
 {
     options.LowercaseUrls = true;
+    //options.LowercaseQueryStrings = true;
 });
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -42,7 +45,7 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
-        ValidateAudience = true,
+
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
@@ -50,6 +53,7 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
     };
 });
+builder.Services.AddAuthorization();
 
 // Register services
 builder.Services.AddScoped<ICatalogoService, CatalogoService>();
@@ -59,9 +63,9 @@ builder.Services.AddScoped<IPlanoAssinaturaService, PlanoAssinaturaService>();
 // Configure CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngularApp", builder =>
+    options.AddPolicy("AllowAngularApp", policy =>
     {
-        builder.AllowAnyOrigin()
+        policy.AllowAnyOrigin()
                .AllowAnyMethod()
                .AllowAnyHeader();
     });
@@ -71,6 +75,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "MeuCatalogo API", Version = "v1" });
+
+    // Configure Swagger to use lowercase URLs
+    c.DocumentFilter<LowercaseDocumentFilter>();
 
     // Configure Swagger to use JWT Authentication
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
