@@ -25,7 +25,7 @@ public partial class LoginPageViewModel: BasePageViewModel
         _fingerprint = fingerprint;
 #if  DEBUG
         Email = "microzapple@gmail.com";
-        Password = "123456";
+        Password = "Asdf1234";
 #endif
     }
 
@@ -43,7 +43,7 @@ public partial class LoginPageViewModel: BasePageViewModel
                 return;
             }
 
-            var request = new SigninRequest(UserName: Email, Password: Password);
+            var request = new SigninRequest(Email: Email, Password: Password);
 
             var validator = new SigninValidator(request);
             if (!validator.IsValid)
@@ -62,13 +62,13 @@ public partial class LoginPageViewModel: BasePageViewModel
 
             if (signinResponse.RetornouComErro)
             {
-                await Toast.Make(signinResponse.MensageDeErro!, ToastDuration.Long).Show();
+                await Toast.Make(signinResponse.MensagemDeErro!, ToastDuration.Long).Show();
                 return;
             }
 
             if (string.IsNullOrEmpty(signinResponse.Dados!.Token))
             {
-                await Toast.Make("A requição falhou, tente novamente.", ToastDuration.Long).Show();
+                await Toast.Make("A requisição falhou, tente novamente.", ToastDuration.Long).Show();
                 return;
             }
 

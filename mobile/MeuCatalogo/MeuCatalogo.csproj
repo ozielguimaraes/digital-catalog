@@ -94,4 +94,9 @@
       <AdditionalFiles Include="Features\Auth\LoginPage.xaml" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Features\Catalogo\Validators\" />
+      <Folder Include="Features\Produto\Validators\" />
+    </ItemGroup>
+
 </Project>

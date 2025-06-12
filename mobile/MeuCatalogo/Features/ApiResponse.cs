@@ -1,26 +1,32 @@
+using Refit;
+
 namespace MeuCatalogo.Features;
 
 public class ApiResponse<T>
 {
     public T? Dados { get; set; }
-    public bool RetornouComSucesso => string.IsNullOrEmpty(MensageDeErro);
-    public bool RetornouComErro => !RetornouComSucesso;
-    public string? MensageDeErro { get; set; }
+    public string? MensagemDeErro { get; set; }
+    public ProblemDetails? ProblemDetails { get; set; }
 
-    public static ApiResponse<T> Success(T data, string mensagem = "Operação realizada com sucesso")
+    public bool RetornouComSucesso { get; private set; }
+    public bool RetornouComErro => !RetornouComSucesso;
+
+    public static ApiResponse<T> Success(T data)
     {
         return new ApiResponse<T>
         {
-            MensageDeErro = mensagem,
-            Dados = data
+            Dados = data,
+            RetornouComSucesso = true
         };
     }
 
-    public static ApiResponse<T> Error(string mensagem, List<string>? erros = null)
+    public static ApiResponse<T> Error(string mensagemDeErro, ProblemDetails? problemDetails = null)
     {
         return new ApiResponse<T>
         {
-            MensageDeErro = mensagem
+            MensagemDeErro = mensagemDeErro,
+            ProblemDetails = problemDetails,
+            RetornouComSucesso = false
         };
     }
 }

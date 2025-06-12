@@ -13,6 +13,7 @@
         <Border  Grid.ColumnSpan="{OnPlatform Default=2, WinUI=1, MacCatalyst=1}"
                  Stroke="Transparent"
                  Background="{OnPlatform Default=#ede8e2,WinUI=Transparent, MacCatalyst=Transparent}"
+                 Padding="32"
                  Grid.RowSpan="{OnPlatform Default=1, WinUI=2, MacCatalyst=2}">
             <Border.StrokeShape>
                 <RoundRectangle CornerRadius="0,0,100,100"/>
@@ -25,12 +26,15 @@
         </Border>
 
         <Border Grid.Column="{OnPlatform Default=0, WinUI=1, MacCatalyst=1}"
-                Margin="18,0"
+                Margin="16"
                 Background="White"
                   Grid.Row="{OnPlatform Default=1, WinUI=0,MacCatalyst=0}"
                   VerticalOptions="{OnPlatform Default=Start, WinUI=Center , MacCatalyst=Center}"
                   Grid.ColumnSpan="{OnPlatform Default=2, WinUI=1, MacCatalyst=1}"
                   Grid.RowSpan="{OnPlatform Default=1, WinUI=2, MacCatalyst=2}" >
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="20"/>
+            </Border.StrokeShape>
             <Grid IsClippedToBounds="True" RowDefinitions="90,*,*,*,*,*,*,*"
                   Padding="16">
                 <!-- <Grid.BindingContext> -->

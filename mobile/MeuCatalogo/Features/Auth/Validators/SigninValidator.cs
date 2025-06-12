@@ -9,12 +9,12 @@ public class SigninValidator : Contract<SigninRequest>
     public SigninValidator(SigninRequest request)
     {
         Requires()
-            .IsNotNullOrEmpty(request.UserName, nameof(request.UserName), "E-mail é obrigatório");
+            .IsNotNullOrEmpty(request.Email, nameof(request.Email), "E-mail é obrigatório");
 
-        if (!string.IsNullOrWhiteSpace(request.UserName))
+        if (!string.IsNullOrWhiteSpace(request.Email))
         {
             Requires()
-                .IsEmail(request.UserName, nameof(request.UserName), "E-mail é inválido");
+                .IsEmail(request.Email, nameof(request.Email), "E-mail é inválido");
         }
 
         Requires()
