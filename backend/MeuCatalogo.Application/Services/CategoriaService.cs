@@ -31,11 +31,11 @@ public class CategoriaService : ICategoriaService
 
             await _dbContext.AddCategoriaAsync(categoria);
 
-            return ApiResponse<CategoriaResponse>.SuccessResponse(MapToResponse(categoria));
+            return ApiResponse<CategoriaResponse>.Success(MapToResponse(categoria));
         }
         catch (Exception ex)
         {
-            return ApiResponse<CategoriaResponse>.ErrorResponse($"Erro ao criar categoria: {ex.Message}");
+            return ApiResponse<CategoriaResponse>.Error($"Erro ao criar categoria: {ex.Message}");
         }
     }
 
@@ -46,13 +46,13 @@ public class CategoriaService : ICategoriaService
             var categoria = await _dbContext.GetCategoriaByIdAsync(id);
 
             if (categoria == null)
-                return ApiResponse<CategoriaResponse>.ErrorResponse("Categoria não encontrada");
+                return ApiResponse<CategoriaResponse>.Error("Categoria não encontrada");
 
-            return ApiResponse<CategoriaResponse>.SuccessResponse(MapToResponse(categoria));
+            return ApiResponse<CategoriaResponse>.Success(MapToResponse(categoria));
         }
         catch (Exception ex)
         {
-            return ApiResponse<CategoriaResponse>.ErrorResponse($"Erro ao buscar categoria: {ex.Message}");
+            return ApiResponse<CategoriaResponse>.Error($"Erro ao buscar categoria: {ex.Message}");
         }
     }
 
@@ -63,11 +63,11 @@ public class CategoriaService : ICategoriaService
             var categorias = await _dbContext.GetAllCategoriasAsync();
             var response = categorias.Select(c => MapToResponse(c)).ToList();
 
-            return ApiResponse<List<CategoriaResponse>>.SuccessResponse(response);
+            return ApiResponse<List<CategoriaResponse>>.Success(response);
         }
         catch (Exception ex)
         {
-            return ApiResponse<List<CategoriaResponse>>.ErrorResponse($"Erro ao buscar categorias: {ex.Message}");
+            return ApiResponse<List<CategoriaResponse>>.Error($"Erro ao buscar categorias: {ex.Message}");
         }
     }
 
@@ -78,18 +78,18 @@ public class CategoriaService : ICategoriaService
             var categoria = await _dbContext.Categorias.FindAsync(id);
 
             if (categoria == null)
-                return ApiResponse<CategoriaResponse>.ErrorResponse("Categoria não encontrada");
+                return ApiResponse<CategoriaResponse>.Error("Categoria não encontrada");
 
             categoria.Nome = request.Nome;
 
             _dbContext.Categorias.Update(categoria);
             await _dbContext.SaveChangesAsync();
 
-            return ApiResponse<CategoriaResponse>.SuccessResponse(MapToResponse(categoria));
+            return ApiResponse<CategoriaResponse>.Success(MapToResponse(categoria));
         }
         catch (Exception ex)
         {
-            return ApiResponse<CategoriaResponse>.ErrorResponse($"Erro ao atualizar categoria: {ex.Message}");
+            return ApiResponse<CategoriaResponse>.Error($"Erro ao atualizar categoria: {ex.Message}");
         }
     }
 
@@ -100,23 +100,23 @@ public class CategoriaService : ICategoriaService
             var categoria = await _dbContext.Categorias.FindAsync(id);
 
             if (categoria == null)
-                return ApiResponse<bool>.ErrorResponse("Categoria não encontrada");
+                return ApiResponse<bool>.Error("Categoria não encontrada");
 
             // Verificar se existem produtos associados a esta categoria
             var produtosAssociados = await _dbContext.Produtos
                 .AnyAsync(p => p.CategoriaId == id);
 
             if (produtosAssociados)
-                return ApiResponse<bool>.ErrorResponse("não u00e9 possu00edvel excluir a categoria pois existem produtos associados a ela");
+                return ApiResponse<bool>.Error("não u00e9 possu00edvel excluir a categoria pois existem produtos associados a ela");
 
             _dbContext.Categorias.Remove(categoria);
             await _dbContext.SaveChangesAsync();
 
-            return ApiResponse<bool>.SuccessResponse(true, "Categoria removida com sucesso");
+            return ApiResponse<bool>.Success(true, "Categoria removida com sucesso");
         }
         catch (Exception ex)
         {
-            return ApiResponse<bool>.ErrorResponse($"Erro ao remover categoria: {ex.Message}");
+            return ApiResponse<bool>.Error($"Erro ao remover categoria: {ex.Message}");
         }
     }
 

@@ -29,7 +29,7 @@ public class ClienteService : IClienteService
                 .FirstOrDefaultAsync(c => c.Email == request.Email);
 
             if (clienteExistente != null)
-                return ApiResponse<ClienteResponse>.ErrorResponse("Já existe um cliente cadastrado com este email");
+                return ApiResponse<ClienteResponse>.Error("Já existe um cliente cadastrado com este email");
 
             var cliente = new Cliente
             {
@@ -42,11 +42,11 @@ public class ClienteService : IClienteService
             await _dbContext.Clientes.AddAsync(cliente);
             await _dbContext.SaveChangesAsync();
 
-            return ApiResponse<ClienteResponse>.SuccessResponse(MapToResponse(cliente));
+            return ApiResponse<ClienteResponse>.Success(MapToResponse(cliente));
         }
         catch (Exception ex)
         {
-            return ApiResponse<ClienteResponse>.ErrorResponse($"Erro ao criar cliente: {ex.Message}");
+            return ApiResponse<ClienteResponse>.Error($"Erro ao criar cliente: {ex.Message}");
         }
     }
 
@@ -57,13 +57,13 @@ public class ClienteService : IClienteService
             var cliente = await _dbContext.Clientes.FindAsync(id);
 
             if (cliente == null)
-                return ApiResponse<ClienteResponse>.ErrorResponse("Cliente não encontrado");
+                return ApiResponse<ClienteResponse>.Error("Cliente não encontrado");
 
-            return ApiResponse<ClienteResponse>.SuccessResponse(MapToResponse(cliente));
+            return ApiResponse<ClienteResponse>.Success(MapToResponse(cliente));
         }
         catch (Exception ex)
         {
-            return ApiResponse<ClienteResponse>.ErrorResponse($"Erro ao buscar cliente: {ex.Message}");
+            return ApiResponse<ClienteResponse>.Error($"Erro ao buscar cliente: {ex.Message}");
         }
     }
 
@@ -75,13 +75,13 @@ public class ClienteService : IClienteService
                 .FirstOrDefaultAsync(c => c.Email == email);
 
             if (cliente == null)
-                return ApiResponse<ClienteResponse>.ErrorResponse("Cliente não encontrado");
+                return ApiResponse<ClienteResponse>.Error("Cliente não encontrado");
 
-            return ApiResponse<ClienteResponse>.SuccessResponse(MapToResponse(cliente));
+            return ApiResponse<ClienteResponse>.Success(MapToResponse(cliente));
         }
         catch (Exception ex)
         {
-            return ApiResponse<ClienteResponse>.ErrorResponse($"Erro ao buscar cliente por email: {ex.Message}");
+            return ApiResponse<ClienteResponse>.Error($"Erro ao buscar cliente por email: {ex.Message}");
         }
     }
 
@@ -92,11 +92,11 @@ public class ClienteService : IClienteService
             var clientes = await _dbContext.Clientes.ToListAsync();
             var response = clientes.Select(c => MapToResponse(c)).ToList();
 
-            return ApiResponse<List<ClienteResponse>>.SuccessResponse(response);
+            return ApiResponse<List<ClienteResponse>>.Success(response);
         }
         catch (Exception ex)
         {
-            return ApiResponse<List<ClienteResponse>>.ErrorResponse($"Erro ao buscar clientes: {ex.Message}");
+            return ApiResponse<List<ClienteResponse>>.Error($"Erro ao buscar clientes: {ex.Message}");
         }
     }
 
@@ -107,7 +107,7 @@ public class ClienteService : IClienteService
             var cliente = await _dbContext.Clientes.FindAsync(id);
 
             if (cliente == null)
-                return ApiResponse<ClienteResponse>.ErrorResponse("Cliente não encontrado");
+                return ApiResponse<ClienteResponse>.Error("Cliente não encontrado");
 
             // Verificar se o novo email já está em uso por outro cliente
             if (cliente.Email != request.Email)
@@ -116,7 +116,7 @@ public class ClienteService : IClienteService
                     .AnyAsync(c => c.Email == request.Email && c.Id != id);
 
                 if (emailEmUso)
-                    return ApiResponse<ClienteResponse>.ErrorResponse("O email informado já está em uso por outro cliente");
+                    return ApiResponse<ClienteResponse>.Error("O email informado já está em uso por outro cliente");
             }
 
             cliente.Nome = request.Nome;
@@ -127,11 +127,11 @@ public class ClienteService : IClienteService
             _dbContext.Clientes.Update(cliente);
             await _dbContext.SaveChangesAsync();
 
-            return ApiResponse<ClienteResponse>.SuccessResponse(MapToResponse(cliente));
+            return ApiResponse<ClienteResponse>.Success(MapToResponse(cliente));
         }
         catch (Exception ex)
         {
-            return ApiResponse<ClienteResponse>.ErrorResponse($"Erro ao atualizar cliente: {ex.Message}");
+            return ApiResponse<ClienteResponse>.Error($"Erro ao atualizar cliente: {ex.Message}");
         }
     }
 
@@ -142,23 +142,23 @@ public class ClienteService : IClienteService
             var cliente = await _dbContext.Clientes.FindAsync(id);
 
             if (cliente == null)
-                return ApiResponse<bool>.ErrorResponse("Cliente não encontrado");
+                return ApiResponse<bool>.Error("Cliente não encontrado");
 
             // Verificar se o cliente possui pedidos
             var clienteComPedidos = await _dbContext.Pedidos
                 .AnyAsync(p => p.ClienteId == id);
 
             if (clienteComPedidos)
-                return ApiResponse<bool>.ErrorResponse("não u00e9 possu00edvel excluir o cliente pois ele possui pedidos");
+                return ApiResponse<bool>.Error("não u00e9 possu00edvel excluir o cliente pois ele possui pedidos");
 
             _dbContext.Clientes.Remove(cliente);
             await _dbContext.SaveChangesAsync();
 
-            return ApiResponse<bool>.SuccessResponse(true, "Cliente removido com sucesso");
+            return ApiResponse<bool>.Success(true, "Cliente removido com sucesso");
         }
         catch (Exception ex)
         {
-            return ApiResponse<bool>.ErrorResponse($"Erro ao remover cliente: {ex.Message}");
+            return ApiResponse<bool>.Error($"Erro ao remover cliente: {ex.Message}");
         }
     }
 

@@ -1,35 +1,42 @@
-using System;
-using System.Collections.Generic;
-
 namespace MeuCatalogo.Application.DTOs.Responses;
 
-public class ApiResponse<T>
+public sealed class ApiResponse<T>
 {
-    public bool Success { get; set; }
-    public string Message { get; set; }
-    public T Data { get; set; }
-    public List<string> Errors { get; set; }
+    public bool IsSuccess { get; set; }
+    public T? Data { get; set; }
+    public string? Message { get; set; }
+    public List<string>? Errors { get; set; }
 
     public ApiResponse()
     {
         Errors = new List<string>();
     }
 
-    public static ApiResponse<T> SuccessResponse(T data, string message = "Operação realizada com sucesso")
+    public static ApiResponse<T> Success(T data, string message = "Operação realizada com sucesso")
     {
         return new ApiResponse<T>
         {
-            Success = true,
+            IsSuccess = true,
             Message = message,
             Data = data
         };
     }
 
-    public static ApiResponse<T> ErrorResponse(string message, List<string>? errors = null)
+    public static ApiResponse<T> Error(string message, params string[] errors)
     {
         return new ApiResponse<T>
         {
-            Success = false,
+            IsSuccess = false,
+            Message = message,
+            Errors = errors.ToList(),
+        };
+    }
+
+    public static ApiResponse<T> Error(string message, List<string>? errors = null)
+    {
+        return new ApiResponse<T>
+        {
+            IsSuccess = false,
             Message = message,
             Errors = errors ?? new List<string>()
         };

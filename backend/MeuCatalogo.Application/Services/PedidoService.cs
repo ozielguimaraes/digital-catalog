@@ -32,10 +32,10 @@ public class PedidoService : IPedidoService
         {
             var cliente = await _dbContext.Clientes.FindAsync(request.ClienteId);
             if (cliente == null)
-                return ApiResponse<PedidoResponse>.ErrorResponse("Cliente não encontrado");
+                return ApiResponse<PedidoResponse>.Error("Cliente não encontrado");
 
             if (request.Itens == null || request.Itens.Count == 0)
-                return ApiResponse<PedidoResponse>.ErrorResponse("O pedido deve conter pelo menos um item");
+                return ApiResponse<PedidoResponse>.Error("O pedido deve conter pelo menos um item");
 
             var pedido = new Pedido(clienteId: request.ClienteId);
 
@@ -48,7 +48,7 @@ public class PedidoService : IPedidoService
                 if (produto == null)
                 {
                     _logger.LogWarning("Produto com ID {ProdutoId} não encontrado", itemRequest.ProdutoId);
-                    return ApiResponse<PedidoResponse>.ErrorResponse($"Produto com ID {itemRequest.ProdutoId} não encontrado");
+                    return ApiResponse<PedidoResponse>.Error($"Produto com ID {itemRequest.ProdutoId} não encontrado");
                 }
                 var estoque = await _dbContext.Estoques
                     .FirstOrDefaultAsync(e => e.ProdutoId == itemRequest.ProdutoId);
@@ -56,14 +56,14 @@ public class PedidoService : IPedidoService
                 if (estoque == null)
                 {
                     _logger.LogWarning("Estoque para o produto {ProdutoId} não encontrado", itemRequest.ProdutoId);
-                    return ApiResponse<PedidoResponse>.ErrorResponse($"Produto {produto.Nome} esgotado");
+                    return ApiResponse<PedidoResponse>.Error($"Produto {produto.Nome} esgotado");
                 }
 
                 if (!estoque.Disponivel)
-                    return ApiResponse<PedidoResponse>.ErrorResponse($"Produto {produto.Nome} não está disponível");
+                    return ApiResponse<PedidoResponse>.Error($"Produto {produto.Nome} não está disponível");
 
                 if (!estoque.TemEstoqueSuficiente(itemRequest.Quantidade))
-                    return ApiResponse<PedidoResponse>.ErrorResponse($"Quantidade insuficiente do produto {produto.Nome} em estoque");
+                    return ApiResponse<PedidoResponse>.Error($"Quantidade insuficiente do produto {produto.Nome} em estoque");
 
                 decimal precoUnitario = produto.ObterPrecoUnitario();
 
@@ -91,12 +91,12 @@ public class PedidoService : IPedidoService
 
             var pedidoCompleto = await _dbContext.ObterPedidoPorIdComItensAsync(pedido.Id);
 
-            return ApiResponse<PedidoResponse>.SuccessResponse(pedidoCompleto!.MapToResponse());
+            return ApiResponse<PedidoResponse>.Success(pedidoCompleto!.MapToResponse());
         }
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            return ApiResponse<PedidoResponse>.ErrorResponse($"Erro ao criar pedido: {ex.Message}");
+            return ApiResponse<PedidoResponse>.Error($"Erro ao criar pedido: {ex.Message}");
         }
     }
 
@@ -111,13 +111,13 @@ public class PedidoService : IPedidoService
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (pedido == null)
-                return ApiResponse<PedidoResponse>.ErrorResponse("Pedido não encontrado");
+                return ApiResponse<PedidoResponse>.Error("Pedido não encontrado");
 
-            return ApiResponse<PedidoResponse>.SuccessResponse(pedido.MapToResponse());
+            return ApiResponse<PedidoResponse>.Success(pedido.MapToResponse());
         }
         catch (Exception ex)
         {
-            return ApiResponse<PedidoResponse>.ErrorResponse($"Erro ao buscar pedido: {ex.Message}");
+            return ApiResponse<PedidoResponse>.Error($"Erro ao buscar pedido: {ex.Message}");
         }
     }
 
@@ -133,11 +133,11 @@ public class PedidoService : IPedidoService
 
 
             var pedidosResposta = pedidos.MapToResponse();
-            return ApiResponse<List<PedidoResponse>>.SuccessResponse(pedidosResposta);
+            return ApiResponse<List<PedidoResponse>>.Success(pedidosResposta);
         }
         catch (Exception ex)
         {
-            return ApiResponse<List<PedidoResponse>>.ErrorResponse($"Erro ao buscar pedidos: {ex.Message}");
+            return ApiResponse<List<PedidoResponse>>.Error($"Erro ao buscar pedidos: {ex.Message}");
         }
     }
 
@@ -153,11 +153,11 @@ public class PedidoService : IPedidoService
                 .ToListAsync();
 
             var pedidosResposta = pedidos.MapToResponse();
-            return ApiResponse<List<PedidoResponse>>.SuccessResponse(pedidosResposta);
+            return ApiResponse<List<PedidoResponse>>.Success(pedidosResposta);
         }
         catch (Exception ex)
         {
-            return ApiResponse<List<PedidoResponse>>.ErrorResponse($"Erro ao buscar pedidos do cliente: {ex.Message}");
+            return ApiResponse<List<PedidoResponse>>.Error($"Erro ao buscar pedidos do cliente: {ex.Message}");
         }
     }
 
@@ -172,7 +172,7 @@ public class PedidoService : IPedidoService
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (pedido == null)
-                return ApiResponse<bool>.ErrorResponse("Pedido não encontrado");
+                return ApiResponse<bool>.Error("Pedido não encontrado");
 
             foreach (var item in pedido.Itens)
             {
@@ -180,7 +180,7 @@ public class PedidoService : IPedidoService
                     .FirstOrDefaultAsync(e => e.ProdutoId == item.ProdutoId);
 
                 if (estoque == null)
-                    return ApiResponse<bool>.ErrorResponse("");
+                    return ApiResponse<bool>.Error("");
 
                 if (estoque.EhIlimitado())
                 {
@@ -197,12 +197,12 @@ public class PedidoService : IPedidoService
             await _dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            return ApiResponse<bool>.SuccessResponse(true, "Pedido removido com sucesso");
+            return ApiResponse<bool>.Success(true, "Pedido removido com sucesso");
         }
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            return ApiResponse<bool>.ErrorResponse($"Erro ao remover pedido: {ex.Message}");
+            return ApiResponse<bool>.Error($"Erro ao remover pedido: {ex.Message}");
         }
     }
 }

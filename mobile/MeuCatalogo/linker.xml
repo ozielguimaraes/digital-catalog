@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<linker>
+  <!-- Maui specifics -->
+  <assembly fullname="Microsoft.Maui.Controls">
+    <type fullname="Microsoft.Maui.Controls.Button" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.Label" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.CheckBox" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.CollectionView" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.DatePicker" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.SwipeItem">
+      <field name="BackgroundColorProperty" preserve="all" />
+    </type>
+    <type fullname="Microsoft.Maui.Controls.Editor" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.Entry" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.ListView" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.Picker" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.ProgressBar" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.RadioButton" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.RefreshView" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.SearchBar" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.SearchHandler" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.Shadow" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.Slider" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.Switch" preserve="all" />
+    <type fullname="Microsoft.Maui.Controls.TimePicker" preserve="all" />
+  </assembly>
+
+  <!-- Preserve all ViewModels -->
+  <assembly fullname="MeuCatalogo">
+    <type fullname="MeuCatalogo.Features.*" preserve="all"/>
+  </assembly>
+
+  <!-- MVVM Toolkit -->
+  <assembly fullname="CommunityToolkit.Mvvm">
+    <type fullname="CommunityToolkit.Mvvm.*" preserve="all"/>
+  </assembly>
+
+  <!-- Flunt -->
+  <assembly fullname="Flunt">
+    <type fullname="Flunt.Notifications.Notifiable" preserve="all"/>
+    <type fullname="Flunt.Validations.Contract" preserve="all"/>
+  </assembly>
+
+  <!-- Refit -->
+  <assembly fullname="Refit">
+    <type fullname="Refit.*" preserve="all"/>
+  </assembly>
+
+  <!-- Plugin.Fingerprint -->
+  <assembly fullname="Plugin.Fingerprint">
+    <type fullname="Plugin.Fingerprint.*" preserve="all"/>
+  </assembly>
+
+  <!-- Ensure System.Reflection keeps useful types -->
+  <assembly fullname="System.Private.CoreLib">
+    <type fullname="System.Reflection.*" preserve="all"/>
+  </assembly>
+
+</linker>

@@ -1,3 +1,5 @@
+using Microsoft.Maui.Networking;
+
 namespace MeuCatalogo.Extensions;
 
 public static class NetworkAccessExtension

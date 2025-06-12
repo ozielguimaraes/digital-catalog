@@ -7,6 +7,6 @@ public interface IAuthService
 {
     Task<bool> IsAuthenticatedAsync();
     bool IsAuthenticated();
-    Task<UserResponse?> SignupAsync(SignupRequest request, CancellationToken cancellationToken = default);
-    Task<SigninResponse> SigninAsync(SigninRequest request, CancellationToken cancellationToken = default);
+    Task<ApiResponse<UserResponse>> SignupAsync(SignupRequest request, CancellationToken cancellationToken = default);
+    Task<ApiResponse<SigninResponse>> SigninAsync(SigninRequest request, CancellationToken cancellationToken = default);
 }

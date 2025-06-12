@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Maui;
 using MeuCatalogo.Extensions;
+using MeuCatalogo.Infrastructure;
 using Microsoft.Extensions.Logging;
+using Plugin.Fingerprint;
 
 namespace MeuCatalogo;
 
@@ -12,6 +14,7 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
+            //.ConfigureSyncfusionToolkit()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -19,11 +22,15 @@ public static class MauiProgram
             });
 
 #if DEBUG
-        builder.Logging.AddDebug();
+        // builder.Logging.AddDebug();
+        // builder.Services.AddLogging(configure => configure.AddDebug());
 #endif
-        builder.Services.AddClientServices("http://catalogo-api.sanyz.com.br/api")
+        builder.Logging.AddConsole();
+        builder.Services.AddClientServices(ApiConstants.BaseUrl)
             .AddApplicationServices()
-            .AddViewModelServices();
+            .AddViewModels();
+
+        builder.Services.AddSingleton(CrossFingerprint.Current);
 
         return builder.Build();
     }

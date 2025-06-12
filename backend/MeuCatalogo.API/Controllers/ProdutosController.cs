@@ -2,128 +2,115 @@ using MeuCatalogo.Application.DTOs;
 using MeuCatalogo.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
+using MeuCatalogo.Application.DTOs.Responses;
 
 namespace MeuCatalogo.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ProdutosController : ControllerBase
+public class ProdutosController : BaseApiController
 {
     private readonly IProdutoService _produtoService;
+    private readonly ILogger<ProdutosController> _logger;
 
-    public ProdutosController(IProdutoService produtoService)
+    public ProdutosController(IProdutoService produtoService, ILogger<ProdutosController> logger)
     {
         _produtoService = produtoService;
+        _logger = logger;
     }
 
     [HttpGet("catalogo/{catalogoId}")]
-    public async Task<ActionResult<IEnumerable<ProdutoDto>>> GetProdutosByCatalogo(Guid catalogoId)
+    public async Task<ActionResult<IEnumerable<ProdutoDto>>> ObterPorCatalogo(Guid catalogoId)
     {
-        try
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var produtos = await _produtoService.GetProdutosByCatalogoIdAsync(catalogoId, userId);
-            return Ok(produtos);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        _logger.LogInformation("Obtendo produtos do catálogo {CatalogoId} para o usuário {UserId}", catalogoId, userId);
+        var produtos = await _produtoService.GetProdutosByCatalogoIdAsync(catalogoId, userId);
+        return OkResponse(produtos);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<ProdutoDto>> GetProduto(Guid id)
+    public async Task<ActionResult<ProdutoDto>> Obter(Guid id)
     {
-        try
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        _logger.LogInformation("Obtendo produto {ProdutoId} para o usuário {UserId}", id, userId);
+        var produto = await _produtoService.GetProdutoByIdAsync(id, userId);
+
+        if (produto == null)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var produto = await _produtoService.GetProdutoByIdAsync(id, userId);
-            return Ok(produto);
+            _logger.LogWarning("Produto {ProdutoId} não encontrado para o usuário {UserId}", id, userId);
+            return NotFoundResponse("Produto não encontrado");
         }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+
+        return OkResponse(produto);
     }
 
     [HttpPost]
-    public async Task<ActionResult<ProdutoDto>> CreateProduto(ProdutoCreateDto produtoDto)
+    public async Task<ActionResult<ProdutoDto>> Adicionar([FromBody] ProdutoCreateDto produtoDto)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var produto = await _produtoService.CreateProdutoAsync(produtoDto, userId);
-            return CreatedAtAction(nameof(GetProduto), new { id = produto.Id }, produto);
+            _logger.LogWarning("ModelState inválido ao adicionar produto: {@ModelState}", ModelState);
+            return ValidationProblemResponse(ModelState);
         }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        _logger.LogInformation("Adicionando novo produto para o usuário {UserId}", userId);
+        var produto = await _produtoService.CreateProdutoAsync(produtoDto, userId);
+        return CreatedResponse($"api/produtos/{produto.Id}", produto);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<ProdutoDto>> UpdateProduto(Guid id, ProdutoUpdateDto produtoDto)
+    public async Task<ActionResult<ProdutoDto>> Atualizar(Guid id, [FromBody] ProdutoUpdateDto produtoDto)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var produto = await _produtoService.UpdateProdutoAsync(id, produtoDto, userId);
-            return Ok(produto);
+            _logger.LogWarning("ModelState inválido ao atualizar produto: {@ModelState}", ModelState);
+            return ValidationProblemResponse(ModelState);
         }
-        catch (UnauthorizedAccessException ex)
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        _logger.LogInformation("Atualizando produto {ProdutoId} para o usuário {UserId}", id, userId);
+        var produto = await _produtoService.UpdateProdutoAsync(id, produtoDto, userId);
+
+        if (produto == null)
         {
-            return Forbid(ex.Message);
+            _logger.LogWarning("Produto {ProdutoId} não encontrado para atualização pelo usuário {UserId}", id, userId);
+            return NotFoundResponse("Produto não encontrado para atualização");
         }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+
+        return UpdatedResponse(produto);
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteProduto(Guid id)
+    public async Task<ActionResult> Remover(Guid id)
     {
-        try
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            await _produtoService.DeleteProdutoAsync(id, userId);
-            return NoContent();
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        _logger.LogInformation("Removendo produto {ProdutoId} para o usuário {UserId}", id, userId);
+        await _produtoService.DeleteProdutoAsync(id, userId);
+        return DeletedResponse();
     }
 
     [HttpPut("{id}/estoque")]
-    public async Task<ActionResult<EstoqueDto>> UpdateEstoque(Guid id, EstoqueUpdateDto estoqueDto)
+    public async Task<ActionResult<EstoqueDto>> AtualizarEstoque(Guid id, [FromBody] EstoqueUpdateDto estoqueDto)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var estoque = await _produtoService.UpdateEstoqueAsync(id, estoqueDto, userId);
-            return Ok(estoque);
+            _logger.LogWarning("ModelState inválido ao atualizar estoque: {@ModelState}", ModelState);
+            return ValidationProblemResponse(ModelState);
         }
-        catch (UnauthorizedAccessException ex)
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        _logger.LogInformation("Atualizando estoque do produto {ProdutoId} para o usuário {UserId}", id, userId);
+        var estoque = await _produtoService.UpdateEstoqueAsync(id, estoqueDto, userId);
+
+        if (estoque == null)
         {
-            return Forbid(ex.Message);
+            _logger.LogWarning("Produto {ProdutoId} não encontrado para atualização de estoque pelo usuário {UserId}", id, userId);
+            return NotFoundResponse("Produto não encontrado para atualização de estoque");
         }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+
+        return UpdatedResponse(estoque);
     }
 }

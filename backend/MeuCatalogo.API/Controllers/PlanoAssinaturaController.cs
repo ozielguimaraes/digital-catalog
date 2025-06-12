@@ -2,6 +2,7 @@ using MeuCatalogo.Application.DTOs;
 using MeuCatalogo.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -11,148 +12,162 @@ namespace MeuCatalogo.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PlanoAssinaturaController : ControllerBase
+[Authorize]
+public class PlanoAssinaturaController : BaseApiController
 {
     private readonly IPlanoAssinaturaService _planoAssinaturaService;
+    private readonly ILogger<PlanoAssinaturaController> _logger;
 
-    public PlanoAssinaturaController(IPlanoAssinaturaService planoAssinaturaService)
+    public PlanoAssinaturaController(IPlanoAssinaturaService planoAssinaturaService, ILogger<PlanoAssinaturaController> logger)
     {
         _planoAssinaturaService = planoAssinaturaService;
+        _logger = logger;
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<PlanoAssinaturaDto>>> ObterTodos()
     {
+        _logger.LogInformation("Obtendo todos os planos de assinatura");
         var planos = await _planoAssinaturaService.ObterTodosAsync();
-        return Ok(planos);
+        return OkResponse(planos);
     }
 
     [HttpGet("{id}")]
+    [AllowAnonymous]
     public async Task<ActionResult<PlanoAssinaturaDto>> ObterPorId(Guid id)
     {
-        try
+        _logger.LogInformation("Obtendo plano de assinatura {PlanoId}", id);
+
+        var plano = await _planoAssinaturaService.ObterPorIdAsync(id);
+        if (plano == null)
         {
-            var plano = await _planoAssinaturaService.ObterPorIdAsync(id);
-            return Ok(plano);
+            _logger.LogWarning("Plano de assinatura {PlanoId} não encontrado", id);
+            return NotFoundResponse("Plano de assinatura não encontrado");
         }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+
+        return OkResponse(plano);
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<PlanoAssinaturaDto>> Criar(PlanoAssinaturaCreateDto planoDto)
+    public async Task<ActionResult<PlanoAssinaturaDto>> Criar([FromBody] PlanoAssinaturaCreateDto planoDto)
     {
+        if (!ModelState.IsValid)
+        {
+            _logger.LogWarning("ModelState inválido ao criar plano: {@ModelState}", ModelState);
+            return ValidationProblemResponse(ModelState);
+        }
+
+        _logger.LogInformation("Criando novo plano de assinatura");
         var plano = await _planoAssinaturaService.CriarAsync(planoDto);
-        return CreatedAtAction(nameof(ObterPorId), new { id = plano.Id }, plano);
+        return CreatedResponse(Url.Action(nameof(ObterPorId), new { id = plano.Id }), plano);
     }
 
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<PlanoAssinaturaDto>> Atualizar(Guid id, PlanoAssinaturaUpdateDto planoDto)
+    public async Task<ActionResult<PlanoAssinaturaDto>> Atualizar(Guid id, [FromBody] PlanoAssinaturaUpdateDto planoDto)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            var plano = await _planoAssinaturaService.AtualizarAsync(id, planoDto);
-            return Ok(plano);
+            _logger.LogWarning("ModelState inválido ao atualizar plano: {@ModelState}", ModelState);
+            return ValidationProblemResponse(ModelState);
         }
-        catch (KeyNotFoundException ex)
+
+        _logger.LogInformation("Atualizando plano de assinatura {PlanoId}", id);
+
+        var plano = await _planoAssinaturaService.AtualizarAsync(id, planoDto);
+        if (plano == null)
         {
-            return NotFound(ex.Message);
+            _logger.LogWarning("Plano de assinatura {PlanoId} não encontrado para atualização", id);
+            return NotFoundResponse("Plano de assinatura não encontrado");
         }
+
+        return UpdatedResponse(plano);
     }
 
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult> Excluir(Guid id)
     {
-        try
+        _logger.LogInformation("Excluindo plano de assinatura {PlanoId}", id);
+
+        var resultado = await _planoAssinaturaService.ExcluirAsync(id);
+        if (resultado)
         {
-            var resultado = await _planoAssinaturaService.ExcluirAsync(id);
-            if (resultado)
-            {
-                return NoContent();
-            }
-            return NotFound($"Plano de assinatura com ID {id} não encontrado.");
+            return DeletedResponse();
         }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+
+        _logger.LogWarning("Plano de assinatura {PlanoId} não encontrado para exclusão", id);
+        return NotFoundResponse("Plano de assinatura não encontrado");
     }
 
     [HttpGet("meu-plano")]
-    [Authorize]
     public async Task<ActionResult<PlanoAssinaturaDto>> ObterMeuPlano()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var plano = await _planoAssinaturaService.ObterPlanoAtivoAsync(userId);
+        _logger.LogInformation("Obtendo plano ativo do usuário {UserId}", userId);
 
+        var plano = await _planoAssinaturaService.ObterPlanoAtivoAsync(userId);
         if (plano == null)
         {
-            return NotFound("Você não possui um plano ativo.");
+            return NotFoundResponse("Você não possui um plano ativo.");
         }
 
-        return Ok(plano);
+        return OkResponse(plano);
     }
 
     [HttpGet("minha-assinatura")]
-    [Authorize]
     public async Task<ActionResult<AssinaturaUsuarioDto>> ObterMinhaAssinatura()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var assinatura = await _planoAssinaturaService.ObterAssinaturaAtivaAsync(userId);
+        _logger.LogInformation("Obtendo assinatura ativa do usuário {UserId}", userId);
 
+        var assinatura = await _planoAssinaturaService.ObterAssinaturaAtivaAsync(userId);
         if (assinatura == null)
         {
-            return NotFound("Você não possui uma assinatura ativa.");
+            return NotFoundResponse("Você não possui uma assinatura ativa.");
         }
 
-        return Ok(assinatura);
+        return OkResponse(assinatura);
     }
 
     [HttpPost("assinar/{planoId}")]
-    [Authorize]
-    public async Task<ActionResult<AssinaturaUsuarioDto>> AssinarPlano(Guid planoId, [FromBody] AssinaturaUsuarioCreateDto assinaturaDto)
+    public async Task<ActionResult<AssinaturaUsuarioDto>> AssinarPlano(Guid planoId,
+        [FromBody] AssinaturaUsuarioCreateDto assinaturaDto)
     {
-        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        _logger.LogInformation("Usuário {UserId} assinando plano {PlanoId}", userId, planoId);
 
-        try
+        if (!ModelState.IsValid)
         {
-            var assinatura = await _planoAssinaturaService.AssinarPlanoAsync(
-                userId,
-                planoId,
-                assinaturaDto.RenovacaoAutomatica,
-                assinaturaDto.TransacaoId,
-                assinaturaDto.MetodoPagamento,
-                assinaturaDto.ValorPago);
+            _logger.LogWarning("ModelState inválido ao assinar plano: {@ModelState}", ModelState);
+            return ValidationProblemResponse(ModelState);
+        }
 
-            return Ok(assinatura);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var assinatura = await _planoAssinaturaService.AssinarPlanoAsync(
+            userId,
+            planoId,
+            assinaturaDto.RenovacaoAutomatica,
+            assinaturaDto.TransacaoId,
+            assinaturaDto.MetodoPagamento,
+            assinaturaDto.ValorPago);
+
+        return OkResponse(assinatura);
     }
 
     [HttpPost("cancelar")]
-    [Authorize]
     public async Task<ActionResult> CancelarAssinatura([FromBody] string motivo)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var resultado = await _planoAssinaturaService.CancelarAssinaturaAsync(userId, motivo);
+        _logger.LogInformation("Usuário {UserId} solicitando cancelamento de assinatura", userId);
 
+        var resultado = await _planoAssinaturaService.CancelarAssinaturaAsync(userId, motivo);
         if (resultado)
         {
             return NoContent();
         }
 
-        return NotFound("Você não possui uma assinatura ativa para cancelar.");
+        return NotFoundResponse("Você não possui uma assinatura ativa para cancelar.");
     }
 }

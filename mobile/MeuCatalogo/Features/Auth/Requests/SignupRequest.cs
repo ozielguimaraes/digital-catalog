@@ -1,3 +1,3 @@
 namespace MeuCatalogo.Features.Auth.Requests;
 
-public class SignupRequest(string Email, string UserName, string Password);
+public record SignupRequest(string Nome, string Email, string UserName, string Password);

@@ -1,60 +1,120 @@
-using System.Linq;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
-using System.Threading.Tasks;
 using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MeuCatalogo.Extensions;
 using MeuCatalogo.Features.Auth.ApiClients;
 using MeuCatalogo.Features.Auth.Requests;
 using MeuCatalogo.Features.Auth.Validators;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Networking;
+using Microsoft.Extensions.Logging;
+using Plugin.Fingerprint.Abstractions;
 
 namespace MeuCatalogo.Features.Auth;
 
-public partial class LoginPageViewModel(IAuthService authService) : BasePageViewModel
+public partial class LoginPageViewModel: BasePageViewModel
 {
-    [ObservableProperty] private string _email;
-    [ObservableProperty] private string _password;
+    private readonly ILogger<LoginPageViewModel> _logger;
+    private readonly IAuthService _authService;
+    private readonly IFingerprint _fingerprint;
+
+    public LoginPageViewModel(ILogger<LoginPageViewModel> logger, IAuthService authService, IFingerprint fingerprint)
+    {
+        _logger = logger;
+        _authService = authService;
+        _fingerprint = fingerprint;
+#if  DEBUG
+        Email = "microzapple@gmail.com";
+        Password = "123456";
+#endif
+    }
+
+    [ObservableProperty] private string? _email;
+    [ObservableProperty] private string? _password;
 
     [RelayCommand]
     private async Task Login()
     {
-        if (Connectivity.NetworkAccess.HasInternetConnection())
+        try
         {
-            await Toast.Make("Sem conexão com a internet", CommunityToolkit.Maui.Core.ToastDuration.Long).Show();
-            return;
+            if (HasInternetConnection())
+            {
+                await Toast.Make("Sem conexão com a internet", ToastDuration.Long).Show();
+                return;
+            }
+
+            var request = new SigninRequest(UserName: Email, Password: Password);
+
+            var validator = new SigninValidator(request);
+            if (!validator.IsValid)
+            {
+                var messages = validator.Notifications.Select(x => x.Message);
+                var sb = new StringBuilder();
+
+                foreach (var message in messages)
+                    sb.Append($"{message}\n");
+
+                await Application.Current.MainPage.DisplayAlert("Atenção", sb.ToString(), "OK");
+                return;
+            }
+
+            var signinResponse = await _authService.SigninAsync(request);
+
+            if (signinResponse.RetornouComErro)
+            {
+                await Toast.Make(signinResponse.MensageDeErro!, ToastDuration.Long).Show();
+                return;
+            }
+
+            if (string.IsNullOrEmpty(signinResponse.Dados!.Token))
+            {
+                await Toast.Make("A requição falhou, tente novamente.", ToastDuration.Long).Show();
+                return;
+            }
+
+            Application.Current.MainPage = new AppShell();
         }
-
-        var request = new SigninRequest(UserName: Email, Password: Password);
-
-        var validator = new SigninValidator(request);
-        if (!validator.IsValid)
+        catch (Exception ex)
         {
-            var messages = validator.Notifications.Select(x => x.Message);
-            var sb = new StringBuilder();
+            _logger.LogError(ex.Message);
 
-            foreach (var message in messages)
-                sb.Append($"{message}\n");
-
-            await Shell.Current.DisplayAlert("Atenção", sb.ToString(), "OK");
-            return;
+            Application.Current.MainPage.DisplayAlert("Oops", "Ocorreru um erro inesperado, se persistir contacte o desenvolvedor", "OK");
         }
-
-        var result = await authService.SigninAsync(request);
-
-        if (string.IsNullOrEmpty(result.Token))
-        {
-            await Toast.Make("A requição falhou, tente novamente.", CommunityToolkit.Maui.Core.ToastDuration.Long).Show();
-            return;
-        }
-
-        await Shell.Current.GoToAsync($"//{nameof(MainPage)}");
     }
 
     public void SetupTitle()
     {
         Title = "Login";
+    }
+
+    [RelayCommand]
+    private async Task CreateAccount()
+    {
+
+        //await Shell.Current.GoToAsync($"//{nameof(SignupPage)}");
+    }
+
+    [RelayCommand]
+    private async Task ValidateBiometric()
+    {
+        bool isValid = await _fingerprint.IsAvailableAsync();
+
+        if (!isValid)
+        {
+            await Shell.Current.DisplayAlert("Atenção!", "Dispositivo não contém sensor biométrica", "OK");
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(Preferences.Default.Get("token", string.Empty)))
+        {
+            var request = new AuthenticationRequestConfiguration("Validação biométrica", "Precisamos validar sua biometria para prosseguir");
+            var result = await _fingerprint.AuthenticateAsync(request);
+            if (result.Authenticated)
+            {
+                await Shell.Current.GoToAsync($"//{nameof(MainPage)}");
+            }
+            else
+                await Shell.Current.DisplayAlert("Não autenticado", "Acesso negado", "OK");
+        }
     }
 }

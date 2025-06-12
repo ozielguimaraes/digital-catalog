@@ -5,11 +5,11 @@ public partial class AppShell : Shell
     public AppShell()
     {
         InitializeComponent();
+        InitializeRouting();
     }
 
     private static void InitializeRouting()
     {
-        //Routing.RegisterRoute("Login", typeof(LoginView));
-        // Routing.RegisterRoute("Checkout", typeof(CheckoutView));
+        Routing.RegisterRoute(nameof(MainPage), typeof(MainPage));
     }
 }

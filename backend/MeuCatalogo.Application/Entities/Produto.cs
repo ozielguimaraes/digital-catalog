@@ -13,7 +13,7 @@ public class Produto : BaseEntity
     public decimal Preco { get; set; }
     public decimal? PrecoComDesconto { get; set; }
     public string? InformacoesAdicionais { get; set; }
-    public Estoque Estoque { get; set; }
+    public Estoque? Estoque { get; set; }
     public ICollection<Variacao> Variacoes { get; set; }
     public ICollection<ItemPedido> ItensPedido { get; set; }
 

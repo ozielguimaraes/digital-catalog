@@ -3,100 +3,101 @@
     x:Class="MeuCatalogo.Features.Auth.LoginPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:input="clr-namespace:InputKit.Shared.Controls;assembly=InputKit.Maui"
-    xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
-    xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-    xmlns:validation="clr-namespace:InputKit.Shared.Validations;assembly=InputKit.Maui"
     xmlns:viewModel="clr-namespace:MeuCatalogo.Features.Auth"
+    xmlns:system="clr-namespace:System;assembly=System.Runtime"
     x:DataType="viewModel:LoginPageViewModel"
-    BackgroundColor="#00793D">
+    BackgroundColor="{StaticResource Primary}">
 
-    <Grid RowDefinitions="*,*">
-        <Image HeightRequest="150" Source="logo.png" />
-
-        <Border
-            Grid.Row="1"
-            Margin="0,0,0,-2"
-            BackgroundColor="White">
+     <Grid ColumnDefinitions="0.5*, 0.5*" RowDefinitions="0.3*, 0.7*"
+              Background="{OnPlatform Default=Transparent, WinUI=#83E9EE,MacCatalyst=#83E9EE}">
+        <Border  Grid.ColumnSpan="{OnPlatform Default=2, WinUI=1, MacCatalyst=1}"
+                 Stroke="Transparent"
+                 Background="{OnPlatform Default=#ede8e2,WinUI=Transparent, MacCatalyst=Transparent}"
+                 Grid.RowSpan="{OnPlatform Default=1, WinUI=2, MacCatalyst=2}">
             <Border.StrokeShape>
-                <RoundRectangle CornerRadius="20,20,0,0" />
+                <RoundRectangle CornerRadius="0,0,100,100"/>
             </Border.StrokeShape>
+            <Image Source="logo.png"
+                   Grid.Row="0"
+                   Grid.Column="0"
+                   HorizontalOptions="Center"
+                   Aspect="AspectFit"/>
+        </Border>
 
-            <VerticalStackLayout
-                Padding="20"
-                Spacing="30"
-                VerticalOptions="Center">
+        <Border Grid.Column="{OnPlatform Default=0, WinUI=1, MacCatalyst=1}"
+                Margin="18,0"
+                Background="White"
+                  Grid.Row="{OnPlatform Default=1, WinUI=0,MacCatalyst=0}"
+                  VerticalOptions="{OnPlatform Default=Start, WinUI=Center , MacCatalyst=Center}"
+                  Grid.ColumnSpan="{OnPlatform Default=2, WinUI=1, MacCatalyst=1}"
+                  Grid.RowSpan="{OnPlatform Default=1, WinUI=2, MacCatalyst=2}" >
+            <Grid IsClippedToBounds="True" RowDefinitions="90,*,*,*,*,*,*,*"
+                  Padding="16">
+                <!-- <Grid.BindingContext> -->
+                <!--     <local:DataFormViewModel/> -->
+                <!-- </Grid.BindingContext> -->
+                <Label Padding="0,10,0,0"
+                       HorizontalOptions="Center" HorizontalTextAlignment="Center" VerticalTextAlignment="Start">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="Bem vindo de volta" FontSize="32" FontAttributes="Bold"/>
+                            <Span Text="{x:Static system:Environment.NewLine}"/>
+                            <Span Text="Faça login na sua conta" FontSize="14"/>
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
 
-                <input:FormView>
-                    <material:TextField
-                        Title="E-mail"
-                        AccentColor="Black"
-                        AllowClear="True"
-                        Icon="{FontImageSource FontFamily=MaterialRegular,
-                                               Glyph={x:Static m:MaterialRegular.Email}}"
-                        Text="{Binding Email}">
-                        <validation:RequiredValidation Message="E-mail é obrigatório" />
-                        <validation:RegexValidation Message="Endereço de e-mail inválido" Pattern="{x:Static input:AdvancedEntry.REGEX_EMAIL}" />
-                    </material:TextField>
+                <Label Grid.Row="1"
+                       Text="Email"
+                       TextColor="{StaticResource Gray600}" />
+                <Entry Grid.Row="2"
+                       Text="{Binding Email}"
+                       Keyboard="Email"
+                       ReturnType="Next" />
 
-                    <material:TextField
-                        Title="Password"
-                        AccentColor="Black"
-                        AllowClear="True"
-                        Icon="{FontImageSource FontFamily=MaterialRegular,
-                                               Glyph={x:Static m:MaterialRegular.Key}}"
-                        IsPassword="True"
-                        Text="{Binding Password}">
-                        <validation:RequiredValidation Message="Senha é obrigatório" />
-                        <material:TextField.Attachments>
-                            <material:TextFieldPasswordShowHideAttachment />
-                        </material:TextField.Attachments>
-                    </material:TextField>
+                <Label Grid.Row="3"
+                       Text="Senha"
+                       TextColor="{StaticResource Gray600}" />
+                <Entry Grid.Row="4"
+                       Text="{Binding Password}"
+                       MaxLength="50"
+                       Keyboard="Password"
+                       ReturnType="Done" />
 
-                    <Grid Margin="0,15,0,0">
-                        <Button
-                            input:FormView.IsSubmitButton="True"
-                            BackgroundColor="#D95716"
-                            Command="{Binding LoginCommand}"
-                            CornerRadius="20"
-                            FontAttributes="Bold"
-                            FontSize="Medium"
-                            Text="LOGIN">
-                            <Button.Triggers>
-                                <DataTrigger
-                                    Binding="{Binding LoginCommand.IsRunning}"
-                                    TargetType="Button"
-                                    Value="True">
-                                    <Setter Property="Text" Value="" />
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
+                <!-- <Grid ColumnDefinitions="0.5*,0.5*" Grid.Row="5" Padding="12,0,0,0"  VerticalOptions="Start"> -->
+                <!--     <HorizontalStackLayout VerticalOptions="Center" Padding="10,0,0,0" > -->
+                <!--         <CheckBox Color="{StaticResource Primary}"/> -->
+                <!--         <Label  Text="Lembrar login"  FontSize="12" VerticalOptions="Center" /> -->
+                <!--     </HorizontalStackLayout> -->
+                <!--     <Label Text="Esqueci minha senha" Grid.Column="1"  TextColor="{StaticResource Primary}" HorizontalTextAlignment="Center" Padding="10,0,0,0" FontSize="12"  VerticalOptions="Center" /> -->
+                <!-- </Grid> -->
 
-                        <ActivityIndicator
-                            HorizontalOptions="Center"
-                            IsRunning="{Binding LoginCommand.IsRunning}"
-                            IsVisible="{Binding LoginCommand.IsRunning}"
-                            VerticalOptions="Center"
-                            Color="White" />
+                <Button Text="LOGIN" x:Name="loginButton"
+                        Grid.Row="6"
+                        VerticalOptions="End"
+                        HorizontalOptions="Fill" Margin="20,0,20,0" CornerRadius="10"
+                        Padding="0"  FontAttributes="Bold"
+                        Background="{StaticResource Primary}"
+                        Command="{Binding LoginCommand}" />
 
-                    </Grid>
-
-                </input:FormView>
-
-                <Button
-                    BackgroundColor="White"
-                    Command="{Binding ValidateBiometricCommand}"
-                    FontSize="Medium"
-                    Text="Biometric"
-                    TextColor="#D95716" />
-
-                <Button
-                    BackgroundColor="White"
-                    Command="{Binding CreateAccountCommand}"
-                    FontSize="Medium"
-                    Text="Create Account"
-                    TextColor="#D95716" />
-            </VerticalStackLayout>
+                <Label Grid.Row="7" Padding="0,12,0,0"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       FontSize="14">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="Não possui uma conta?   " />
+                            <Span Text="Cadastrar" TextDecorations="Underline" TextColor="{StaticResource Primary}"/>
+                        </FormattedString>
+                    </Label.FormattedText>
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding CreateAccountCommand}" NumberOfTapsRequired="1" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </Grid>
         </Border>
     </Grid>
+    <!-- <ContentPage.Behaviors> -->
+    <!--     <local:LoginFormBehavior/> -->
+    <!-- </ContentPage.Behaviors> -->
 </ContentPage>

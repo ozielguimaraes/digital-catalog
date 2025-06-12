@@ -1,10 +1,11 @@
 namespace MeuCatalogo.Features.Auth;
 
-public partial class LoginPage : ContentPage
+public partial class SignupPage : ContentPage
 {
-    public LoginPage(LoginPageViewModel viewModel)
+    public SignupPage(SignupPageViewModel viewModel)
     {
         InitializeComponent();
         BindingContext = viewModel;
     }
 }
+
