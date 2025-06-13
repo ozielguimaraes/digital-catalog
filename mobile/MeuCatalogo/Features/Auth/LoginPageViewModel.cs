@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using System.Text;
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core;
@@ -7,12 +6,13 @@ using CommunityToolkit.Mvvm.Input;
 using MeuCatalogo.Features.Auth.ApiClients;
 using MeuCatalogo.Features.Auth.Requests;
 using MeuCatalogo.Features.Auth.Validators;
+using MeuCatalogo.Features.Catalogo;
 using Microsoft.Extensions.Logging;
 using Plugin.Fingerprint.Abstractions;
 
 namespace MeuCatalogo.Features.Auth;
 
-public partial class LoginPageViewModel: BasePageViewModel
+public sealed partial class LoginPageViewModel : BasePageViewModel
 {
     private readonly ILogger<LoginPageViewModel> _logger;
     private readonly IAuthService _authService;
@@ -82,15 +82,9 @@ public partial class LoginPageViewModel: BasePageViewModel
         }
     }
 
-    public void SetupTitle()
-    {
-        Title = "Login";
-    }
-
     [RelayCommand]
     private async Task CreateAccount()
     {
-
         //await Shell.Current.GoToAsync($"//{nameof(SignupPage)}");
     }
 
@@ -111,7 +105,7 @@ public partial class LoginPageViewModel: BasePageViewModel
             var result = await _fingerprint.AuthenticateAsync(request);
             if (result.Authenticated)
             {
-                await Shell.Current.GoToAsync($"//{nameof(MainPage)}");
+                await Shell.Current.GoToAsync($"//{nameof(CatalogoListaPage)}");
             }
             else
                 await Shell.Current.DisplayAlert("Não autenticado", "Acesso negado", "OK");

@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using MeuCatalogo.Features.Auth.ApiClients;
 using MeuCatalogo.Features.Auth.Requests;
 using MeuCatalogo.Features.Auth.Validators;
+using MeuCatalogo.Features.Catalogo;
 using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Features.Auth;
@@ -50,7 +51,7 @@ public partial class SignupPageViewModel : BasePageViewModel
                 return;
             }
 
-            await Shell.Current.GoToAsync($"//{nameof(MainPage)}");
+            await Shell.Current.GoToAsync($"//{nameof(CatalogoListaPage)}");
         }
         catch (Exception ex)
         {

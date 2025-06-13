@@ -2,5 +2,10 @@ namespace MeuCatalogo.Features.Catalogo.Requests;
 
 public class CatalogoCreateRequest
 {
-    public string Nome { get; set; }
+    public CatalogoCreateRequest(string nome)
+    {
+        Nome = nome;
+    }
+
+    public string Nome { get; init; }
 }

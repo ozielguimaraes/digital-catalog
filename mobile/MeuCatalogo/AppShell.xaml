@@ -3,13 +3,25 @@
     x:Class="MeuCatalogo.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:MeuCatalogo"
+    xmlns:catalogo="clr-namespace:MeuCatalogo.Features.Catalogo"
+    xmlns:produto="clr-namespace:MeuCatalogo.Features.Produto"
     Shell.FlyoutBehavior="Flyout"
-    Title="MeuCatalogo">
+    Title="Meu Catálogo">
 
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        Title="Catálogos"
+        ContentTemplate="{DataTemplate catalogo:CatalogoListaPage}"
+        Route="CatalogoListaPage" />
+    <!-- -->
+    <!-- <ShellContent -->
+    <!--     Title="Produtos" -->
+    <!--     ContentTemplate="{DataTemplate produto:ProdutoListaPage}" -->
+    <!--     Route="MainPage" /> -->
 
+    <!-- Menu de Sair -->
+    <MenuItem
+        Text="Sair"
+        Clicked="OnLogoutClicked"
+        IconImageSource="logout.png"
+    />
 </Shell>

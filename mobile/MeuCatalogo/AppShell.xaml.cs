@@ -1,4 +1,6 @@
-﻿namespace MeuCatalogo;
+﻿using MeuCatalogo.Features.Auth;
+
+namespace MeuCatalogo;
 
 public partial class AppShell : Shell
 {
@@ -10,6 +12,11 @@ public partial class AppShell : Shell
 
     private static void InitializeRouting()
     {
-        Routing.RegisterRoute(nameof(MainPage), typeof(MainPage));
+        //Routing.RegisterRoute(nameof(Catal), typeof(MainPage));
+    }
+
+    private async void OnLogoutClicked(object? sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync($"//{nameof(LoginPage)}");
     }
 }

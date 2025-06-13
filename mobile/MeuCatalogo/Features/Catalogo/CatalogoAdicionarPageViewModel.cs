@@ -1,8 +1,7 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MeuCatalogo.Features.Catalogo.ApiClients;
-using MeuCatalogo.Features.Catalogo.Responses;
+using MeuCatalogo.Features.Catalogo.Requests;
 using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Features.Catalogo;
@@ -16,36 +15,38 @@ public sealed partial class CatalogoAdicionarPageViewModel : BasePageViewModel
     {
         _logger = logger;
         _catalogoService = catalogoService;
-        Catalogos = [];
     }
 
-    [ObservableProperty] private ObservableCollection<CatalogoResponse> _catalogos;
+    [ObservableProperty] private string _nome;
 
     [RelayCommand]
-    private async Task CarregarCatalogosAsync()
+    private async Task Salvar()
     {
         try
         {
-            var response = await _catalogoService.GetCatalogosByUserIdAsync();
+            //validations
+
+            if (string.IsNullOrWhiteSpace(Nome))
+            {
+                await Application.Current.MainPage.DisplayAlert("Erro", "Campo Nome é obrigatório", "OK");
+
+                return;
+            }
+
+            var request = new CatalogoCreateRequest(Nome);
+
+            var response = await _catalogoService.CreateCatalogoAsync(request);
             if (response.RetornouComErro)
             {
                 await Application.Current.MainPage.DisplayAlert("Erro", response.ProblemDetails!.Title, "OK");
                 return;
             }
 
-            Catalogos.Clear();
-            foreach (var item in response.Dados!)
-                Catalogos.Add(item);
+            await Shell.Current.GoToAsync($"/{nameof(CatalogoListaPage)}");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao carregar catálogos.");
+            _logger.LogError(ex, "Error salvar catálogo");
         }
-    }
-
-    [RelayCommand]
-    private async Task Adicionar()
-    {
-        return Shell.Current.GoToAsync($"/{nameof(Capge)}");
     }
 }

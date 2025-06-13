@@ -2,7 +2,7 @@ namespace MeuCatalogo.Features.Catalogo;
 
 public partial class CatalogoListaPage
 {
-    public CatalogoListaPage(CatalagoListaPageViewModel viewModel)
+    public CatalogoListaPage(CatalogoListaPageViewModel viewModel)
     {
         InitializeComponent();
         BindingContext = viewModel;

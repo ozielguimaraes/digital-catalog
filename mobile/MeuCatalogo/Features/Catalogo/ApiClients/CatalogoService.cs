@@ -7,7 +7,7 @@ namespace MeuCatalogo.Features.Catalogo.ApiClients;
 
 public class CatalogoService(ILogger<CatalogoService> logger, ICatalogoApi catalogoApi) : BaseApiService, ICatalogoService
 {
-    public async Task<ApiResponse<ICollection<CatalogoResponse>>> GetCatalogosByUserIdAsync(string userId, CancellationToken ct = default)
+    public async Task<ApiResponse<ICollection<CatalogoResponse>>> GetCatalogosByUserIdAsync(CancellationToken ct = default)
     {
         try
         {
@@ -27,7 +27,7 @@ public class CatalogoService(ILogger<CatalogoService> logger, ICatalogoApi catal
         }
     }
 
-    public async Task<ApiResponse<CatalogoResponse>> ObterCatalogoPorIdAsync(Guid id, string userId, CancellationToken ct = default)
+    public async Task<ApiResponse<CatalogoResponse>> ObterCatalogoPorIdAsync(Guid id, CancellationToken ct = default)
     {
         try
         {
@@ -47,7 +47,7 @@ public class CatalogoService(ILogger<CatalogoService> logger, ICatalogoApi catal
         }
     }
 
-    public async Task<ApiResponse<CatalogoResponse>> CreateCatalogoAsync(CatalogoCreateRequest request, string userId, CancellationToken ct = default)
+    public async Task<ApiResponse<CatalogoResponse>> CreateCatalogoAsync(CatalogoCreateRequest request, CancellationToken ct = default)
     {
         try
         {
@@ -67,7 +67,7 @@ public class CatalogoService(ILogger<CatalogoService> logger, ICatalogoApi catal
         }
     }
 
-    public async Task<ApiResponse<CatalogoResponse>> UpdateCatalogoAsync(Guid id, CatalogoUpdateRequest request, string userId, CancellationToken ct = default)
+    public async Task<ApiResponse<CatalogoResponse>> UpdateCatalogoAsync(Guid id, CatalogoUpdateRequest request, CancellationToken ct = default)
     {
         try
         {
@@ -87,7 +87,7 @@ public class CatalogoService(ILogger<CatalogoService> logger, ICatalogoApi catal
         }
     }
 
-    public async Task<ApiResponse<Guid>> DeleteCatalogoAsync(Guid id, string userId, CancellationToken ct = default)
+    public async Task<ApiResponse<Guid>> DeleteCatalogoAsync(Guid id, CancellationToken ct = default)
     {
         try
         {

@@ -2,11 +2,12 @@ namespace MeuCatalogo.Features.Catalogo.Requests;
 
 public class CatalogoUpdateRequest
 {
-    public Guid Id { get; set; }
-    public string Nome { get; set; }
-}
+    public CatalogoUpdateRequest(Guid id, string nome)
+    {
+        Id = id;
+        Nome = nome;
+    }
 
-public class CatalogoCreateRequest
-{
-    public string Nome { get; set; }
+    public Guid Id { get; init; }
+    public string Nome { get; init; }
 }
