@@ -30,7 +30,7 @@ public class CatalogoService : ICatalogoService
         });
     }
 
-    public async Task<CatalogoDto> ObterCatalogoPorIdAsync(Guid id, string usuarioId)
+    public async Task<CatalogoDto?> ObterCatalogoPorIdAsync(Guid id, string usuarioId)
     {
         var catalogo = await _dbContext.GetCatalogoWithProdutosAsync(id);
         if (catalogo == null || catalogo.UserId != usuarioId)
@@ -85,7 +85,7 @@ public class CatalogoService : ICatalogoService
         return catalogo.MapToDto();
     }
 
-    public async Task<CatalogoDto> UpdateCatalogoAsync(Guid id, CatalogoUpdateDto catalogoDto, string usuarioId)
+    public async Task<CatalogoDto?> UpdateCatalogoAsync(Guid id, CatalogoUpdateDto catalogoDto, string usuarioId)
     {
         var catalogo = await _dbContext.GetCatalogoByIdAsync(id);
         if (catalogo == null || catalogo.UserId != usuarioId)

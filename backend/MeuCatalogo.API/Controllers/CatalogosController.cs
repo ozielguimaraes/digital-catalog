@@ -23,7 +23,7 @@ public class CatalogosController : BaseApiController
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CatalogoDto>>> Obter()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Obtendo catálogos para o usuário {UserId}", userId);
         var catalogos = await _catalogoService.GetCatalogosByUserIdAsync(userId);
         return OkResponse(catalogos);
@@ -32,17 +32,17 @@ public class CatalogosController : BaseApiController
     [HttpGet("{id}")]
     public async Task<ActionResult<CatalogoDto>> Obter(Guid id)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Obtendo catálogo {CatalogoId} para o usuário {UserId}", id, userId);
         var catalogo = await _catalogoService.ObterCatalogoPorIdAsync(id, userId);
 
-        if (catalogo == null)
+        if (catalogo != null)
         {
-            _logger.LogWarning("Catálogo {CatalogoId} não encontrado para o usuário {UserId}", id, userId);
-            return NotFoundResponse("Catálogo não encontrado");
+            return OkResponse(catalogo);
         }
 
-        return OkResponse(catalogo);
+        _logger.LogWarning("Catálogo {CatalogoId} não encontrado para o usuário {UserId}", id, userId);
+        return NotFoundResponse("Catálogo não encontrado");
     }
 
     [HttpPost]
@@ -69,23 +69,23 @@ public class CatalogosController : BaseApiController
             return ValidationProblemResponse(ModelState);
         }
 
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Atualizando catálogo {CatalogoId} para o usuário {UserId}", id, userId);
         var catalogo = await _catalogoService.UpdateCatalogoAsync(id, catalogoDto, userId);
 
-        if (catalogo == null)
+        if (catalogo != null)
         {
-            _logger.LogWarning("Catálogo {CatalogoId} não encontrado para atualização pelo usuário {UserId}", id, userId);
-            return NotFoundResponse("Catálogo não encontrado para atualização");
+            return UpdatedResponse(catalogo);
         }
 
-        return UpdatedResponse(catalogo);
+        _logger.LogWarning("Catálogo {CatalogoId} não encontrado para atualização pelo usuário {UserId}", id, userId);
+        return NotFoundResponse("Catálogo não encontrado para atualização");
     }
 
     [HttpDelete("{id}")]
     public async Task<ActionResult> Remover(Guid id)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Removendo catálogo {CatalogoId} para o usuário {UserId}", id, userId);
         await _catalogoService.DeleteCatalogoAsync(id, userId);
         return DeletedResponse();

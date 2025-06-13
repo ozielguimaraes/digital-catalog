@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace MeuCatalogo.Application.DTOs;
 
 public class CatalogoDto
