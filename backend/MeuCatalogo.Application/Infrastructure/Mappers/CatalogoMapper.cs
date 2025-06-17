@@ -11,6 +11,9 @@ public static class CatalogoMapper
         {
             Id = catalogo.Id,
             Nome = catalogo.Nome,
+            NomeCurto = catalogo.NomeCurto,
+            Email = catalogo.Email,
+            NumeroWhatsapp = catalogo.NumeroWhatsapp,
             Descricao = catalogo.Descricao,
             DataCriacao = catalogo.DataCriacao,
             DataAtualizacao = catalogo.DataAtualizacao

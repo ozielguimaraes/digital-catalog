@@ -23,24 +23,29 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
     [ObservableProperty] private ObservableCollection<CatalogoResponse> _catalogos;
 
     [RelayCommand]
-    private async Task CarregarCatalogosAsync()
+    public async Task CarregarCatalogos()
     {
         try
         {
+            if (IsBusy) return;
+
+            IsBusy = true;
             var response = await _catalogoService.GetCatalogosByUserIdAsync();
             if (response.RetornouComErro)
             {
                 await Application.Current.MainPage.DisplayAlert("Erro", response.ProblemDetails!.Title, "OK");
                 return;
             }
-
             Catalogos.Clear();
-            foreach (var item in response.Dados!)
-                Catalogos.Add(item);
+            Catalogos = new ObservableCollection<CatalogoResponse>(response.Dados!);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao carregar catálogos.");
+            _logger.LogError(ex, "Erro ao carregar catalogos.");
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 
