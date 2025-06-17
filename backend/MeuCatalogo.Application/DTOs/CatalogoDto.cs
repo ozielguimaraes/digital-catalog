@@ -1,23 +1,33 @@
 namespace MeuCatalogo.Application.DTOs;
 
-public class CatalogoDto
+public sealed class CatalogoDto
 {
     public Guid Id { get; set; }
     public string Nome { get; set; }
     public string Descricao { get; set; }
+    public string NomeCurto { get; set; }
+    public string NumeroWhatsapp { get; set; }
+    public string Email { get; set; }
     public DateTime DataCriacao { get; set; }
     public DateTime? DataAtualizacao { get; set; }
     public ICollection<ProdutoDto>? Produtos { get; set; }
 }
 
-public class CatalogoCreateDto
+public sealed class CatalogoCreateDto
 {
     public string Nome { get; set; }
     public string Descricao { get; set; }
+    public string NomeCurto { get; set; }
+    public string NumeroWhatsapp { get; set; }
+    public string Email { get; set; }
 }
 
-public class CatalogoUpdateDto
+public sealed class CatalogoUpdateDto
 {
+    public Guid Id { get; set; }
     public string Nome { get; set; }
     public string Descricao { get; set; }
+    public string NomeCurto { get; set; }
+    public string NumeroWhatsapp { get; set; }
+    public string Email { get; set; }
 }

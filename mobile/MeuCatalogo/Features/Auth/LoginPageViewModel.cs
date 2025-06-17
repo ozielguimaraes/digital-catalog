@@ -72,7 +72,8 @@ public sealed partial class LoginPageViewModel : BasePageViewModel
                 return;
             }
 
-            Application.Current.MainPage = new AppShell();
+            var appShellViewModel = Application.Current.MainPage.Handler.MauiContext.Services.GetService<AppShellViewModel>();
+            Application.Current.MainPage = new AppShell(appShellViewModel);
         }
         catch (Exception ex)
         {
@@ -85,6 +86,7 @@ public sealed partial class LoginPageViewModel : BasePageViewModel
     [RelayCommand]
     private async Task CreateAccount()
     {
+        await Task.CompletedTask;
         //await Shell.Current.GoToAsync($"//{nameof(SignupPage)}");
     }
 

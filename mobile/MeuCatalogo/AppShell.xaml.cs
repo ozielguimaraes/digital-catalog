@@ -1,22 +1,39 @@
 ﻿using MeuCatalogo.Features.Auth;
+using MeuCatalogo.Features.Catalogo;
+using MeuCatalogo.Features.Produto;
 
 namespace MeuCatalogo;
 
 public partial class AppShell : Shell
 {
-    public AppShell()
+    private readonly AppShellViewModel _appShellViewModel;
+
+    public AppShell(AppShellViewModel appShellViewModel)
     {
         InitializeComponent();
-        InitializeRouting();
+        RegisterRoutes();
+        Application.Current!.UserAppTheme = AppTheme.Light;
+        BindingContext = _appShellViewModel = appShellViewModel;
+        Loaded += OnLoaded;
     }
 
-    private static void InitializeRouting()
+    private async void OnLoaded(object? sender, EventArgs e)
     {
-        //Routing.RegisterRoute(nameof(Catal), typeof(MainPage));
+        try
+        {
+            await _appShellViewModel.UpdateUserInfo();
+        }
+        catch (Exception ex)
+        {
+            throw; // TODO handle exception
+        }
     }
 
-    private async void OnLogoutClicked(object? sender, EventArgs e)
+    private static void RegisterRoutes()
     {
-        await Shell.Current.GoToAsync($"//{nameof(LoginPage)}");
+        Routing.RegisterRoute(nameof(CatalogoListaPage), typeof(CatalogoListaPage));
+        Routing.RegisterRoute(nameof(CatalogoAdicionarPage), typeof(CatalogoAdicionarPage));
+
+        Routing.RegisterRoute(nameof(ProdutoListaPage), typeof(ProdutoListaPage));
     }
 }

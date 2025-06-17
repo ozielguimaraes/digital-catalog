@@ -11,7 +11,7 @@ public abstract class BaseApiService
     };
 
     protected const string TokenKey = "auth_token";
-    protected const string UserInfoKey = "user_info_key";
+    public const string UserInfoKey = "user_info_key";
 
     protected static string ObterMensagemErroApi(ApiException apiEx)
     {

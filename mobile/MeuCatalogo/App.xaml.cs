@@ -19,7 +19,9 @@ public partial class App
     {
         if (_authService.IsAuthenticated())
         {
-            return new Window(new AppShell());
+            var appShellViewModel = IPlatformApplication.Current!.Services.GetService<AppShellViewModel>()
+                                    ?? throw new InvalidOperationException("LoginPageViewModel is not registered in the DI container.");
+            return new Window(new AppShell(appShellViewModel));
         }
 
         var loginPageViewModel = IPlatformApplication.Current!.Services.GetService<LoginPageViewModel>()

@@ -13,6 +13,9 @@ public class CatalogoConfiguration : IEntityTypeConfiguration<Catalogo>
 
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.Nome).IsRequired().HasMaxLength(100);
+        builder.Property(x => x.NomeCurto).IsRequired().HasMaxLength(30);
+        builder.Property(x => x.Email).IsRequired().HasMaxLength(100);
+        builder.Property(x => x.NumeroWhatsapp).IsRequired().HasMaxLength(15);
         builder.Property(x => x.Descricao).HasMaxLength(500);
         builder.Property(x => x.UserId).IsRequired().HasMaxLength(36);
         builder.Property(x => x.DataCriacao).IsRequired();

@@ -7,6 +7,9 @@ public class Catalogo : BaseEntity
 {
     public string Nome { get; set; }
     public string Descricao { get; set; }
+    public string NomeCurto { get; set; }
+    public string NumeroWhatsapp { get; set; }
+    public string Email { get; set; }
     public string UserId { get; set; }
     public ApplicationUser User { get; set; }
     public ICollection<Produto> Produtos { get; set; }
@@ -16,11 +19,15 @@ public class Catalogo : BaseEntity
         Produtos = new List<Produto>();
     }
 
-    public Catalogo(string nome, string descricao, string userId) : this()
+    public Catalogo(string nome, string descricao, string userId, string nomeCurto, string numeroWhatsapp, string email) : this()
     {
+        DataCriacao = DateTime.UtcNow;
         Nome = nome;
         Descricao = descricao;
         UserId = userId;
+        NomeCurto = nomeCurto;
+        NumeroWhatsapp = numeroWhatsapp;
+        Email = email;
         Produtos = new List<Produto>();
     }
 }

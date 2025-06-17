@@ -17,8 +17,9 @@ public static class MauiProgram
             //.ConfigureSyncfusionToolkit()
             .ConfigureFonts(fonts =>
             {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont("Lato-Light.ttf", "LatoLight");
+                fonts.AddFont("Lato-Regular.ttf", "LatoRegular");
+                fonts.AddFont("Lato-Bold.ttf", "LatoBold");
             });
 
 #if DEBUG
@@ -29,6 +30,7 @@ public static class MauiProgram
         builder.Services.AddClientServices(ApiConstants.BaseUrl)
             .AddApplicationServices()
             .AddViewModels();
+        builder.Services.AddSingleton<IAppInfo>(AppInfo.Current);
 
         builder.Services.AddSingleton(CrossFingerprint.Current);
 

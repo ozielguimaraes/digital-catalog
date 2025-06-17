@@ -12,13 +12,13 @@
             Padding="30,0"
             Spacing="25">
             <Image
-                Source="x_mark_circle_thin.png"
-                HeightRequest="185"
-                Aspect="AspectFit"
-                SemanticProperties.Description="dot net bot in a hovercraft number nine">
-                <Image.Effects>
-                    <toolkit:IconTintColorBehavior TintColor="{StaticResource Gray400}" />
-                </Image.Effects>
+                Source="ic_x_mark_circle_thin.png"
+                HeightRequest="85"
+                Margin="0,32,0,0"
+                Aspect="AspectFit">
+                <Image.Behaviors>
+                    <toolkit:IconTintColorBehavior TintColor="{StaticResource Primary}" />
+                </Image.Behaviors>
             </Image>
 
             <Label
@@ -36,7 +36,7 @@
                 Text="Adicionar Novo"
                 SemanticProperties.Hint="Navega para tela de adicionar novo catálogo"
                 HorizontalOptions="Fill"
-                Command="{Binding }"/>
+                Command="{Binding AdicionarCommand}"/>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

@@ -57,6 +57,8 @@ public static class ServiceCollectionExtension
 
     public static IServiceCollection AddViewModels(this IServiceCollection services)
     {
+        services.AddTransient<AppShellViewModel>();
+
         // Feature Auth
         services.AddTransient<LoginPage>();
         services.AddTransient<LoginPageViewModel>();

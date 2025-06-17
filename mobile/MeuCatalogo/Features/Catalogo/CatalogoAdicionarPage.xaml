@@ -2,7 +2,39 @@
 
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MeuCatalogo.Features.Catalogo.CatalogoAdicionarPage">
+             xmlns:viewmodel="clr-namespace:MeuCatalogo.Features.Catalogo"
+             xmlns:components="clr-namespace:MeuCatalogo.Components"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="MeuCatalogo.Features.Catalogo.CatalogoAdicionarPage"
+             x:DataType="viewmodel:CatalogoAdicionarPageViewModel">
 
-    <Label Text="Adicionar"></Label>
+    <VerticalStackLayout Margin="16,0">
+        <Label Text="Novo catálogo"
+               Style="{StaticResource Headline}"></Label>
+        <components:CustomEntry Title="Nome"
+                                Text="{Binding Nome}"
+                                MaxLength="50"
+                                ErrorMessage="{Binding NomeErrorMessage}"
+                                HasError="{Binding NomeErrorMessage, Converter={toolkit:IsNotNullConverter}}" />
+        <components:CustomEntry Title="Nome curto"
+                                MaxLength="25"
+                                Text="{Binding NomeCurto}"
+                                ErrorMessage="{Binding NomeCurtoErrorMessage}"
+                                HasError="{Binding NomeCurtoErrorMessage, Converter={toolkit:IsNotNullConverter}}" />
+        <components:CustomEntry Title="Whatsapp"
+                                Text="{Binding NumeroWhatsapp}"
+                                Keyboard="Numeric"
+                                MaxLength="18"
+                                ErrorMessage="{Binding NumeroWhatsappErrorMessage}"
+                                HasError="{Binding NumeroWhatsappErrorMessage, Converter={toolkit:IsNotNullConverter}}" />
+        <components:CustomEntry Title="Email"
+                                Text="{Binding Email}"
+                                Keyboard="Email"
+                                ErrorMessage="{Binding EmailErrorMessage}"
+                                HasError="{Binding EmailErrorMessage, Converter={toolkit:IsNotNullConverter}}" />
+
+        <Button Text="Salvar"
+                    Margin="0,24, 0,0"
+                Command="{Binding SalvarCommand}"></Button>
+    </VerticalStackLayout>
 </ContentPage>

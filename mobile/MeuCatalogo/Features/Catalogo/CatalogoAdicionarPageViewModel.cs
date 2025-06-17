@@ -18,6 +18,16 @@ public sealed partial class CatalogoAdicionarPageViewModel : BasePageViewModel
     }
 
     [ObservableProperty] private string _nome;
+    [ObservableProperty] private string _nomeErrorMessage;
+
+    [ObservableProperty] private string _nomeCurto;
+    [ObservableProperty] private string _nomeCurtoErrorMessage;
+
+    [ObservableProperty] private string _email;
+    [ObservableProperty] private string _emailErrorMessage;
+
+    [ObservableProperty] private string _numeroWhatsapp;
+    [ObservableProperty] private string _numeroWhatsappErrorMessage;
 
     [RelayCommand]
     private async Task Salvar()
@@ -32,17 +42,36 @@ public sealed partial class CatalogoAdicionarPageViewModel : BasePageViewModel
 
                 return;
             }
+            if (string.IsNullOrWhiteSpace(NomeCurto))
+            {
+                await Application.Current.MainPage.DisplayAlert("Erro", "Campo Nome curto é obrigatório", "OK");
 
-            var request = new CatalogoCreateRequest(Nome);
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(NumeroWhatsapp))
+            {
+                await Application.Current.MainPage.DisplayAlert("Erro", "Campo número de Watsapp é obrigatório", "OK");
+
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(Email))
+            {
+                await Application.Current.MainPage.DisplayAlert("Erro", "Campo Email é obrigatório", "OK");
+
+                return;
+            }
+
+            var request = new CatalogoCreateRequest(Nome, NomeCurto, NumeroWhatsapp, Email, " ");
 
             var response = await _catalogoService.CreateCatalogoAsync(request);
             if (response.RetornouComErro)
             {
-                await Application.Current.MainPage.DisplayAlert("Erro", response.ProblemDetails!.Title, "OK");
+                string mensagemErro = string.Join("\n", ObterErros(response));
+                await Application.Current.MainPage.DisplayAlert(response.ProblemDetails!.Title, mensagemErro, "OK");
                 return;
             }
 
-            await Shell.Current.GoToAsync($"/{nameof(CatalogoListaPage)}");
+            await Shell.Current.GoToAsync($"//{nameof(CatalogoListaPage)}");
         }
         catch (Exception ex)
         {

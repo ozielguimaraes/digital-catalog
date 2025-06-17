@@ -73,12 +73,14 @@ public class CatalogoService : ICatalogoService
 
     public async Task<CatalogoDto> CreateCatalogoAsync(CatalogoCreateDto catalogoDto, string usuarioId)
     {
-        var catalogo = new Catalogo
-        {
-            Nome = catalogoDto.Nome,
-            Descricao = catalogoDto.Descricao,
-            UserId = usuarioId
-        };
+        var catalogo = new Catalogo(
+            nome: catalogoDto.Nome,
+            descricao: catalogoDto.Descricao,
+            nomeCurto: catalogoDto.NomeCurto,
+            email: catalogoDto.Email,
+            numeroWhatsapp: catalogoDto.NumeroWhatsapp,
+            userId: usuarioId
+        );
 
         await _dbContext.AddCatalogoAsync(catalogo);
 
@@ -95,6 +97,10 @@ public class CatalogoService : ICatalogoService
 
         catalogo.Nome = catalogoDto.Nome;
         catalogo.Descricao = catalogoDto.Descricao;
+        catalogo.NomeCurto = catalogoDto.NomeCurto;
+        catalogo.Email = catalogoDto.Email;
+        catalogo.NumeroWhatsapp = catalogoDto.NumeroWhatsapp;
+        catalogo.DataAtualizacao = DateTime.UtcNow;
 
         await _dbContext.UpdateCatalogoAsync(catalogo);
 
@@ -103,6 +109,9 @@ public class CatalogoService : ICatalogoService
             Id = catalogo.Id,
             Nome = catalogo.Nome,
             Descricao = catalogo.Descricao,
+            NomeCurto = catalogo.NomeCurto,
+            Email = catalogo.Email,
+            NumeroWhatsapp = catalogo.NumeroWhatsapp,
             DataCriacao = catalogo.DataCriacao,
             DataAtualizacao = catalogo.DataAtualizacao
         };

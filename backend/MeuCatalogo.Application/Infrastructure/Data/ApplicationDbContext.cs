@@ -1,4 +1,5 @@
 using MeuCatalogo.Application.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,6 +27,31 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            var clrType = entityType.ClrType;
+
+            // Ignorar se for IdentityUser, IdentityRole, IdentityUserRole, etc.
+            if (typeof(IdentityUser).IsAssignableFrom(clrType) ||
+                typeof(IdentityRole).IsAssignableFrom(clrType) ||
+                typeof(IdentityUserRole<string>).IsAssignableFrom(clrType) ||
+                typeof(IdentityUserClaim<string>).IsAssignableFrom(clrType) ||
+                typeof(IdentityUserLogin<string>).IsAssignableFrom(clrType) ||
+                typeof(IdentityRoleClaim<string>).IsAssignableFrom(clrType) ||
+                typeof(IdentityUserToken<string>).IsAssignableFrom(clrType))
+            {
+                continue;
+            }
+
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(string) && property.GetMaxLength() == null)
+                {
+                    property.SetMaxLength(100);
+                }
+            }
+        }
 
         // Configurações para Catalogo
         if (!modelBuilder.Model.FindEntityType(typeof(Catalogo)).GetForeignKeys().Any(fk => fk.PrincipalEntityType.ClrType == typeof(ApplicationUser)))

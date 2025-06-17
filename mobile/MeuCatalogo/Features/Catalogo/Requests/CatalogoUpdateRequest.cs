@@ -1,6 +1,6 @@
 namespace MeuCatalogo.Features.Catalogo.Requests;
 
-public class CatalogoUpdateRequest
+public sealed class CatalogoUpdateRequest
 {
     public CatalogoUpdateRequest(Guid id, string nome)
     {
