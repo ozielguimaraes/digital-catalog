@@ -39,6 +39,7 @@
 
                     <Button
                         Text="Adicionar Novo"
+                        Margin="0,16,0,0"
                         SemanticProperties.Hint="Navega para tela de adicionar novo catálogo"
                         HorizontalOptions="Fill"
                         Command="{Binding AdicionarCommand}"/>
@@ -49,16 +50,65 @@
                     SelectionMode="None">
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="responses:CatalogoResponse">
-                            <Border Padding="10" Margin="0,5" BackgroundColor="{StaticResource Gray200}">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
-                                <VerticalStackLayout>
-                                    <Label Text="{Binding Nome}" FontAttributes="Bold" FontSize="Medium"/>
-                                    <Label Text="{Binding Email}" FontSize="Small" TextColor="Gray"/>
-                                    <Label Text="{Binding NumeroWhatsapp}" FontSize="Small" TextColor="Gray"/>
-                                </VerticalStackLayout>
-                            </Border>
+                            <SwipeView>
+                                <SwipeView.LeftItems>
+                                    <SwipeItems>
+                                        <SwipeItemView>
+                                            <VerticalStackLayout Padding="8"
+                                                        HorizontalOptions="Fill"
+                                                        BackgroundColor="Gold">
+                                                <Image Margin="0,8,0,0"
+                                                       Source="ic_star_outlined.svg"
+                                                       WidthRequest="24"
+                                                       HeightRequest="24">
+                                                    <Image.Behaviors>
+                                                        <toolkit:IconTintColorBehavior TintColor="{StaticResource White}" />
+                                                    </Image.Behaviors>
+                                                    <Image.GestureRecognizers>
+                                                        <TapGestureRecognizer Command="{Binding BindingContext.FavoritarCommand, Source={RelativeSource AncestorType={x:Type catalogo:CatalogoListaPage}}}"
+                                                                              CommandParameter="{Binding .}"></TapGestureRecognizer>
+                                                    </Image.GestureRecognizers>
+                                                </Image>
+                                                <Label Margin="0,8,0,0"
+                                                       Text="Favoritar"
+                                                       TextColor="{StaticResource Gray900}" />
+                                            </VerticalStackLayout>
+                                        </SwipeItemView>
+                                    </SwipeItems>
+                                </SwipeView.LeftItems>
+                                <SwipeView.RightItems>
+                                    <SwipeItems>
+                                        <SwipeItemView>
+                                            <VerticalStackLayout Padding="10" BackgroundColor="#ff4500">
+                                                <Image Source="ic_trash_can_outlined.svg"
+                                                       WidthRequest="24"
+                                                       HeightRequest="24">
+                                                    <Image.Behaviors>
+                                                        <toolkit:IconTintColorBehavior TintColor="{StaticResource Gray950}" />
+                                                    </Image.Behaviors>
+                                                    <Image.GestureRecognizers>
+                                                        <TapGestureRecognizer Command="{Binding BindingContext.ExcluirCommand, Source={RelativeSource AncestorType={x:Type catalogo:CatalogoListaPage}}}"
+                                                            CommandParameter="{Binding .}"></TapGestureRecognizer>
+                                                    </Image.GestureRecognizers>
+                                                </Image>
+                                                <Label Margin="0,8,0,0"
+                                                       Text="Excluir"
+                                                       TextColor="{StaticResource  Gray950}" />
+                                            </VerticalStackLayout>
+                                        </SwipeItemView>
+                                    </SwipeItems>
+                                </SwipeView.RightItems>
+                                <Border Padding="10" Margin="0,5" BackgroundColor="{StaticResource Gray200}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="8" />
+                                    </Border.StrokeShape>
+                                    <VerticalStackLayout>
+                                        <Label Text="{Binding Nome}" FontAttributes="Bold" FontSize="Medium"/>
+                                        <Label Text="{Binding Email}" FontSize="Small" TextColor="Gray"/>
+                                        <Label Text="{Binding NumeroWhatsapp}" FontSize="Small" TextColor="Gray"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </SwipeView>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>

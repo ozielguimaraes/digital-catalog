@@ -3,6 +3,7 @@ using MeuCatalogo.Features.Auth.ApiClients;
 using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Catalogo.ApiClients;
 using MeuCatalogo.Features.Produto;
+using MeuCatalogo.Features.Settings.Services;
 using MeuCatalogo.Infrastructure;
 using Polly;
 using Polly.Extensions.Http;
@@ -50,7 +51,7 @@ public static class ServiceCollectionExtension
         services.AddTransient<LoggingHttpClientHandler>();
         services.AddTransient<IAuthService, AuthService>();
         services.AddTransient<ICatalogoService, CatalogoService>();
-        // services.AddTransient<IProdutoService, ProdutoService>();
+        services.AddTransient<IProdutoService, ProdutoService>();
 
         return services;
     }
@@ -74,6 +75,9 @@ public static class ServiceCollectionExtension
         //Feature Produtos
         services.AddTransient<ProdutoListaPage>();
         services.AddTransient<ProdutoListaPageViewModel>();
+
+        //Feature Settings
+        services.AddSingleton<ISettingsService, SettingsService>();
 
         return services;
     }

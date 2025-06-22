@@ -79,7 +79,7 @@ public sealed partial class LoginPageViewModel : BasePageViewModel
         {
             _logger.LogError(ex.Message);
 
-            Application.Current.MainPage.DisplayAlert("Oops", "Ocorreru um erro inesperado, se persistir contacte o desenvolvedor", "OK");
+            Application.Current.MainPage.DisplayAlert("Oops", "Ocorreu um erro inesperado, se persistir contacte o desenvolvedor", "OK");
         }
     }
 

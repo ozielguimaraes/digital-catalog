@@ -15,14 +15,14 @@ public class LoggingHttpClientHandler(ILogger<LoggingHttpClientHandler> logger) 
         {
             string requestPayload = await request.Content.ReadAsStringAsync(cancellationToken);
             logger.LogInformation(
-                "uuid:{uuid} - HTTP REQUEST: Sending request to {Url} with headers {Headers} and payload {Payload}",
-                uuid, request.RequestUri, headers, requestPayload);
+                "uuid:{uuid} - HTTP {Method} REQUEST: Sending request to {Url} with headers {Headers} and payload {Payload}",
+                uuid, request.Method, request.RequestUri, headers, requestPayload);
         }
         else
         {
             logger.LogInformation(
-                "uuid:{uuid} - HTTP REQUEST: Sending request to {Url} with headers {Headers}",
-                uuid, request.RequestUri, headers);
+                "uuid:{uuid} - HTTP {Method} REQUEST: Sending request to {Url} with headers {Headers}",
+                uuid, request.Method, request.RequestUri, headers);
         }
 
         try
@@ -32,8 +32,8 @@ public class LoggingHttpClientHandler(ILogger<LoggingHttpClientHandler> logger) 
 
             string responsePayload = await response.Content.ReadAsStringAsync(cancellationToken);
             logger.LogInformation(
-                "uuid:{uuid} - HTTP RESPONSE ({duration}ms): Received response from {Url} with status code {StatusCode}, headers {Headers}, and payload {Payload}",
-                uuid, stopwatch.ElapsedMilliseconds, request.RequestUri, response.StatusCode,
+                "uuid:{uuid} - HTTP {Method} RESPONSE ({duration}ms): Received response from {Url} with status code {StatusCode}, headers {Headers}, and payload {Payload}",
+                uuid, request.Method, stopwatch.ElapsedMilliseconds, request.RequestUri, response.StatusCode,
                 response.Headers.ToString(), responsePayload);
 
             return response;

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MeuCatalogo.Features.Catalogo.ApiClients;
 using MeuCatalogo.Features.Catalogo.Requests;
+using MeuCatalogo.Features.Settings.Services;
 using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Features.Catalogo;
@@ -10,11 +11,13 @@ public sealed partial class CatalogoAdicionarPageViewModel : BasePageViewModel
 {
     private readonly ILogger<CatalogoListaPageViewModel> _logger;
     private readonly ICatalogoService _catalogoService;
+    private readonly ISettingsService _settingsService;
 
-    public CatalogoAdicionarPageViewModel(ILogger<CatalogoListaPageViewModel> logger, ICatalogoService catalogoService)
+    public CatalogoAdicionarPageViewModel(ILogger<CatalogoListaPageViewModel> logger, ICatalogoService catalogoService, ISettingsService settingsService)
     {
         _logger = logger;
         _catalogoService = catalogoService;
+        _settingsService = settingsService;
     }
 
     [ObservableProperty] private string _nome;
@@ -70,6 +73,8 @@ public sealed partial class CatalogoAdicionarPageViewModel : BasePageViewModel
                 await Application.Current.MainPage.DisplayAlert(response.ProblemDetails!.Title, mensagemErro, "OK");
                 return;
             }
+
+            _settingsService.CatalogoFavorito ??= response.Dados;
 
             await Shell.Current.GoToAsync($"//{nameof(CatalogoListaPage)}");
         }

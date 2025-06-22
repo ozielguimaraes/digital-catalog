@@ -1,5 +1,6 @@
 using MeuCatalogo.Features.Catalogo.Requests;
 using MeuCatalogo.Features.Catalogo.Responses;
+using MeuCatalogo.Features.Settings.Services;
 using Microsoft.Extensions.Logging;
 using Refit;
 

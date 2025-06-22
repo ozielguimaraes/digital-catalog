@@ -1,6 +1,6 @@
 namespace MeuCatalogo.Features.Produto.Requests;
 
-public sealed class ProdutoCreateRequest
+public sealed class ProdutoUpdateRequest
 {
     public string Nome { get; set; }
 }

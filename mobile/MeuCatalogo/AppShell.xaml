@@ -31,11 +31,11 @@
         Title="Catálogos"
         ContentTemplate="{DataTemplate catalogo:CatalogoListaPage}"
         Route="CatalogoListaPage" />
-    <!-- -->
-    <!-- <ShellContent -->
-    <!--     Title="Produtos" -->
-    <!--     ContentTemplate="{DataTemplate produto:ProdutoListaPage}" -->
-    <!--     Route="MainPage" /> -->
+
+    <ShellContent
+        Title="Produtos"
+        ContentTemplate="{DataTemplate produto:ProdutoListaPage}"
+        Route="ProdutoListaPage" />
 
     <Shell.FlyoutFooterTemplate>
         <DataTemplate>
