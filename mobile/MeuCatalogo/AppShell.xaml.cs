@@ -22,10 +22,23 @@ public partial class AppShell : Shell
         try
         {
             await _appShellViewModel.UpdateUserInfo();
+            //tentando navegar para listaproduto ao invés da primeira no appshell
+            // string targetPage = _appShellViewModel.ObterPaginaInicial();
+            //
+            // string produtoAdicionarPage = nameof(ProdutoAdicionarPage);
+            // if (produtoAdicionarPage != targetPage)
+            // {
+            //     return;
+            // }
+            //
+            // var page = Items.FirstOrDefault(x => x.CurrentItem.Items.Any(i => i.Route.Equals(produtoAdicionarPage)));
+            //
+            // if (page is not null)
+            //     CurrentItem = page;
         }
         catch (Exception ex)
         {
-            throw; // TODO handle exception
+            throw;
         }
     }
 
@@ -35,5 +48,6 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(CatalogoAdicionarPage), typeof(CatalogoAdicionarPage));
 
         Routing.RegisterRoute(nameof(ProdutoListaPage), typeof(ProdutoListaPage));
+        Routing.RegisterRoute(nameof(ProdutoAdicionarPage), typeof(ProdutoAdicionarPage));
     }
 }

@@ -3,6 +3,7 @@ using MeuCatalogo.Features.Auth.ApiClients;
 using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Catalogo.ApiClients;
 using MeuCatalogo.Features.Produto;
+using MeuCatalogo.Features.Produto.ApiClients;
 using MeuCatalogo.Features.Settings.Services;
 using MeuCatalogo.Infrastructure;
 using Polly;
@@ -43,12 +44,20 @@ public static class ServiceCollectionExtension
             .AddHttpMessageHandler<LoggingHttpClientHandler>()
             .AddPolicyHandler(retryPolicy);
 
+        services
+            .AddRefitClient<IProdutoApi>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseUrl))
+            .AddHttpMessageHandler<LoggingHttpClientHandler>()
+            .AddPolicyHandler(retryPolicy);
+
         return services;
     }
 
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddTransient<LoggingHttpClientHandler>();
+        services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<INavigationService, NavigationService>();
         services.AddTransient<IAuthService, AuthService>();
         services.AddTransient<ICatalogoService, CatalogoService>();
         services.AddTransient<IProdutoService, ProdutoService>();
@@ -75,9 +84,10 @@ public static class ServiceCollectionExtension
         //Feature Produtos
         services.AddTransient<ProdutoListaPage>();
         services.AddTransient<ProdutoListaPageViewModel>();
+        services.AddTransient<ProdutoAdicionarPage>();
+        services.AddTransient<ProdutoAdicionarPageViewModel>();
 
         //Feature Settings
-        services.AddSingleton<ISettingsService, SettingsService>();
 
         return services;
     }

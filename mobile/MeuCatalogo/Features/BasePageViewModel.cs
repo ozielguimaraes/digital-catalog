@@ -1,3 +1,4 @@
+using System.Net;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MeuCatalogo.Extensions;
 using Microsoft.Maui.Networking;
@@ -17,6 +18,13 @@ public abstract partial class BasePageViewModel : ObservableObject
     {
         if (response.ProblemDetails is null)
             return [];
+
+        if (response.ProblemDetails.Status == (int)HttpStatusCode.Forbidden)
+        {
+            string? detail = response.ProblemDetails.Detail;
+
+            return detail == null ? [] : [detail];
+        }
 
         var erros = response.ProblemDetails.Errors
             .SelectMany(kvp => kvp.Value.Select(mensagem => $"{kvp.Key}: {mensagem}"));

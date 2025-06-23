@@ -1,8 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MeuCatalogo.Features.Catalogo.ApiClients;
-using MeuCatalogo.Features.Catalogo.Responses;
+using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Produto.Responses;
 using MeuCatalogo.Features.Settings.Services;
 using Microsoft.Extensions.Logging;
@@ -21,6 +20,7 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
         _produtoService = produtoService;
         _settingsService = settingsService;
     }
+
     [ObservableProperty] private ObservableCollection<ProdutoResponse> _produtos;
 
     [RelayCommand]
@@ -35,8 +35,8 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
 
             if (catalogo == null)
             {
-                await Application.Current.MainPage.DisplayAlert("Erro", "Por favor, selecione um catálogo primeiro", "OK");
-                //TODO Navegar para catálogos ou solicitar em popup a seleção
+                await Application.Current.MainPage.DisplayAlert("Erro", "Por favor, selecione um catálogo como favorito primeiro", "OK");
+                await Shell.Current.GoToAsync($"//{nameof(CatalogoListaPage)}");
                 return;
             }
 
@@ -62,6 +62,6 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
     [RelayCommand]
     private async Task Adicionar()
     {
-        // await Shell.Current.GoToAsync($"/{nameof(ProdutoAdicionarPage)}");
+        await Shell.Current.GoToAsync($"{nameof(ProdutoAdicionarPage)}", true);
     }
 }

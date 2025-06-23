@@ -1,6 +1,5 @@
 using MeuCatalogo.Features.Catalogo.Requests;
 using MeuCatalogo.Features.Catalogo.Responses;
-using MeuCatalogo.Features.Settings.Services;
 using Microsoft.Extensions.Logging;
 using Refit;
 
@@ -33,7 +32,7 @@ public class CatalogoService(ILogger<CatalogoService> logger, ICatalogoApi catal
         try
         {
             string? token = await SecureStorage.GetAsync(TokenKey);
-            var catalogo = await catalogoApi.ObterCatalogoPorIdAsync(id, $"Bearer {token}", ct);
+            var catalogo = await catalogoApi.ObterPorIdAsync(id, $"Bearer {token}", ct);
             return ApiResponse<CatalogoResponse>.Success(catalogo);
         }
         catch (ApiException apiEx)
@@ -53,7 +52,7 @@ public class CatalogoService(ILogger<CatalogoService> logger, ICatalogoApi catal
         try
         {
             string? token = await SecureStorage.GetAsync(TokenKey);
-            var catalogo = await catalogoApi.AdicionarCatalogoAsync(request, $"Bearer {token}", ct);
+            var catalogo = await catalogoApi.AdicionarAsync(request, $"Bearer {token}", ct);
             return ApiResponse<CatalogoResponse>.Success(catalogo);
         }
         catch (ApiException apiEx)
@@ -73,7 +72,7 @@ public class CatalogoService(ILogger<CatalogoService> logger, ICatalogoApi catal
         try
         {
             string? token = await SecureStorage.GetAsync(TokenKey);
-            var catalogo = await catalogoApi.AtualizarCatalogoAsync(id, request, $"Bearer {token}", ct);
+            var catalogo = await catalogoApi.AtualizarAsync(id, request, $"Bearer {token}", ct);
             return ApiResponse<CatalogoResponse>.Success(catalogo);
         }
         catch (ApiException apiEx)
@@ -93,7 +92,7 @@ public class CatalogoService(ILogger<CatalogoService> logger, ICatalogoApi catal
         try
         {
             string? token = await SecureStorage.GetAsync(TokenKey);
-            await catalogoApi.RemoverCatalogoAsync(id, $"Bearer {token}", ct);
+            await catalogoApi.RemoverAsync(id, $"Bearer {token}", ct);
             return ApiResponse<Guid>.Success(id);
         }
         catch (ApiException apiEx)

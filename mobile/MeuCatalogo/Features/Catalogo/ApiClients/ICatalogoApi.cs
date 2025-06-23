@@ -6,18 +6,18 @@ namespace MeuCatalogo.Features.Catalogo.ApiClients;
 
 public interface ICatalogoApi
 {
-    [Get("/catalogos")]
+    [Get("/catalogos/")]
     Task<ICollection<CatalogoResponse>> ObterCatalogosAsync([Header("Authorization")] string bearerToken, CancellationToken ct = default);
 
     [Get("/catalogos/{id}")]
-    Task<CatalogoResponse> ObterCatalogoPorIdAsync(Guid id, [Header("Authorization")] string bearerToken, CancellationToken ct = default);
+    Task<CatalogoResponse> ObterPorIdAsync(Guid id, [Header("Authorization")] string bearerToken, CancellationToken ct = default);
 
     [Post("/catalogos")]
-    Task<CatalogoResponse> AdicionarCatalogoAsync([Body] CatalogoCreateRequest request, [Header("Authorization")] string bearerToken, CancellationToken ct = default);
+    Task<CatalogoResponse> AdicionarAsync([Body] CatalogoCreateRequest request, [Header("Authorization")] string bearerToken, CancellationToken ct = default);
 
     [Put("/catalogos/{id}")]
-    Task<CatalogoResponse> AtualizarCatalogoAsync(Guid id, [Body] CatalogoUpdateRequest request, [Header("Authorization")] string bearerToken, CancellationToken ct = default);
+    Task<CatalogoResponse> AtualizarAsync(Guid id, [Body] CatalogoUpdateRequest request, [Header("Authorization")] string bearerToken, CancellationToken ct = default);
 
     [Delete("/catalogos/{id}")]
-    Task RemoverCatalogoAsync(Guid id, [Header("Authorization")] string bearerToken, CancellationToken ct = default);
+    Task RemoverAsync(Guid id, [Header("Authorization")] string bearerToken, CancellationToken ct = default);
 }

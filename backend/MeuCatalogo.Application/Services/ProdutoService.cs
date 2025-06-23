@@ -63,7 +63,7 @@ public class ProdutoService : IProdutoService
         });
     }
 
-    public async Task<ProdutoDto> GetProdutoByIdAsync(Guid id, string userId)
+    public async Task<ProdutoDto?> GetProdutoByIdAsync(Guid id, string userId)
     {
         _logger.LogInformation("Iniciando {Metodo} para produtoId: {ProdutoId}, usuarioId: {UsuarioId}",
             nameof(GetProdutoByIdAsync), id, userId);

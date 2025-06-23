@@ -1,13 +1,48 @@
 using MeuCatalogo.Features.Produto.Requests;
 using MeuCatalogo.Features.Produto.Responses;
-using Microsoft.Maui.Controls.Internals;
 using Refit;
+using System.Net.Http;
+using System.Threading;
 
 namespace MeuCatalogo.Features.Produto.ApiClients;
 
-[Preserve(AllMembers = true)]
 public interface IProdutoApi
 {
-    [Post("/produto")]
-    Task<ProdutoResponse> SignupAsync([Body] ProdutoCreateRequest request, CancellationToken ct = default);
+    [Get("/produtos/catalogo/{catalogoId}")]
+    Task<ICollection<ProdutoResponse>> ObterPorCatalogoIdAsync(
+        Guid catalogoId,
+        [Header("Authorization")] string bearerToken,
+        CancellationToken ct = default);
+
+    [Get("/produtos/{id}")]
+    Task<ProdutoResponse> ObterPorIdAsync(
+        Guid id,
+        [Header("Authorization")] string bearerToken,
+        CancellationToken ct = default);
+
+    [Post("/produtos")]
+    Task<ProdutoResponse> AdicionarAsync(
+        [Body] ProdutoCreateRequest request,
+        [Header("Authorization")] string bearerToken,
+        CancellationToken ct = default);
+
+    [Put("/produtos/{id}")]
+    Task<ProdutoResponse> AtualizarAsync(
+        Guid id,
+        [Body] ProdutoUpdateRequest request,
+        [Header("Authorization")] string bearerToken,
+        CancellationToken ct = default);
+
+    [Delete("/produtos/{id}")]
+    Task RemoverAsync(
+        Guid id,
+        [Header("Authorization")] string bearerToken,
+        CancellationToken ct = default);
+
+    // [Put("/produtos/{id}/estoque")]
+    // Task<EstoqueResponse> AtualizarEstoqueAsync(
+    //     Guid id,
+    //     [Body] EstoqueUpdateRequest request,
+    //     [Header("Authorization")] string bearerToken,
+    //     CancellationToken ct = default);
 }
