@@ -14,17 +14,16 @@
                                 Text="{Binding Nome}"
                                 MaxLength="50"
                                 ErrorMessage="{Binding NomeErrorMessage}"
-                                HasError="{Binding NomeErrorMessage, Converter={toolkit:IsNotNullConverter}}" />
-        <components:CustomEntry Title="Preço"
-                                Keyboard="Numeric"
-                                Text="{Binding Preco}"
-                                ErrorMessage="{Binding PrecoErrorMessage}"
-                                HasError="{Binding PrecoErrorMessage, Converter={toolkit:IsNotNullConverter}}" />
-        <components:CustomEntry Title="Preço com desconto (opcional)"
-                                Keyboard="Numeric"
-                                Text="{Binding PrecoComDesconto}"
+                                HasError="{Binding NomeErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+        <components:NumericEntry Title="Preço"
+                                 Text="{Binding Preco}"
+                                 ErrorMessage="{Binding PrecoErrorMessage}"
+                                 HasError="{Binding PrecoErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+
+          <components:NumericEntry Title="Preço com desconto (opcional)"
+                                Text="{Binding PrecoComDescontoString}"
                                 ErrorMessage="{Binding PrecoComDescontoErrorMessage}"
-                                HasError="{Binding PrecoComDescontoErrorMessage, Converter={toolkit:IsNotNullConverter}}" />
+                                HasError="{Binding PrecoComDescontoErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
         <!-- <components:CustomEntry Title="Categoria" -->
         <!--                         Text="{Binding Categoria}" -->
         <!--                         Keyboard="Numeric" -->

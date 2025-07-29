@@ -2,14 +2,15 @@ using MeuCatalogo.Application.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MeuCatalogo.Application.DTOs.Responses;
 
 namespace MeuCatalogo.Application.Interfaces;
 
 public interface ICatalogoService
 {
-    Task<IEnumerable<CatalogoDto>> GetCatalogosByUserIdAsync(string userId);
-    Task<CatalogoDto?> ObterCatalogoPorIdAsync(Guid id, string userId);
-    Task<CatalogoDto> CreateCatalogoAsync(CatalogoCreateDto catalogoDto, string userId);
-    Task<CatalogoDto?> UpdateCatalogoAsync(Guid id, CatalogoUpdateDto catalogoDto, string userId);
-    Task DeleteCatalogoAsync(Guid id, string userId);
+    Task<ApiResponse<IEnumerable<CatalogoDto>>> ObterPorUsuarioIdAsync(string userId);
+    Task<ApiResponse<CatalogoDto?>> ObterPorIdAsync(Guid id, string userId);
+    Task<ApiResponse<CatalogoDto>> AdicionarAsync(CatalogoCreateDto catalogoDto, string userId);
+    Task<ApiResponse<CatalogoDto>> AtualizarAsync(Guid id, CatalogoUpdateDto catalogoDto, string userId);
+    Task<ApiResponse<bool>> DeleteCatalogoAsync(Guid id, string userId);
 }

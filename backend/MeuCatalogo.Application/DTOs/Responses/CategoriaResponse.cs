@@ -8,4 +8,6 @@ public class CategoriaResponse
     public string Nome { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+    public string Descricao { get; set; }
+    public Guid CatalogoId { get; set; }
 }

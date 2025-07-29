@@ -5,12 +5,6 @@ namespace MeuCatalogo.Application.Entities;
 
 public class Categoria : BaseEntity
 {
-    public string Nome { get; set; }
-    public string Descricao { get; set; }
-    public Guid CatalogoId { get; set; }
-    public Catalogo Catalogo { get; set; }
-    public ICollection<Produto> Produtos { get; set; }
-
     public Categoria()
     {
         Produtos = new List<Produto>();
@@ -23,4 +17,12 @@ public class Categoria : BaseEntity
         CatalogoId = catalogoId;
         Produtos = new List<Produto>();
     }
+
+    public string Nome { get; set; }
+    public string Descricao { get; set; }
+
+    public Guid CatalogoId { get; set; }
+    public Catalogo Catalogo { get; set; }
+
+    public ICollection<Produto> Produtos { get; set; }
 }

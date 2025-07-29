@@ -37,7 +37,8 @@ public class AuthController : BaseApiController
     }
 
     [HttpPost("register")]
-    public async Task<ActionResult<UserDto>> Register(UserRegisterDto registerDto)
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserDto))]
+    public async Task<IActionResult> Register(UserRegisterDto registerDto)
     {
         _logger.LogInformation("Iniciando registro de novo usuário: {Email}", registerDto.Email);
 
@@ -74,26 +75,27 @@ public class AuthController : BaseApiController
             throw;
         }
 
-        var userDto = new UserDto
+        var response = ApiResponse<UserDto>.Success(new UserDto
         {
             Id = user.Id,
             UserName = user.UserName,
             Email = user.Email,
             Nome = user.Nome,
             DataCriacao = user.DataCriacao
-        };
+        });
 
         _logger.LogInformation("Usuário registrado com sucesso: {UserId}", user.Id);
-        return OkResponse(userDto);
+        return HandleApiResponse(response);
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<SigninResponse>> Login(UserLoginDto loginDto)
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SigninResponse))]
+    public async Task<IActionResult> Login(UserLoginDto loginDto)
     {
         _logger.LogInformation("Tentativa de login: {Email}", loginDto.Email);
         var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
-        if (user == null || !user.EmailConfirmed)
+        if (user is not { EmailConfirmed: true })
         {
             _logger.LogWarning("Login falhou para {Email}: usuário inexistente ou e-mail não confirmado", loginDto.Email);
             return UnauthorizedResponse("Email ou senha incorretos ou e-mail não confirmado");
@@ -107,8 +109,8 @@ public class AuthController : BaseApiController
             return UnauthorizedResponse("Email ou senha incorretos");
         }
 
-        var token = GenerateJwtToken(user);
-        var response = new SigninResponse(token,
+        string token = GenerateJwtToken(user);
+        var response = ApiResponse<SigninResponse>.Success(new SigninResponse(token,
             new UserDto
             {
                 Id = user.Id,
@@ -116,13 +118,15 @@ public class AuthController : BaseApiController
                 Email = user.Email,
                 Nome = user.Nome,
                 DataCriacao = user.DataCriacao
-            });
+            }));
 
         _logger.LogInformation("Login bem-sucedido para {UserId}", user.Id);
-        return OkResponse(response);
+
+        return HandleApiResponse(response);
     }
 
     [HttpGet("confirmar-email")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SigninResponse))]
     public async Task<ActionResult> ConfirmEmail(string userId, string token)
     {
         _logger.LogInformation("Confirmação de e-mail solicitada para {UserId}", userId);
@@ -146,9 +150,10 @@ public class AuthController : BaseApiController
 
     [Authorize]
     [HttpGet("me")]
-    public async Task<ActionResult<UserDto>> GetCurrentUser()
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserDto))]
+    public async Task<IActionResult> GetCurrentUser()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Obtendo dados do usuário autenticado: {UserId}", userId);
 
         var user = await _userManager.FindByIdAsync(userId);
@@ -158,16 +163,16 @@ public class AuthController : BaseApiController
             return NotFoundResponse("Usuário não encontrado");
         }
 
-        var userDto = new UserDto
+        var response = ApiResponse<UserDto>.Success(new UserDto
         {
             Id = user.Id,
             UserName = user.UserName,
             Email = user.Email,
             Nome = user.Nome,
             DataCriacao = user.DataCriacao
-        };
+        });
 
-        return OkResponse(userDto);
+        return HandleApiResponse(response);
     }
 
     private string GenerateJwtToken(ApplicationUser user)

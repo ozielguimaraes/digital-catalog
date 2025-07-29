@@ -77,6 +77,7 @@ try
 
     builder.Services.AddScoped<ICatalogoService, CatalogoService>();
     builder.Services.AddScoped<IProdutoService, ProdutoService>();
+    builder.Services.AddScoped<ICategoriaService, CategoriaService>();
     builder.Services.AddScoped<IPlanoAssinaturaService, PlanoAssinaturaService>();
 
     builder.Services.AddCors(options =>

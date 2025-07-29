@@ -21,32 +21,35 @@ public class CatalogosController : BaseApiController
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CatalogoDto>>> Obter()
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<CatalogoDto>))]
+    public async Task<IActionResult> Obter()
     {
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Obtendo catálogos para o usuário {UserId}", userId);
-        var catalogos = await _catalogoService.GetCatalogosByUserIdAsync(userId);
-        return OkResponse(catalogos);
+        var response = await _catalogoService.ObterPorUsuarioIdAsync(userId);
+
+        return HandleApiResponse(response);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<CatalogoDto>> Obter(Guid id)
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CatalogoDto))]
+    public async Task<IActionResult> Obter(Guid id)
     {
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Obtendo catálogo {CatalogoId} para o usuário {UserId}", id, userId);
-        var catalogo = await _catalogoService.ObterCatalogoPorIdAsync(id, userId);
+        var response = await _catalogoService.ObterPorIdAsync(id, userId);
 
-        if (catalogo != null)
+        if (response is { IsSuccess: true, Data: null })
         {
-            return OkResponse(catalogo);
+            _logger.LogWarning("Catálogo {CatalogoId} não encontrado para o usuário {UserId}", id, userId);
         }
 
-        _logger.LogWarning("Catálogo {CatalogoId} não encontrado para o usuário {UserId}", id, userId);
-        return NotFoundResponse("Catálogo não encontrado");
+        return HandleApiResponse(response);
     }
 
     [HttpPost]
-    public async Task<ActionResult<CatalogoDto>> Adicionar([FromBody] CatalogoCreateDto catalogoDto)
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CatalogoDto))]
+    public async Task<IActionResult> Adicionar([FromBody] CatalogoCreateDto catalogoDto)
     {
         if (!ModelState.IsValid)
         {
@@ -56,12 +59,13 @@ public class CatalogosController : BaseApiController
 
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Adicionando novo catálogo para o usuário {UserId}", userId);
-        var catalogo = await _catalogoService.CreateCatalogoAsync(catalogoDto, userId);
-        return CreatedResponse($"api/catalogos/{catalogo.Id}", catalogo);
+        var response = await _catalogoService.AdicionarAsync(catalogoDto, userId);
+
+        return HandleApiResponse(response);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<CatalogoDto>> Atualizar(Guid id, [FromBody] CatalogoUpdateDto catalogoDto)
+    public async Task<IActionResult> Atualizar(Guid id, [FromBody] CatalogoUpdateDto catalogoDto)
     {
         if (!ModelState.IsValid)
         {
@@ -71,23 +75,23 @@ public class CatalogosController : BaseApiController
 
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Atualizando catálogo {CatalogoId} para o usuário {UserId}", id, userId);
-        var catalogo = await _catalogoService.UpdateCatalogoAsync(id, catalogoDto, userId);
+        var response = await _catalogoService.AtualizarAsync(id, catalogoDto, userId);
 
-        if (catalogo != null)
-        {
-            return UpdatedResponse(catalogo);
-        }
-
-        _logger.LogWarning("Catálogo {CatalogoId} não encontrado para atualização pelo usuário {UserId}", id, userId);
-        return NotFoundResponse("Catálogo não encontrado para atualização");
+        return HandleApiResponse(response);
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Remover(Guid id)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(ProblemDetails))]
+    public async Task<IActionResult> Remover(Guid id)
     {
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         _logger.LogInformation("Removendo catálogo {CatalogoId} para o usuário {UserId}", id, userId);
-        await _catalogoService.DeleteCatalogoAsync(id, userId);
-        return DeletedResponse();
+
+        var response = await _catalogoService.DeleteCatalogoAsync(id, userId);
+
+        return response is { IsSuccess: true, Data: true } ? DeletedResponse() : HandleApiResponse(response);
     }
 }

@@ -1,4 +1,5 @@
 using MeuCatalogo.Application.DTOs;
+using MeuCatalogo.Application.DTOs.Responses;
 using MeuCatalogo.Application.Entities;
 using MeuCatalogo.Application.Interfaces;
 using MeuCatalogo.Application.Infrastructure.Data;
@@ -16,11 +17,11 @@ public class CatalogoService : ICatalogoService
         _dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<CatalogoDto>> GetCatalogosByUserIdAsync(string usuarioId)
+    public async Task<ApiResponse<IEnumerable<CatalogoDto>>> ObterPorUsuarioIdAsync(string usuarioId)
     {
         var catalogos = await _dbContext.ObterCatalogosPorUsuarioIdAsync(usuarioId);
 
-        return catalogos.Select(c => new CatalogoDto
+        var items = catalogos.Select(c => new CatalogoDto
         {
             Id = c.Id,
             Nome = c.Nome,
@@ -28,17 +29,20 @@ public class CatalogoService : ICatalogoService
             DataCriacao = c.DataCriacao,
             DataAtualizacao = c.DataAtualizacao
         });
+
+        return ApiResponse<IEnumerable<CatalogoDto>>.Success(items);
     }
 
-    public async Task<CatalogoDto?> ObterCatalogoPorIdAsync(Guid id, string usuarioId)
+    public async Task<ApiResponse<CatalogoDto?>> ObterPorIdAsync(Guid id, string usuarioId)
     {
         var catalogo = await _dbContext.GetCatalogoWithProdutosAsync(id);
-        if (catalogo == null || catalogo.UserId != usuarioId)
-        {
-            throw new UnauthorizedAccessException("Você não tem permissão para acessar este catálogo.");
-        }
+        if (catalogo == null)
+            return ApiResponse<CatalogoDto?>.Error(ResponseType.NotFound, "Catálogo não encontrado.");
 
-        return new CatalogoDto
+        if (catalogo.UserId != usuarioId)
+            return ApiResponse<CatalogoDto?>.Error(ResponseType.Validation, "Você não tem permissão para acessar este catálogo.");
+
+        return ApiResponse<CatalogoDto?>.Success(new CatalogoDto
         {
             Id = catalogo.Id,
             Nome = catalogo.Nome,
@@ -68,10 +72,10 @@ public class CatalogoService : ICatalogoService
                     DataAtualizacao = p.Estoque.DataAtualizacao
                 } : null
             }).ToList()
-        };
+        });
     }
 
-    public async Task<CatalogoDto> CreateCatalogoAsync(CatalogoCreateDto catalogoDto, string usuarioId)
+    public async Task<ApiResponse<CatalogoDto>> AdicionarAsync(CatalogoCreateDto catalogoDto, string usuarioId)
     {
         var catalogo = new Catalogo(
             nome: catalogoDto.Nome,
@@ -84,16 +88,18 @@ public class CatalogoService : ICatalogoService
 
         await _dbContext.AddCatalogoAsync(catalogo);
 
-        return catalogo.MapToDto();
+        return ApiResponse<CatalogoDto>.Success(catalogo.MapToDto());
     }
 
-    public async Task<CatalogoDto?> UpdateCatalogoAsync(Guid id, CatalogoUpdateDto catalogoDto, string usuarioId)
+    public async Task<ApiResponse<CatalogoDto>> AtualizarAsync(Guid id, CatalogoUpdateDto catalogoDto, string usuarioId)
     {
         var catalogo = await _dbContext.GetCatalogoByIdAsync(id);
-        if (catalogo == null || catalogo.UserId != usuarioId)
-        {
+
+        if (catalogo == null)
+            return ApiResponse<CatalogoDto>.Error(ResponseType.NotFound, "Catálogo não encontrado.");
+
+        if (catalogo.UserId != usuarioId)
             throw new UnauthorizedAccessException("Você não tem permissão para atualizar este catálogo.");
-        }
 
         catalogo.Nome = catalogoDto.Nome;
         catalogo.Descricao = catalogoDto.Descricao;
@@ -104,7 +110,7 @@ public class CatalogoService : ICatalogoService
 
         await _dbContext.UpdateCatalogoAsync(catalogo);
 
-        return new CatalogoDto
+        return ApiResponse<CatalogoDto>.Success(new CatalogoDto
         {
             Id = catalogo.Id,
             Nome = catalogo.Nome,
@@ -114,17 +120,21 @@ public class CatalogoService : ICatalogoService
             NumeroWhatsapp = catalogo.NumeroWhatsapp,
             DataCriacao = catalogo.DataCriacao,
             DataAtualizacao = catalogo.DataAtualizacao
-        };
+        });
     }
 
-    public async Task DeleteCatalogoAsync(Guid id, string usuarioId)
+    public async Task<ApiResponse<bool>> DeleteCatalogoAsync(Guid id, string usuarioId)
     {
         var catalogo = await _dbContext.GetCatalogoByIdAsync(id);
-        if (catalogo == null || catalogo.UserId != usuarioId)
-        {
-            throw new UnauthorizedAccessException("Você não tem permissão para excluir este catálogo.");
-        }
+
+        if (catalogo == null)
+            return ApiResponse<bool>.Error(ResponseType.NotFound, "Catálogo não encontrado.");
+
+        if (catalogo.UserId != usuarioId)
+            return ApiResponse<bool>.Error(ResponseType.Forbidden, "Você não tem permissão para excluir este catálogo.");
 
         await _dbContext.DeleteCatalogoAsync(id);
+
+        return ApiResponse<bool>.Success(true);
     }
 }

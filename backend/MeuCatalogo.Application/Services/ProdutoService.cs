@@ -1,10 +1,12 @@
 using MeuCatalogo.Application.DTOs;
+using MeuCatalogo.Application.DTOs.Responses;
 using MeuCatalogo.Application.Entities;
 using MeuCatalogo.Application.Interfaces;
 using MeuCatalogo.Application.Infrastructure.Data;
 using Microsoft.Extensions.Logging;
 using MeuCatalogo.Application.Infrastructure.Data.Repository;
 using MeuCatalogo.Application.Infrastructure.Mappers;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace MeuCatalogo.Application.Services;
 
@@ -20,17 +22,17 @@ public class ProdutoService : IProdutoService
         _logger.LogInformation("Serviço de Produto inicializado");
     }
 
-    public async Task<IEnumerable<ProdutoDto>> GetProdutosByCatalogoIdAsync(Guid catalogoId, string userId)
+    public async Task<ApiResponse<IEnumerable<ProdutoDto>>> ObterPorCatalogoIdAsync(Guid catalogoId, string userId)
     {
         _logger.LogInformation("Iniciando {Metodo} para catalogoId: {CatalogoId}, usuarioId: {UsuarioId}",
-            nameof(GetProdutosByCatalogoIdAsync), catalogoId, userId);
+            nameof(ObterPorCatalogoIdAsync), catalogoId, userId);
 
         var catalogo = await _dbContext.GetCatalogoByIdAsync(catalogoId);
         if (catalogo == null || catalogo.UserId != userId)
         {
             _logger.LogWarning("Acesso não autorizado ao catálogo {CatalogoId} pelo usuário {UsuarioId}",
                 catalogoId, userId);
-            throw new UnauthorizedAccessException("Você não tem permissão para acessar este catálogo.");
+            return ApiResponse<IEnumerable<ProdutoDto>>.Error(ResponseType.Forbidden, "Você não tem permissão para acessar este catálogo.");
         }
 
         _logger.LogDebug("Buscando produtos para o catálogo {CatalogoId}", catalogoId);
@@ -38,7 +40,7 @@ public class ProdutoService : IProdutoService
         _logger.LogInformation("Encontrados {Quantidade} produtos para o catálogo {CatalogoId}",
             produtos.Count, catalogoId);
 
-        return produtos.Select(p => new ProdutoDto
+        var resultado = produtos.Select(p => new ProdutoDto
         {
             Id = p.Id,
             Nome = p.Nome,
@@ -61,18 +63,20 @@ public class ProdutoService : IProdutoService
                 DataAtualizacao = p.Estoque.DataAtualizacao
             } : null
         });
+
+        return ApiResponse<IEnumerable<ProdutoDto>>.Success(resultado);
     }
 
-    public async Task<ProdutoDto?> GetProdutoByIdAsync(Guid id, string userId)
+    public async Task<ApiResponse<ProdutoDto?>> ObterPorIdAsync(Guid id, string userId)
     {
         _logger.LogInformation("Iniciando {Metodo} para produtoId: {ProdutoId}, usuarioId: {UsuarioId}",
-            nameof(GetProdutoByIdAsync), id, userId);
+            nameof(ObterPorIdAsync), id, userId);
 
         var produto = await _dbContext.ObterProdutoComDetalhesAsync(id);
         if (produto == null)
         {
             _logger.LogWarning("Produto não encontrado com id: {ProdutoId}", id);
-            throw new KeyNotFoundException("Produto não encontrado.");
+            return ApiResponse<ProdutoDto?>.Error(ResponseType.NotFound, "Produto não encontrado.");
         }
 
         _logger.LogDebug("Verificando permissões para o produto {ProdutoId}, catalogoId: {CatalogoId}",
@@ -82,11 +86,11 @@ public class ProdutoService : IProdutoService
         {
             _logger.LogWarning("Acesso não autorizado ao produto {ProdutoId} pelo usuário {UsuarioId}",
                 id, userId);
-            throw new UnauthorizedAccessException("Você não tem permissão para acessar este produto.");
+            return ApiResponse<ProdutoDto?>.Error(ResponseType.Forbidden,"Você não tem permissão para acessar este produto.");
         }
 
         _logger.LogInformation("Retornando detalhes do produto {ProdutoId}", id);
-        return new ProdutoDto
+        var dto = new ProdutoDto
         {
             Id = produto.Id,
             Nome = produto.Nome,
@@ -118,79 +122,102 @@ public class ProdutoService : IProdutoService
                 DataAtualizacao = v.DataAtualizacao
             }).ToList()
         };
+
+        return ApiResponse<ProdutoDto?>.Success(dto);
     }
 
-    public async Task<ProdutoDto> CreateProdutoAsync(ProdutoCreateDto produtoDto, string userId)
+    public async Task<ApiResponse<ProdutoDto>> AdicionarAsync(ProdutoCreateDto produtoDto, string userId)
     {
         _logger.LogInformation("Iniciando {Metodo} para catalogoId: {CatalogoId}, usuarioId: {UsuarioId}",
-            nameof(CreateProdutoAsync), produtoDto.CatalogoId, userId);
+            nameof(AdicionarAsync), produtoDto.CatalogoId, userId);
 
-        var catalogo = await _dbContext.GetCatalogoByIdAsync(produtoDto.CatalogoId);
-        if (catalogo == null || catalogo.UserId != userId)
+        await using var transaction = await  _dbContext.Database.BeginTransactionAsync();
+        try
         {
-            _logger.LogWarning("Acesso não autorizado para criar produto no catálogo {CatalogoId} pelo usuário {UsuarioId}",
-                produtoDto.CatalogoId, userId);
-            throw new UnauthorizedAccessException("Você não tem permissão para adicionar produtos a este catálogo.");
-        }
-
-        _logger.LogDebug("Criando novo produto para o catálogo {CatalogoId}", produtoDto.CatalogoId);
-        var produto = new Produto
-        {
-            Nome = produtoDto.Nome,
-            CategoriaId = produtoDto.CategoriaId,
-            CatalogoId = produtoDto.CatalogoId,
-            Preco = produtoDto.Preco,
-            PrecoComDesconto = produtoDto.PrecoComDesconto,
-            InformacoesAdicionais = produtoDto.InformacoesAdicionais
-        };
-
-        await _dbContext.AdicionarAsync(produto);
-        _logger.LogInformation("Produto criado com sucesso. Id: {ProdutoId}", produto.Id);
-
-        if (produtoDto.Estoque != null)
-        {
-            _logger.LogDebug("Adicionando informações de estoque para o produto {ProdutoId}", produto.Id);
-            var estoque = new Estoque
+            var catalogo = await _dbContext.GetCatalogoByIdAsync(produtoDto.CatalogoId);
+            if (catalogo == null || catalogo.UserId != userId)
             {
-                ProdutoId = produto.Id,
-                Quantidade = produtoDto.Estoque.Quantidade,
-                QuantidadeMinima = produtoDto.Estoque.QuantidadeMinima,
-                QuantidadeMaxima = produtoDto.Estoque.QuantidadeMaxima
+                _logger.LogWarning("Acesso não autorizado para criar produto no catálogo {CatalogoId} pelo usuário {UsuarioId}",
+                    produtoDto.CatalogoId, userId);
+                return ApiResponse<ProdutoDto>.Error(ResponseType.Forbidden, "Você não tem permissão para adicionar produtos a este catálogo.");
+            }
+
+            bool categoriaExiste = await _dbContext.ExisteCategoriaAsync(produtoDto.CategoriaId);
+            if (!categoriaExiste)
+            {
+                _logger.LogWarning("CategoriaId não pode ser vazio ao criar produto para o catálogo {CatalogoId}", produtoDto.CatalogoId);
+                return ApiResponse<ProdutoDto>.Error(ResponseType.Validation,"CategoriaId não pode ser vazio.");
+            }
+
+            _logger.LogDebug("Criando novo produto para o catálogo {CatalogoId}", produtoDto.CatalogoId);
+            var produto = new Produto
+            {
+                Nome = produtoDto.Nome,
+                CategoriaId = produtoDto.CategoriaId,
+                CatalogoId = produtoDto.CatalogoId,
+                Preco = produtoDto.Preco,
+                PrecoComDesconto = produtoDto.PrecoComDesconto,
+                InformacoesAdicionais = produtoDto.InformacoesAdicionais
             };
 
-            produto.Estoque = estoque;
-            await _dbContext.AtualizarAsync(produto);
-            _logger.LogInformation("Estoque adicionado ao produto {ProdutoId}", produto.Id);
-        }
+            await _dbContext.AdicionarAsync(produto);
+            _logger.LogInformation("Produto criado com sucesso. Id: {ProdutoId}", produto.Id);
 
-        return new ProdutoDto
-        {
-            Id = produto.Id,
-            Nome = produto.Nome,
-            CategoriaId = produto.CategoriaId,
-            CatalogoId = produto.CatalogoId,
-            Preco = produto.Preco,
-            PrecoComDesconto = produto.PrecoComDesconto,
-            InformacoesAdicionais = produto.InformacoesAdicionais,
-            DataCriacao = produto.DataCriacao,
-            DataAtualizacao = produto.DataAtualizacao,
-            Estoque = produto.Estoque != null ? new EstoqueDto
+            if (produtoDto.Estoque != null)
             {
-                Id = produto.Estoque.Id,
-                ProdutoId = produto.Estoque.ProdutoId,
-                Quantidade = produto.Estoque.Quantidade,
-                QuantidadeMinima = produto.Estoque.QuantidadeMinima,
-                QuantidadeMaxima = produto.Estoque.QuantidadeMaxima,
-                DataCriacao = produto.Estoque.DataCriacao,
-                DataAtualizacao = produto.Estoque.DataAtualizacao
-            } : null
-        };
+                _logger.LogDebug("Adicionando informações de estoque para o produto {ProdutoId}", produto.Id);
+                var estoque = new Estoque
+                {
+                    ProdutoId = produto.Id,
+                    Quantidade = produtoDto.Estoque.Quantidade,
+                    QuantidadeMinima = produtoDto.Estoque.QuantidadeMinima,
+                    QuantidadeMaxima = produtoDto.Estoque.QuantidadeMaxima
+                };
+
+                produto.Estoque = estoque;
+                await _dbContext.AtualizarAsync(produto);
+                _logger.LogInformation("Estoque adicionado ao produto {ProdutoId}", produto.Id);
+            }
+
+            await transaction.CommitAsync();
+
+            var dto = new ProdutoDto
+            {
+                Id = produto.Id,
+                Nome = produto.Nome,
+                CategoriaId = produto.CategoriaId,
+                CatalogoId = produto.CatalogoId,
+                Preco = produto.Preco,
+                PrecoComDesconto = produto.PrecoComDesconto,
+                InformacoesAdicionais = produto.InformacoesAdicionais,
+                DataCriacao = produto.DataCriacao,
+                DataAtualizacao = produto.DataAtualizacao,
+                Estoque = produto.Estoque != null ? new EstoqueDto
+                {
+                    Id = produto.Estoque.Id,
+                    ProdutoId = produto.Estoque.ProdutoId,
+                    Quantidade = produto.Estoque.Quantidade,
+                    QuantidadeMinima = produto.Estoque.QuantidadeMinima,
+                    QuantidadeMaxima = produto.Estoque.QuantidadeMaxima,
+                    DataCriacao = produto.Estoque.DataCriacao,
+                    DataAtualizacao = produto.Estoque.DataAtualizacao
+                } : null
+            };
+
+            return ApiResponse<ProdutoDto>.Success(dto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao criar produto para o catálogo {CatalogoId}", produtoDto.CatalogoId);
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
-    public async Task<ProdutoDto> UpdateProdutoAsync(Guid id, ProdutoUpdateDto produtoDto, string userId)
+    public async Task<ApiResponse<ProdutoDto>> AtualizarAsync(Guid id, ProdutoUpdateDto produtoDto, string userId)
     {
         _logger.LogInformation("Iniciando {Metodo} para produtoId: {ProdutoId}, usuarioId: {UsuarioId}",
-            nameof(UpdateProdutoAsync), id, userId);
+            nameof(AtualizarAsync), id, userId);
 
         var produto = await _dbContext.ObterProdutoPorIdAsync(id);
         if (produto == null)
@@ -219,7 +246,7 @@ public class ProdutoService : IProdutoService
         await _dbContext.AtualizarProdutoAsync(produto);
         _logger.LogInformation("Produto {ProdutoId} atualizado com sucesso", id);
 
-        return new ProdutoDto
+        var dto = new ProdutoDto
         {
             Id = produto.Id,
             Nome = produto.Nome,
@@ -231,18 +258,20 @@ public class ProdutoService : IProdutoService
             DataCriacao = produto.DataCriacao,
             DataAtualizacao = produto.DataAtualizacao
         };
+
+        return ApiResponse<ProdutoDto>.Success(dto);
     }
 
-    public async Task DeleteProdutoAsync(Guid id, string userId)
+    public async Task<ApiResponse<bool>> RemoverAsync(Guid id, string userId)
     {
         _logger.LogInformation("Iniciando {Metodo} para produtoId: {ProdutoId}, usuarioId: {UsuarioId}",
-            nameof(DeleteProdutoAsync), id, userId);
+            nameof(RemoverAsync), id, userId);
 
         var produto = await _dbContext.GetProdutoByIdAsync(id);
         if (produto == null)
         {
             _logger.LogWarning("Produto não encontrado com id: {ProdutoId}", id);
-            throw new KeyNotFoundException("Produto não encontrado.");
+            return ApiResponse<bool>.Error(ResponseType.NotFound, "Produto não encontrado.");
         }
 
         _logger.LogDebug("Verificando permissões para excluir o produto {ProdutoId}, catalogoId: {CatalogoId}",
@@ -252,24 +281,26 @@ public class ProdutoService : IProdutoService
         {
             _logger.LogWarning("Acesso não autorizado para excluir o produto {ProdutoId} pelo usuário {UsuarioId}",
                 id, userId);
-            throw new UnauthorizedAccessException("Você não tem permissão para excluir este produto.");
+            return ApiResponse<bool>.Error(ResponseType.Forbidden, "Você não tem permissão para excluir este produto.");
         }
 
         _logger.LogDebug("Excluindo produto {ProdutoId}", id);
         await _dbContext.RemoverProdutoAsync(id);
         _logger.LogInformation("Produto {ProdutoId} excluído com sucesso", id);
+
+        return ApiResponse<bool>.Success(true);
     }
 
-    public async Task<EstoqueDto> UpdateEstoqueAsync(Guid produtoId, EstoqueUpdateDto estoqueDto, string userId)
+    public async Task<ApiResponse<EstoqueDto>> AtualizarEstoqueAsync(Guid produtoId, EstoqueUpdateDto estoqueDto, string userId)
     {
         _logger.LogInformation("Iniciando {Metodo} para produtoId: {ProdutoId}, usuarioId: {UsuarioId}",
-            nameof(UpdateEstoqueAsync), produtoId, userId);
+            nameof(AtualizarEstoqueAsync), produtoId, userId);
 
         var produto = await _dbContext.GetProdutoWithDetailsAsync(produtoId);
         if (produto == null)
         {
             _logger.LogWarning("Produto não encontrado com id: {ProdutoId}", produtoId);
-            throw new KeyNotFoundException("Produto não encontrado.");
+            return ApiResponse<EstoqueDto>.Error(ResponseType.NotFound, "Produto não encontrado.");
         }
 
         _logger.LogDebug("Verificando permissões para atualizar estoque do produto {ProdutoId}, catalogoId: {CatalogoId}",
@@ -279,7 +310,7 @@ public class ProdutoService : IProdutoService
         {
             _logger.LogWarning("Acesso não autorizado para atualizar estoque do produto {ProdutoId} pelo usuário {UsuarioId}",
                 produtoId, userId);
-            throw new UnauthorizedAccessException("Você não tem permissão para atualizar o estoque deste produto.");
+            return ApiResponse<EstoqueDto>.Error(ResponseType.Forbidden, "Você não tem permissão para atualizar o estoque deste produto.");
         }
 
         if (produto.Estoque == null)
@@ -307,7 +338,7 @@ public class ProdutoService : IProdutoService
             _logger.LogInformation("Estoque atualizado para o produto {ProdutoId}", produtoId);
         }
 
-        return new EstoqueDto
+        return ApiResponse<EstoqueDto>.Success(new EstoqueDto
         {
             Id = produto.Estoque.Id,
             ProdutoId = produto.Estoque.ProdutoId,
@@ -316,6 +347,6 @@ public class ProdutoService : IProdutoService
             QuantidadeMaxima = produto.Estoque.QuantidadeMaxima,
             DataCriacao = produto.Estoque.DataCriacao,
             DataAtualizacao = produto.Estoque.DataAtualizacao
-        };
+        });
     }
 }

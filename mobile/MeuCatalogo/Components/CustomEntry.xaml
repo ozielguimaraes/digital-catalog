@@ -10,6 +10,7 @@
                Margin="0,8,0,0"
                Text="{Binding Title, Source={x:Reference CustomEntryRoot}}"/>
         <Entry x:Name="EntryField"
+               x:FieldModifier="public"
                Placeholder="{Binding Title}"
                Text="{Binding Source={x:Reference CustomEntryRoot}, Path=Text, Mode=TwoWay}"
                Keyboard="{Binding Source={x:Reference CustomEntryRoot}, Path=Keyboard}"

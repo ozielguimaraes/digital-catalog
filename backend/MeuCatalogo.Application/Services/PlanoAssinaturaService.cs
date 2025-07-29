@@ -1,41 +1,46 @@
 using MeuCatalogo.Application.DTOs;
+using MeuCatalogo.Application.DTOs.Responses;
 using MeuCatalogo.Application.Entities;
 using MeuCatalogo.Application.Infrastructure.Data;
 using MeuCatalogo.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Application.Services;
 
 public class PlanoAssinaturaService : IPlanoAssinaturaService
 {
+    private readonly ILogger<PlanoAssinaturaService> _logger;
     private readonly ApplicationDbContext _context;
 
-    public PlanoAssinaturaService(ApplicationDbContext context)
+    public PlanoAssinaturaService(ApplicationDbContext context, ILogger<PlanoAssinaturaService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
-    public async Task<IEnumerable<PlanoAssinaturaDto>> ObterTodosAsync()
+    public async Task<ApiResponse<IEnumerable<PlanoAssinaturaDto>>> ObterTodosAsync()
     {
         var planos = await _context.PlanosAssinatura
             .OrderBy(p => p.Preco)
             .ToListAsync();
 
-        return planos.Select(MapToDto);
+        return ApiResponse<IEnumerable<PlanoAssinaturaDto>>.Success(planos.Select(MapToDto));
     }
 
-    public async Task<PlanoAssinaturaDto> ObterPorIdAsync(Guid id)
+    public async Task<ApiResponse<PlanoAssinaturaDto>> ObterPorIdAsync(Guid id)
     {
         var plano = await _context.PlanosAssinatura.FindAsync(id);
         if (plano == null)
         {
-            throw new KeyNotFoundException($"Plano de assinatura com ID {id} não encontrado.");
+            _logger.LogInformation("Plano de assinatura com ID {Id} não encontrado.", id);
+            return ApiResponse<PlanoAssinaturaDto>.Error(ResponseType.NotFound, $"Plano de assinatura com ID {id} não encontrado.");
         }
 
-        return MapToDto(plano);
+        return ApiResponse<PlanoAssinaturaDto>.Success(MapToDto(plano));
     }
 
-    public async Task<PlanoAssinaturaDto> CriarAsync(PlanoAssinaturaCreateDto planoDto)
+    public async Task<ApiResponse<PlanoAssinaturaDto>> CriarAsync(PlanoAssinaturaCreateDto planoDto)
     {
         var plano = new PlanoAssinatura
         {
@@ -57,15 +62,16 @@ public class PlanoAssinaturaService : IPlanoAssinaturaService
         _context.PlanosAssinatura.Add(plano);
         await _context.SaveChangesAsync();
 
-        return MapToDto(plano);
+        return ApiResponse<PlanoAssinaturaDto>.Success(MapToDto(plano));
     }
 
-    public async Task<PlanoAssinaturaDto> AtualizarAsync(Guid id, PlanoAssinaturaUpdateDto planoDto)
+    public async Task<ApiResponse<PlanoAssinaturaDto>> AtualizarAsync(Guid id, PlanoAssinaturaUpdateDto planoDto)
     {
         var plano = await _context.PlanosAssinatura.FindAsync(id);
         if (plano == null)
         {
-            throw new KeyNotFoundException($"Plano de assinatura com ID {id} não encontrado.");
+            _logger.LogWarning($"Plano de assinatura com ID {id} não encontrado.");
+            return ApiResponse<PlanoAssinaturaDto>.Error(ResponseType.NotFound, $"Plano de assinatura '{id}' não encontrado.");
         }
 
         plano.Nome = planoDto.Nome;
@@ -86,38 +92,40 @@ public class PlanoAssinaturaService : IPlanoAssinaturaService
         _context.PlanosAssinatura.Update(plano);
         await _context.SaveChangesAsync();
 
-        return MapToDto(plano);
+        return ApiResponse<PlanoAssinaturaDto>.Success(MapToDto(plano));
     }
 
-    public async Task<bool> ExcluirAsync(Guid id)
+    public async Task<ApiResponse<bool>> ExcluirAsync(Guid id)
     {
         var plano = await _context.PlanosAssinatura.FindAsync(id);
         if (plano == null)
         {
-            return false;
+            _logger.LogWarning("Plano de assinatura com ID {Id} não encontrado para exclusão.", id);;
+            return ApiResponse<bool>.Error(ResponseType.NotFound, $"Plano de assinatura com ID {id} não encontrado.");
         }
 
-        // Verificar se existem assinaturas ativas para este plano
         var temAssinaturasAtivas = await _context.AssinaturasUsuarios
             .AnyAsync(a => a.PlanoAssinaturaId == id && a.Ativa && a.DataFim > DateTime.UtcNow);
 
         if (temAssinaturasAtivas)
         {
-            throw new InvalidOperationException("Não é possível excluir um plano com assinaturas ativas.");
+            _logger.LogError("Não é possível excluir o plano de assinatura com ID {Id} pois existem assinaturas ativas associadas a ele.", id);
+            return ApiResponse<bool>.Error(ResponseType.Validation, "Não é possível excluir um plano com assinaturas ativas.");
         }
 
         _context.PlanosAssinatura.Remove(plano);
         await _context.SaveChangesAsync();
 
-        return true;
+        return ApiResponse<bool>.Success(ResponseType.Deleted, true);
     }
 
-    public async Task<AssinaturaUsuarioDto> AtribuirPlanoGratuitoAsync(string userId)
+    public async Task<ApiResponse<AssinaturaUsuarioDto>> AtribuirPlanoGratuitoAsync(string userId)
     {
         var user = await _context.Users.FindAsync(userId);
         if (user == null)
         {
-            throw new KeyNotFoundException($"Usuário com ID {userId} não encontrado.");
+            _logger.LogWarning("Usuário com ID {UserId} não encontrado ao tentar atribuir plano gratuito.", userId);
+            return ApiResponse<AssinaturaUsuarioDto>.Error(ResponseType.NotFound, $"Usuário com ID {userId} não encontrado.");
         }
 
         var assinaturaAtiva = await _context.AssinaturasUsuarios
@@ -125,7 +133,8 @@ public class PlanoAssinaturaService : IPlanoAssinaturaService
 
         if (assinaturaAtiva != null)
         {
-            return await MapToAssinaturaDto(assinaturaAtiva);
+            _logger.LogInformation("Usuário {UserId} já possui uma assinatura ativa.", userId);
+            return ApiResponse<AssinaturaUsuarioDto>.Success(await MapToAssinaturaDto(assinaturaAtiva));
         }
 
         var planoGratuito = await _context.PlanosAssinatura
@@ -133,7 +142,8 @@ public class PlanoAssinaturaService : IPlanoAssinaturaService
 
         if (planoGratuito == null)
         {
-            throw new InvalidOperationException("Nenhum plano gratuito encontrado.");
+            _logger.LogError("Nenhum plano gratuito encontrado ao tentar atribuir plano gratuito para o usuário {UserId}.", userId);
+            return ApiResponse<AssinaturaUsuarioDto>.Error(ResponseType.Validation, "Nenhum plano gratuito encontrado.");
         }
 
         var assinatura = new AssinaturaUsuario
@@ -150,21 +160,23 @@ public class PlanoAssinaturaService : IPlanoAssinaturaService
         _context.AssinaturasUsuarios.Add(assinatura);
         await _context.SaveChangesAsync();
 
-        return await MapToAssinaturaDto(assinatura);
+        return ApiResponse<AssinaturaUsuarioDto>.Success(await MapToAssinaturaDto(assinatura));
     }
 
-    public async Task<AssinaturaUsuarioDto> AssinarPlanoAsync(string userId, Guid planoId, bool renovacaoAutomatica, string? transacaoId = null, string? metodoPagamento = null, decimal valorPago = 0)
+    public async Task<ApiResponse<AssinaturaUsuarioDto>> AssinarPlanoAsync(string userId, Guid planoId, bool renovacaoAutomatica, string? transacaoId = null, string? metodoPagamento = null, decimal valorPago = 0)
     {
         var user = await _context.Users.FindAsync(userId);
         if (user == null)
         {
-            throw new KeyNotFoundException($"Usuário com ID {userId} não encontrado.");
+            _logger.LogError("Usuário com ID {UserId} não encontrado ao tentar assinar plano.", userId);
+            return ApiResponse<AssinaturaUsuarioDto>.Error(ResponseType.NotFound, $"Usuário com ID {userId} não encontrado.");
         }
 
         var plano = await _context.PlanosAssinatura.FindAsync(planoId);
         if (plano == null)
         {
-            throw new KeyNotFoundException($"Plano de assinatura com ID {planoId} não encontrado.");
+            _logger.LogError("Plano de assinatura com ID {PlanoId} não encontrado ao tentar assinar plano.", planoId);
+            return ApiResponse<AssinaturaUsuarioDto>.Error(ResponseType.NotFound, $"Plano de assinatura com ID {planoId} não encontrado.");
         }
 
         // Cancelar assinaturas ativas existentes
@@ -178,7 +190,6 @@ public class PlanoAssinaturaService : IPlanoAssinaturaService
             _context.AssinaturasUsuarios.Update(assinaturaAtiva);
         }
 
-        // Criar a nova assinatura
         var dataFim = DateTime.UtcNow.AddMonths(plano.DuracaoEmMeses);
         var assinatura = new AssinaturaUsuario
         {
@@ -196,52 +207,56 @@ public class PlanoAssinaturaService : IPlanoAssinaturaService
         _context.AssinaturasUsuarios.Add(assinatura);
         await _context.SaveChangesAsync();
 
-        return await MapToAssinaturaDto(assinatura);
+        return ApiResponse<AssinaturaUsuarioDto>.Success(await MapToAssinaturaDto(assinatura));
     }
 
-    public async Task<bool> CancelarAssinaturaAsync(string userId, string motivo)
+    public async Task<ApiResponse<bool>> CancelarAssinaturaAsync(string userId, string motivo)
     {
         var assinaturaAtiva = await _context.AssinaturasUsuarios
             .FirstOrDefaultAsync(a => a.UserId == userId && a.Ativa && a.DataFim > DateTime.UtcNow);
 
         if (assinaturaAtiva == null)
         {
-            return false;
+            _logger.LogError("Usuário {UserId} não possui uma assinatura ativa para cancelar.", userId);
+            return ApiResponse<bool>.Error(ResponseType.Validation, "Você não possui uma assinatura ativa para cancelar.");
         }
 
         assinaturaAtiva.Cancelar(motivo);
         _context.AssinaturasUsuarios.Update(assinaturaAtiva);
         await _context.SaveChangesAsync();
 
-        return true;
+        return ApiResponse<bool>.Success(true);
     }
 
-    public async Task<AssinaturaUsuarioDto?> ObterAssinaturaAtivaAsync(string userId)
+    public async Task<ApiResponse<AssinaturaUsuarioDto?>> ObterAssinaturaAtivaAsync(string userId)
     {
         var assinaturaAtiva = await _context.AssinaturasUsuarios
             .Include(a => a.PlanoAssinatura)
             .FirstOrDefaultAsync(a => a.UserId == userId && a.Ativa && a.DataFim > DateTime.UtcNow);
 
-        if (assinaturaAtiva == null)
+        if (assinaturaAtiva != null)
         {
-            return null;
+            return ApiResponse<AssinaturaUsuarioDto?>.Success(await MapToAssinaturaDto(assinaturaAtiva));
         }
 
-        return await MapToAssinaturaDto(assinaturaAtiva);
+        _logger.LogInformation("Usuário {UserId} não possui uma assinatura ativa.", userId);
+        return ApiResponse<AssinaturaUsuarioDto?>.Error(ResponseType.NotFound, "Você não possui uma assinatura ativa.");
+
     }
 
-    public async Task<PlanoAssinaturaDto?> ObterPlanoAtivoAsync(string userId)
+    public async Task<ApiResponse<PlanoAssinaturaDto?>> ObterPlanoAtivoAsync(string userId)
     {
         var assinaturaAtiva = await _context.AssinaturasUsuarios
             .Include(a => a.PlanoAssinatura)
             .FirstOrDefaultAsync(a => a.UserId == userId && a.Ativa && a.DataFim > DateTime.UtcNow);
 
-        if (assinaturaAtiva == null)
+        if (assinaturaAtiva != null)
         {
-            return null;
+            return ApiResponse<PlanoAssinaturaDto?>.Success(MapToDto(assinaturaAtiva.PlanoAssinatura));
         }
 
-        return MapToDto(assinaturaAtiva.PlanoAssinatura);
+        _logger.LogInformation("Usuário {UserId} não possui um plano ativo.", userId);
+        return ApiResponse<PlanoAssinaturaDto?>.Error(ResponseType.NotFound, "Você não possui um plano ativo.");
     }
 
     private PlanoAssinaturaDto MapToDto(PlanoAssinatura plano)

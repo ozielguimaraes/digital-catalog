@@ -15,6 +15,11 @@ public static class CategoriaRepositoryExtensions
         return await context.Categorias.ToListAsync();
     }
 
+    public static async Task<bool> ExisteCategoriaAsync(this ApplicationDbContext context, Guid categoriaId)
+    {
+        return await context.Categorias.AnyAsync(p => p.Id == categoriaId);
+    }
+
     public static async Task<bool> HasProdutosAsync(this ApplicationDbContext context, Guid categoriaId)
     {
         return await context.Produtos.AnyAsync(p => p.CategoriaId == categoriaId);

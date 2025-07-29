@@ -26,32 +26,30 @@ public class PlanoAssinaturaController : BaseApiController
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<PlanoAssinaturaDto>>> ObterTodos()
+    public async Task<IActionResult> ObterTodos()
     {
         _logger.LogInformation("Obtendo todos os planos de assinatura");
-        var planos = await _planoAssinaturaService.ObterTodosAsync();
-        return OkResponse(planos);
+        var response = await _planoAssinaturaService.ObterTodosAsync();
+
+        return HandleApiResponse(response);
     }
 
     [HttpGet("{id}")]
     [AllowAnonymous]
-    public async Task<ActionResult<PlanoAssinaturaDto>> ObterPorId(Guid id)
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PlanoAssinaturaDto))]
+    public async Task<IActionResult> ObterPorId(Guid id)
     {
         _logger.LogInformation("Obtendo plano de assinatura {PlanoId}", id);
 
-        var plano = await _planoAssinaturaService.ObterPorIdAsync(id);
-        if (plano == null)
-        {
-            _logger.LogWarning("Plano de assinatura {PlanoId} não encontrado", id);
-            return NotFoundResponse("Plano de assinatura não encontrado");
-        }
+        var response = await _planoAssinaturaService.ObterPorIdAsync(id);
 
-        return OkResponse(plano);
+        return HandleApiResponse(response);
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<PlanoAssinaturaDto>> Criar([FromBody] PlanoAssinaturaCreateDto planoDto)
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(PlanoAssinaturaDto))]
+    public async Task<IActionResult> Criar([FromBody] PlanoAssinaturaCreateDto planoDto)
     {
         if (!ModelState.IsValid)
         {
@@ -60,13 +58,15 @@ public class PlanoAssinaturaController : BaseApiController
         }
 
         _logger.LogInformation("Criando novo plano de assinatura");
-        var plano = await _planoAssinaturaService.CriarAsync(planoDto);
-        return CreatedResponse(Url.Action(nameof(ObterPorId), new { id = plano.Id }), plano);
+        var response = await _planoAssinaturaService.CriarAsync(planoDto);
+
+        return HandleApiResponse(response);
     }
 
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<PlanoAssinaturaDto>> Atualizar(Guid id, [FromBody] PlanoAssinaturaUpdateDto planoDto)
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PlanoAssinaturaDto))]
+    public async Task<IActionResult> Atualizar(Guid id, [FromBody] PlanoAssinaturaUpdateDto planoDto)
     {
         if (!ModelState.IsValid)
         {
@@ -76,64 +76,47 @@ public class PlanoAssinaturaController : BaseApiController
 
         _logger.LogInformation("Atualizando plano de assinatura {PlanoId}", id);
 
-        var plano = await _planoAssinaturaService.AtualizarAsync(id, planoDto);
-        if (plano == null)
-        {
-            _logger.LogWarning("Plano de assinatura {PlanoId} não encontrado para atualização", id);
-            return NotFoundResponse("Plano de assinatura não encontrado");
-        }
+        var response = await _planoAssinaturaService.AtualizarAsync(id, planoDto);
 
-        return UpdatedResponse(plano);
+        return HandleApiResponse(response);
     }
 
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult> Excluir(Guid id)
+    public async Task<IActionResult> Excluir(Guid id)
     {
         _logger.LogInformation("Excluindo plano de assinatura {PlanoId}", id);
 
-        var resultado = await _planoAssinaturaService.ExcluirAsync(id);
-        if (resultado)
-        {
-            return DeletedResponse();
-        }
+        var response = await _planoAssinaturaService.ExcluirAsync(id);
 
-        _logger.LogWarning("Plano de assinatura {PlanoId} não encontrado para exclusão", id);
-        return NotFoundResponse("Plano de assinatura não encontrado");
+        return HandleApiResponse(response);
     }
 
     [HttpGet("meu-plano")]
-    public async Task<ActionResult<PlanoAssinaturaDto>> ObterMeuPlano()
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PlanoAssinaturaDto))]
+    public async Task<IActionResult> ObterMeuPlano()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Obtendo plano ativo do usuário {UserId}", userId);
 
-        var plano = await _planoAssinaturaService.ObterPlanoAtivoAsync(userId);
-        if (plano == null)
-        {
-            return NotFoundResponse("Você não possui um plano ativo.");
-        }
-
-        return OkResponse(plano);
+        var response = await _planoAssinaturaService.ObterPlanoAtivoAsync(userId);
+        return HandleApiResponse(response);
     }
 
     [HttpGet("minha-assinatura")]
-    public async Task<ActionResult<AssinaturaUsuarioDto>> ObterMinhaAssinatura()
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AssinaturaUsuarioDto))]
+    public async Task<IActionResult> ObterMinhaAssinatura()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Obtendo assinatura ativa do usuário {UserId}", userId);
 
-        var assinatura = await _planoAssinaturaService.ObterAssinaturaAtivaAsync(userId);
-        if (assinatura == null)
-        {
-            return NotFoundResponse("Você não possui uma assinatura ativa.");
-        }
-
-        return OkResponse(assinatura);
+        var response = await _planoAssinaturaService.ObterAssinaturaAtivaAsync(userId);
+        return HandleApiResponse(response);
     }
 
     [HttpPost("assinar/{planoId}")]
-    public async Task<ActionResult<AssinaturaUsuarioDto>> AssinarPlano(Guid planoId,
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AssinaturaUsuarioDto))]
+    public async Task<IActionResult> AssinarPlano(Guid planoId,
         [FromBody] AssinaturaUsuarioCreateDto assinaturaDto)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -145,7 +128,7 @@ public class PlanoAssinaturaController : BaseApiController
             return ValidationProblemResponse(ModelState);
         }
 
-        var assinatura = await _planoAssinaturaService.AssinarPlanoAsync(
+        var response = await _planoAssinaturaService.AssinarPlanoAsync(
             userId,
             planoId,
             assinaturaDto.RenovacaoAutomatica,
@@ -153,21 +136,17 @@ public class PlanoAssinaturaController : BaseApiController
             assinaturaDto.MetodoPagamento,
             assinaturaDto.ValorPago);
 
-        return OkResponse(assinatura);
+        return HandleApiResponse(response);
     }
 
     [HttpPost("cancelar")]
-    public async Task<ActionResult> CancelarAssinatura([FromBody] string motivo)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> CancelarAssinatura([FromBody] string motivo)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Usuário {UserId} solicitando cancelamento de assinatura", userId);
 
         var resultado = await _planoAssinaturaService.CancelarAssinaturaAsync(userId, motivo);
-        if (resultado)
-        {
-            return NoContent();
-        }
-
-        return NotFoundResponse("Você não possui uma assinatura ativa para cancelar.");
+        return HandleApiResponse(resultado);
     }
 }
