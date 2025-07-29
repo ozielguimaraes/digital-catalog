@@ -2,6 +2,7 @@ using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MeuCatalogo.Features.Produto.Requests;
+using MeuCatalogo.Features.Produto.Responses;
 using MeuCatalogo.Features.Settings.Services;
 using Microsoft.Extensions.Logging;
 
@@ -33,9 +34,9 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel
 
     [ObservableProperty] private string? _informacoesAdicionais;
     [ObservableProperty] private string? _informacoesAdicionaisErrorMessage;
-    //
-    // [ObservableProperty] private CategoriaResponse? _categoria;
-    // [ObservableProperty] private CategoriaResponse? _categoriaErrorMessage;
+
+    [ObservableProperty] private CategoriaModel? _categoria;
+    [ObservableProperty] private string? _categoriaErrorMessage;
 
     partial void OnPrecoStringChanged(string value)
     {

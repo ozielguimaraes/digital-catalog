@@ -35,7 +35,7 @@ public class CatalogoService : ICatalogoService
 
     public async Task<ApiResponse<CatalogoDto?>> ObterPorIdAsync(Guid id, string usuarioId)
     {
-        var catalogo = await _dbContext.GetCatalogoWithProdutosAsync(id);
+        var catalogo = await _dbContext.ObterCatalogoComProdutoAsync(id);
         if (catalogo == null)
             return ApiResponse<CatalogoDto?>.Error(ResponseType.NotFound, "Catálogo não encontrado.");
 
@@ -93,7 +93,7 @@ public class CatalogoService : ICatalogoService
 
     public async Task<ApiResponse<CatalogoDto>> AtualizarAsync(Guid id, CatalogoUpdateDto catalogoDto, string usuarioId)
     {
-        var catalogo = await _dbContext.GetCatalogoByIdAsync(id);
+        var catalogo = await _dbContext.ObterCatalogoPorIdAsync(id);
 
         if (catalogo == null)
             return ApiResponse<CatalogoDto>.Error(ResponseType.NotFound, "Catálogo não encontrado.");
@@ -125,7 +125,7 @@ public class CatalogoService : ICatalogoService
 
     public async Task<ApiResponse<bool>> DeleteCatalogoAsync(Guid id, string usuarioId)
     {
-        var catalogo = await _dbContext.GetCatalogoByIdAsync(id);
+        var catalogo = await _dbContext.ObterCatalogoPorIdAsync(id);
 
         if (catalogo == null)
             return ApiResponse<bool>.Error(ResponseType.NotFound, "Catálogo não encontrado.");

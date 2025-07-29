@@ -30,6 +30,11 @@
         <!--                         MaxLength="18" -->
         <!--                         ErrorMessage="{Binding CategoriaErrorMessage}" -->
         <!--                         HasError="{Binding CategoriaErrorMessage, Converter={toolkit:IsNotNullConverter}}" /> -->
+        <components:CustomEntry Title="Categoria"
+                                Text="{Binding Categoria.Descricao}"
+                                MaxLength="18"
+                                ErrorMessage="{Binding CategoriaErrorMessage}"
+                                HasError="{Binding CategoriaErrorMessage, Converter={toolkit:IsNotNullConverter}}" />
 
         <Button Text="Salvar"
                 Margin="0,24, 0,0"

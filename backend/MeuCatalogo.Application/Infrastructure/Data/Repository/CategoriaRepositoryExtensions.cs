@@ -10,9 +10,11 @@ public static class CategoriaRepositoryExtensions
         return await context.Categorias.FindAsync(id);
     }
 
-    public static async Task<List<Categoria>> GetAllCategoriasAsync(this ApplicationDbContext context)
+    public static async Task<List<Categoria>> ObterCategoriasPorCatalogoIdAsync(this ApplicationDbContext context, Guid catalogoId)
     {
-        return await context.Categorias.ToListAsync();
+        return await context.Categorias.AsNoTracking()
+            .Where(x => x.CatalogoId == catalogoId)
+            .ToListAsync();
     }
 
     public static async Task<bool> ExisteCategoriaAsync(this ApplicationDbContext context, Guid categoriaId)

@@ -19,14 +19,14 @@ public static class DbContextExtensions
 
     #region Catalogo Extensions
 
-    public static async Task<IEnumerable<Catalogo>> GetCatalogosByUserIdAsync(this ApplicationDbContext context, string userId)
+    public static async Task<IEnumerable<Catalogo>> ObterCatalogosPorUuarioIdAsync(this ApplicationDbContext context, string usuarioId)
     {
         return await context.Catalogos
-            .Where(c => c.UserId == userId)
+            .Where(c => c.UserId == usuarioId)
             .ToListAsync();
     }
 
-    public static async Task<Catalogo?> GetCatalogoWithProdutosAsync(this ApplicationDbContext context, Guid id)
+    public static async Task<Catalogo?> ObterCatalogoComProdutosAsync(this ApplicationDbContext context, Guid id)
     {
         return await context.Catalogos
             .Include(c => c.Produtos)

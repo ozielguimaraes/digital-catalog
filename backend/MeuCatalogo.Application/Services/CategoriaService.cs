@@ -41,7 +41,8 @@ public class CategoriaService : ICategoriaService
         }
         catch (Exception ex)
         {
-            return ApiResponse<CategoriaResponse>.Error($"Erro ao criar categoria: {ex.Message}");
+            _logger.LogError(ex, "Erro ao adicionar categoria");
+            throw;
         }
     }
 
@@ -58,7 +59,8 @@ public class CategoriaService : ICategoriaService
         }
         catch (Exception ex)
         {
-            return ApiResponse<CategoriaResponse>.Error($"Erro ao buscar categoria: {ex.Message}");
+            _logger.LogError(ex, $"Erro ao obter categoria por ID {id} - usuário '{usuarioId}'");
+            throw;
         }
     }
 
@@ -67,7 +69,7 @@ public class CategoriaService : ICategoriaService
         try
         {
             _logger.LogInformation($"Obter categorias do catálogo: {catalogoId}");
-            var categorias = await _dbContext.GetAllCategoriasAsync();
+            var categorias = await _dbContext.ObterCategoriasPorCatalogoIdAsync(catalogoId);
             var response = categorias.Select(MapToResponse).ToList();
 
             return ApiResponse<IList<CategoriaResponse>>.Success(response);
@@ -81,22 +83,30 @@ public class CategoriaService : ICategoriaService
 
     public async Task<ApiResponse<CategoriaResponse>> AtualizarAsync(Guid id, string usuarioId, AtualizarCategoriaRequest request)
     {
-        var categoria = await _dbContext.Categorias.FindAsync(id);
-
-        if (categoria == null)
+        try
         {
-            _logger.LogWarning("Categoria com ID {Id} não encontrada para atualização", id);
-            return ApiResponse<CategoriaResponse>.Error(ResponseType.NotFound, "Categoria não encontrada");
+            var categoria = await _dbContext.Categorias.FindAsync(id);
+
+            if (categoria == null)
+            {
+                _logger.LogWarning("Categoria com ID {Id} não encontrada para atualização", id);
+                return ApiResponse<CategoriaResponse>.Error(ResponseType.NotFound, "Categoria não encontrada");
+            }
+
+            categoria.Nome = request.Nome;
+            categoria.Descricao = request.Descricao;
+            categoria.DataAtualizacao = DateTime.Now;
+
+            _dbContext.Categorias.Update(categoria);
+            await _dbContext.SaveChangesAsync();
+
+            return ApiResponse<CategoriaResponse>.Success(MapToResponse(categoria));
         }
-
-        categoria.Nome = request.Nome;
-        categoria.Descricao = request.Descricao;
-        categoria.DataAtualizacao = DateTime.Now;
-
-        _dbContext.Categorias.Update(categoria);
-        await _dbContext.SaveChangesAsync();
-
-        return ApiResponse<CategoriaResponse>.Success(MapToResponse(categoria));
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Erro ao atualizar categoria com ID {id} - usuário '{usuarioId}'");
+            throw;
+        }
     }
 
     public async Task<ApiResponse<bool>> RemoverAsync(Guid id, string usuarioId)

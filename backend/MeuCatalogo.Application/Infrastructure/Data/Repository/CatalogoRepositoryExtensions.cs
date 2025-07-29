@@ -8,6 +8,7 @@ public static class CatalogoRepositoryExtensions
     public static async Task<ICollection<Catalogo>> ObterCatalogosPorUsuarioIdAsync(this ApplicationDbContext context, string userId)
     {
         return await context.Catalogos
+            .AsNoTracking()
             .Where(c => c.UserId == userId)
             .ToListAsync();
     }
@@ -22,7 +23,7 @@ public static class CatalogoRepositoryExtensions
             .FirstOrDefaultAsync(c => c.Id == id);
     }
 
-    public static async Task<Catalogo?> GetCatalogoByIdAsync(this ApplicationDbContext context, Guid id)
+    public static async Task<Catalogo?> ObterCatalogoPorIdAsync(this ApplicationDbContext context, Guid id)
     {
         return await context.Catalogos.FindAsync(id);
     }

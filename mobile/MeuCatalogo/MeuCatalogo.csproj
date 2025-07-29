@@ -87,6 +87,7 @@
         <PackageReference Include="Polly.Extensions.Http" Version="3.0.0" />
         <PackageReference Include="Refit" Version="8.0.0" />
         <PackageReference Include="Refit.HttpClientFactory" Version="8.0.0" />
+        <PackageReference Include="the49.Maui.BottomSheet" Version="8.0.3" />
 <!--        <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.5" />-->
     </ItemGroup>
 

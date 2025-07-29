@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace MeuCatalogo.Components;
 
 public partial class DropDown : ContentView
@@ -12,5 +6,13 @@ public partial class DropDown : ContentView
     {
         InitializeComponent();
     }
-}
 
+    public static readonly BindableProperty TitleProperty =
+        BindableProperty.Create(nameof(Title), typeof(string), typeof(NumericEntry), null);
+
+    public string Title
+    {
+        get => (string)GetValue(TitleProperty);
+        set => SetValue(TitleProperty, value);
+    }
+}

@@ -27,7 +27,7 @@ public class ProdutoService : IProdutoService
         _logger.LogInformation("Iniciando {Metodo} para catalogoId: {CatalogoId}, usuarioId: {UsuarioId}",
             nameof(ObterPorCatalogoIdAsync), catalogoId, userId);
 
-        var catalogo = await _dbContext.GetCatalogoByIdAsync(catalogoId);
+        var catalogo = await _dbContext.ObterCatalogoPorIdAsync(catalogoId);
         if (catalogo == null || catalogo.UserId != userId)
         {
             _logger.LogWarning("Acesso não autorizado ao catálogo {CatalogoId} pelo usuário {UsuarioId}",
@@ -81,7 +81,7 @@ public class ProdutoService : IProdutoService
 
         _logger.LogDebug("Verificando permissões para o produto {ProdutoId}, catalogoId: {CatalogoId}",
             id, produto.CatalogoId);
-        var catalogo = await _dbContext.GetCatalogoByIdAsync(produto.CatalogoId);
+        var catalogo = await _dbContext.ObterCatalogoPorIdAsync(produto.CatalogoId);
         if (catalogo == null || catalogo.UserId != userId)
         {
             _logger.LogWarning("Acesso não autorizado ao produto {ProdutoId} pelo usuário {UsuarioId}",
@@ -134,7 +134,7 @@ public class ProdutoService : IProdutoService
         await using var transaction = await  _dbContext.Database.BeginTransactionAsync();
         try
         {
-            var catalogo = await _dbContext.GetCatalogoByIdAsync(produtoDto.CatalogoId);
+            var catalogo = await _dbContext.ObterCatalogoPorIdAsync(produtoDto.CatalogoId);
             if (catalogo == null || catalogo.UserId != userId)
             {
                 _logger.LogWarning("Acesso não autorizado para criar produto no catálogo {CatalogoId} pelo usuário {UsuarioId}",
@@ -228,7 +228,7 @@ public class ProdutoService : IProdutoService
 
         _logger.LogDebug("Verificando permissões para atualizar o produto {ProdutoId}, catalogoId: {CatalogoId}",
             id, produto.CatalogoId);
-        var catalogo = await _dbContext.GetCatalogoByIdAsync(produto.CatalogoId);
+        var catalogo = await _dbContext.ObterCatalogoPorIdAsync(produto.CatalogoId);
         if (catalogo == null || catalogo.UserId != userId)
         {
             _logger.LogWarning("Acesso não autorizado para atualizar o produto {ProdutoId} pelo usuário {UsuarioId}",
@@ -276,7 +276,7 @@ public class ProdutoService : IProdutoService
 
         _logger.LogDebug("Verificando permissões para excluir o produto {ProdutoId}, catalogoId: {CatalogoId}",
             id, produto.CatalogoId);
-        var catalogo = await _dbContext.GetCatalogoByIdAsync(produto.CatalogoId);
+        var catalogo = await _dbContext.ObterCatalogoPorIdAsync(produto.CatalogoId);
         if (catalogo == null || catalogo.UserId != userId)
         {
             _logger.LogWarning("Acesso não autorizado para excluir o produto {ProdutoId} pelo usuário {UsuarioId}",
@@ -305,7 +305,7 @@ public class ProdutoService : IProdutoService
 
         _logger.LogDebug("Verificando permissões para atualizar estoque do produto {ProdutoId}, catalogoId: {CatalogoId}",
             produtoId, produto.CatalogoId);
-        var catalogo = await _dbContext.GetCatalogoByIdAsync(produto.CatalogoId);
+        var catalogo = await _dbContext.ObterCatalogoPorIdAsync(produto.CatalogoId);
         if (catalogo == null || catalogo.UserId != userId)
         {
             _logger.LogWarning("Acesso não autorizado para atualizar estoque do produto {ProdutoId} pelo usuário {UsuarioId}",

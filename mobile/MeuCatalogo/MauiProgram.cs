@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Handlers;
 using Plugin.Fingerprint;
 using MeuCatalogo.Components;
+using The49.Maui.BottomSheet;
 
 namespace MeuCatalogo;
 
@@ -40,6 +41,7 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
+            .UseBottomSheet()
             //.ConfigureSyncfusionToolkit()
             .ConfigureFonts(fonts =>
             {
