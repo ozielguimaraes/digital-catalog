@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.Maui;
+using Microsoft.Maui.Controls;
 
 namespace MeuCatalogo.Components;
 

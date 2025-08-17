@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Application.Services;
 
-public class CategoriaService : ICategoriaService
+public sealed class CategoriaService : ICategoriaService
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<CategoriaService> _logger;
@@ -53,7 +53,7 @@ public class CategoriaService : ICategoriaService
             var categoria = await _dbContext.GetCategoriaByIdAsync(id);
 
             if (categoria == null)
-                return ApiResponse<CategoriaResponse>.Error("Categoria não encontrada");
+                return ApiResponse<CategoriaResponse>.Error(ResponseType.NotFound, "Categoria não encontrada");
 
             return ApiResponse<CategoriaResponse>.Success(MapToResponse(categoria));
         }
@@ -122,7 +122,7 @@ public class CategoriaService : ICategoriaService
             }
 
             // Verificar se existem produtos associados a esta categoria
-            var produtosAssociados = await _dbContext.Produtos
+            bool produtosAssociados = await _dbContext.Produtos
                 .AnyAsync(p => p.CategoriaId == id);
 
             if (produtosAssociados)

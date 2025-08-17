@@ -27,4 +27,9 @@ public abstract class BaseApiService
         string? content = apiEx.Content;
         return string.IsNullOrWhiteSpace(content) ? null : JsonSerializer.Deserialize<ProblemDetails>(content, JsonOptions);
     }
+
+    protected static async Task<string> ObterBearerTokenAsync()
+    {
+        return $"Bearer {await SecureStorage.GetAsync(TokenKey)}";
+    }
 }

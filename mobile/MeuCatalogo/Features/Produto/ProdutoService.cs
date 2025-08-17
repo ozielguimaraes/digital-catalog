@@ -12,8 +12,7 @@ public sealed class ProdutoService(ILogger<ProdutoService> logger, IProdutoApi p
     {
         try
         {
-            string? token = await SecureStorage.GetAsync(TokenKey);
-            var produtos = await produtoApi.ObterPorCatalogoIdAsync(catalogoId, $"Bearer {token}", ct);
+            var produtos = await produtoApi.ObterPorCatalogoIdAsync(catalogoId, await ObterBearerTokenAsync(), ct);
             return ApiResponse<ICollection<ProdutoResponse>>.Success(produtos);
         }
         catch (ApiException apiEx)
@@ -32,8 +31,7 @@ public sealed class ProdutoService(ILogger<ProdutoService> logger, IProdutoApi p
     {
         try
         {
-            string? token = await SecureStorage.GetAsync(TokenKey);
-            var produto = await produtoApi.ObterPorIdAsync(id, $"Bearer {token}", ct);
+            var produto = await produtoApi.ObterPorIdAsync(id, await ObterBearerTokenAsync(), ct);
             return ApiResponse<ProdutoResponse>.Success(produto);
         }
         catch (ApiException apiEx)
@@ -52,8 +50,7 @@ public sealed class ProdutoService(ILogger<ProdutoService> logger, IProdutoApi p
     {
         try
         {
-            string? token = await SecureStorage.GetAsync(TokenKey);
-            var produto = await produtoApi.AdicionarAsync(request, $"Bearer {token}", ct);
+            var produto = await produtoApi.AdicionarAsync(request, await ObterBearerTokenAsync(), ct);
             return ApiResponse<ProdutoResponse>.Success(produto);
         }
         catch (ApiException apiEx)
@@ -72,8 +69,7 @@ public sealed class ProdutoService(ILogger<ProdutoService> logger, IProdutoApi p
     {
         try
         {
-            string? token = await SecureStorage.GetAsync(TokenKey);
-            var produto = await produtoApi.AtualizarAsync(id, request, $"Bearer {token}", ct);
+            var produto = await produtoApi.AtualizarAsync(id, request, await ObterBearerTokenAsync(), ct);
             return ApiResponse<ProdutoResponse>.Success(produto);
         }
         catch (ApiException apiEx)
@@ -92,8 +88,7 @@ public sealed class ProdutoService(ILogger<ProdutoService> logger, IProdutoApi p
     {
         try
         {
-            string? token = await SecureStorage.GetAsync(TokenKey);
-            await produtoApi.RemoverAsync(id, $"Bearer {token}", ct);
+            await produtoApi.RemoverAsync(id, await ObterBearerTokenAsync(), ct);
             return ApiResponse<Guid>.Success(id);
         }
         catch (ApiException apiEx)

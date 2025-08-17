@@ -14,10 +14,10 @@ public abstract partial class BasePageViewModel : ObservableObject
 
     partial void SetupTitle();
 
-    public List<string> ObterErros<T>(ApiResponse<T> response)
+    public static List<string> ObterErros<T>(ApiResponse<T> response)
     {
         if (response.ProblemDetails is null)
-            return [];
+            return response.MensagemDeErro is null ? [ "Houve um erro inesperado, favor entrar em contato com o suporte." ] : [response.MensagemDeErro];
 
         if (response.ProblemDetails.Status == (int)HttpStatusCode.Forbidden)
         {

@@ -23,9 +23,9 @@ public class CategoriasController : BaseApiController
         _categoriaService = categoriaService;
     }
 
-    [HttpGet]
+    [HttpGet("catalogo/{catalogoId}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<CategoriaDto>))]
-    public async Task<IActionResult> ObterTodas(Guid catalogoId)
+    public async Task<IActionResult> ObterPorCatalogo(Guid catalogoId)
     {
         string? usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Obtendo as categorias para o usuário {UserId}, catálogo {CatalogoId}", usuarioId, catalogoId);

@@ -8,7 +8,7 @@ using MeuCatalogo.Application.Infrastructure.Mappers;
 
 namespace MeuCatalogo.Application.Services;
 
-public class CatalogoService : ICatalogoService
+public sealed class CatalogoService : ICatalogoService
 {
     private readonly ApplicationDbContext _dbContext;
 

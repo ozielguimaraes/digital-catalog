@@ -83,11 +83,11 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
         <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.70" />
         <PackageReference Include="Plugin.Fingerprint" Version="3.0.0-beta.1" />
+        <PackageReference Include="Plugin.Maui.BottomSheet" Version="9.1.9" />
         <PackageReference Include="Polly" Version="8.5.2" />
         <PackageReference Include="Polly.Extensions.Http" Version="3.0.0" />
         <PackageReference Include="Refit" Version="8.0.0" />
         <PackageReference Include="Refit.HttpClientFactory" Version="8.0.0" />
-        <PackageReference Include="the49.Maui.BottomSheet" Version="8.0.3" />
 <!--        <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.5" />-->
     </ItemGroup>
 
@@ -97,7 +97,6 @@
 
     <ItemGroup>
       <Folder Include="Features\Catalogo\Validators\" />
-      <Folder Include="Features\Categoria\ApiClients\" />
       <Folder Include="Features\Categoria\Requests\" />
       <Folder Include="Features\Categoria\Responses\" />
       <Folder Include="Features\Categoria\Validators\" />

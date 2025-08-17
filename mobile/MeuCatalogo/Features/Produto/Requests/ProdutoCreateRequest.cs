@@ -1,3 +1,5 @@
+using System;
+
 namespace MeuCatalogo.Features.Produto.Requests;
 
 public sealed class ProdutoCreateRequest

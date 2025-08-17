@@ -1,9 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MeuCatalogo.Features.Categoria.CategoriaBottomSheet">
-    <ContentPage.Content>
-        
-    </ContentPage.Content>
-</ContentPage>
+<bottomsheet:BottomSheet
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:bottomsheet="http://pluginmauibottomsheet.com"
+    x:Class="MeuCatalogo.Features.Categoria.CategoriaBottomSheet"
+    xmlns:viewmodel="clr-namespace:MeuCatalogo.Features.Categoria"
+    xmlns:models="clr-namespace:MeuCatalogo.Features.Produto.Models"
+    x:DataType="viewmodel:CategoriaBottomSheetViewModel"
+    IgnoreSafeArea="True"
+    States="Medium"
+    IsOpen="True">
+    <bottomsheet:BottomSheet.Content>
+        <bottomsheet:BottomSheetContent>
+            <Grid>
+                <Label
+                    Text="{Binding Titulo}"
+                    FontSize="20"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Start"
+                    Margin="0,16,0,0" />
+                <CollectionView ItemsSource="{Binding Categorias}" BackgroundColor="Transparent">
+                    <CollectionView.EmptyView>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border BackgroundColor="{StaticResource White}">
+
+                                <Label Text="{Binding Nome}" TextColor="Black" />
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </bottomsheet:BottomSheetContent>
+    </bottomsheet:BottomSheet.Content>
+</bottomsheet:BottomSheet>

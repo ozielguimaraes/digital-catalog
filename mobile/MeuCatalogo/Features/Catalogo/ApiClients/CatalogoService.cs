@@ -11,8 +11,7 @@ public class CatalogoService(ILogger<CatalogoService> logger, ICatalogoApi catal
     {
         try
         {
-            string? token = await SecureStorage.GetAsync(TokenKey);
-            var catalogos = await catalogoApi.ObterCatalogosAsync($"Bearer {token}", ct);
+            var catalogos = await catalogoApi.ObterCatalogosAsync(await ObterBearerTokenAsync(), ct);
             return ApiResponse<ICollection<CatalogoResponse>>.Success(catalogos);
         }
         catch (ApiException apiEx)
@@ -31,8 +30,7 @@ public class CatalogoService(ILogger<CatalogoService> logger, ICatalogoApi catal
     {
         try
         {
-            string? token = await SecureStorage.GetAsync(TokenKey);
-            var catalogo = await catalogoApi.ObterPorIdAsync(id, $"Bearer {token}", ct);
+            var catalogo = await catalogoApi.ObterPorIdAsync(id, await ObterBearerTokenAsync(), ct);
             return ApiResponse<CatalogoResponse>.Success(catalogo);
         }
         catch (ApiException apiEx)
@@ -51,8 +49,7 @@ public class CatalogoService(ILogger<CatalogoService> logger, ICatalogoApi catal
     {
         try
         {
-            string? token = await SecureStorage.GetAsync(TokenKey);
-            var catalogo = await catalogoApi.AdicionarAsync(request, $"Bearer {token}", ct);
+            var catalogo = await catalogoApi.AdicionarAsync(request, await ObterBearerTokenAsync(), ct);
             return ApiResponse<CatalogoResponse>.Success(catalogo);
         }
         catch (ApiException apiEx)
@@ -71,8 +68,7 @@ public class CatalogoService(ILogger<CatalogoService> logger, ICatalogoApi catal
     {
         try
         {
-            string? token = await SecureStorage.GetAsync(TokenKey);
-            var catalogo = await catalogoApi.AtualizarAsync(id, request, $"Bearer {token}", ct);
+            var catalogo = await catalogoApi.AtualizarAsync(id, request, await ObterBearerTokenAsync(), ct);
             return ApiResponse<CatalogoResponse>.Success(catalogo);
         }
         catch (ApiException apiEx)
@@ -91,19 +87,18 @@ public class CatalogoService(ILogger<CatalogoService> logger, ICatalogoApi catal
     {
         try
         {
-            string? token = await SecureStorage.GetAsync(TokenKey);
-            await catalogoApi.RemoverAsync(id, $"Bearer {token}", ct);
+            await catalogoApi.RemoverAsync(id, await ObterBearerTokenAsync(), ct);
             return ApiResponse<Guid>.Success(id);
         }
         catch (ApiException apiEx)
         {
-            logger.LogWarning(apiEx, "Erro ao remover catálogo.");
-            return ApiResponse<Guid>.Error("Erro ao remover catálogo", GetProblemDetails(apiEx));
+            logger.LogWarning(apiEx, "Erro ao remover catálogo {id}.", id);
+            return ApiResponse<Guid>.Error("Não conseguimos concluir a remoção. Se o problema persistir, entre em contato com o suporte", GetProblemDetails(apiEx));
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Erro inesperado ao remover catálogo.");
-            return ApiResponse<Guid>.Error("Erro inesperado.");
+            return ApiResponse<Guid>.Error("Não conseguimos remover o catálogo agora. Verifique sua conexão e tente novamente.");
         }
     }
 }

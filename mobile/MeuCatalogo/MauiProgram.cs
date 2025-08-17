@@ -5,7 +5,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Handlers;
 using Plugin.Fingerprint;
 using MeuCatalogo.Components;
-using The49.Maui.BottomSheet;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Maui;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Controls.Hosting;
+using Microsoft.Maui.Hosting;
+using Plugin.Maui.BottomSheet.Hosting;
 
 namespace MeuCatalogo;
 
@@ -17,47 +22,38 @@ public static class MauiProgram
         EntryHandler.Mapper.AppendToMapping("NoEmoji", (handler, view) =>
         {
 #if ANDROID
-            // Set input type to avoid emoji keyboard
-            handler.PlatformView.InputType = Android.Text.InputTypes.ClassNumber
-                                             | Android.Text.InputTypes.NumberFlagDecimal
-                                             | Android.Text.InputTypes.NumberFlagSigned;
+            if (view is MeuCatalogo.Components.CustomEntry)
+            {
+                handler.PlatformView.InputType =
+                    Android.Text.InputTypes.ClassNumber
+                    | Android.Text.InputTypes.NumberFlagDecimal
+                    | Android.Text.InputTypes.NumberFlagSigned;
 
-            // Optional: Disable EmojiCompat if necessary (commented unless you’ve initialized it)
-            // AndroidX.Emoji2.Text.EmojiCompat.Config = null;
-#endif
-        });
-        EntryHandler.Mapper.AppendToMapping("NoEmoji", (handler, view) =>
-        {
-#if ANDROID
-    if (view is CustomEntry)
-    {
-        handler.PlatformView.InputType = Android.Text.InputTypes.ClassNumber
-                                         | Android.Text.InputTypes.NumberFlagDecimal
-                                         | Android.Text.InputTypes.NumberFlagSigned;
-    }
+                // Optional: Disable EmojiCompat if needed
+                // AndroidX.Emoji2.Text.EmojiCompat.Config = null;
+            }
 #endif
         });
 
         builder
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
-            .UseBottomSheet()
+            .UseBottomSheet(config => config.CopyPagePropertiesToBottomSheet = true)
             //.ConfigureSyncfusionToolkit()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("Lato-Light.ttf", "LatoLight");
                 fonts.AddFont("Lato-Regular.ttf", "LatoRegular");
                 fonts.AddFont("Lato-Bold.ttf", "LatoBold");
-            });
-
-#if DEBUG
-        // builder.Logging.AddDebug();
-        // builder.Services.AddLogging(configure => configure.AddDebug());
-#endif
-        builder.Logging.AddConsole();
-        builder.Services.AddClientServices(ApiConstants.BaseUrl)
+            })
+            .AddClientServices(ApiConstants.BaseUrl)
             .AddApplicationServices()
             .AddViewModels();
+#if DEBUG
+        builder.Logging.AddDebug();
+        // builder.Services.AddLogging(configure => configure.AddDebug());
+        //builder.Logging.AddConsole();
+#endif
         builder.Services.AddSingleton<IAppInfo>(AppInfo.Current);
 
         builder.Services.AddSingleton(CrossFingerprint.Current);

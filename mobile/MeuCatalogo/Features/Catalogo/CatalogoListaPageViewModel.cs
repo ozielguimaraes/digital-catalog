@@ -40,6 +40,11 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
             }
             Catalogos.Clear();
             Catalogos = new ObservableCollection<CatalogoResponse>(response.Dados!);
+
+            if (_settingsService.CatalogoFavorito == null && response.Dados!.Count == 1)
+            {
+                FavoritarCommand.Execute(response.Dados.FirstOrDefault());
+            }
         }
         catch (Exception ex)
         {

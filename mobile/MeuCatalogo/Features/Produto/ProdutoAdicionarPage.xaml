@@ -24,17 +24,30 @@
                                 Text="{Binding PrecoComDescontoString}"
                                 ErrorMessage="{Binding PrecoComDescontoErrorMessage}"
                                 HasError="{Binding PrecoComDescontoErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
-        <!-- <components:CustomEntry Title="Categoria" -->
-        <!--                         Text="{Binding Categoria}" -->
-        <!--                         Keyboard="Numeric" -->
-        <!--                         MaxLength="18" -->
-        <!--                         ErrorMessage="{Binding CategoriaErrorMessage}" -->
-        <!--                         HasError="{Binding CategoriaErrorMessage, Converter={toolkit:IsNotNullConverter}}" /> -->
-        <components:CustomEntry Title="Categoria"
-                                Text="{Binding Categoria.Descricao}"
-                                MaxLength="18"
-                                ErrorMessage="{Binding CategoriaErrorMessage}"
-                                HasError="{Binding CategoriaErrorMessage, Converter={toolkit:IsNotNullConverter}}" />
+
+
+        <Label FontAttributes="Bold"
+               Margin="0,8,0,0"
+               Text="Categoria"/>
+        <Border BackgroundColor="{StaticResource Gray100}">
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding ExibirCategoriasCommand}" />
+            </Border.GestureRecognizers>
+            <Grid RowDefinitions="Auto, 1">
+                <Grid.Margin>
+                    <Thickness Left="4" Right="4" Bottom="6" Top="20" />
+                </Grid.Margin>
+                <Label Text="Selecione a categoria" Margin="0,0,0,8" />
+                <BoxView Grid.Row="1"
+                         HeightRequest="1"
+                         Color="{StaticResource Gray500}" />
+            </Grid>
+        </Border>
+        <Label Text="{Binding CategoriaErrorMessage}"
+               Margin="0,0,0,16"
+               FontSize="16"
+               TextColor="{StaticResource Magenta}"
+               IsVisible="{Binding CategoriaErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
 
         <Button Text="Salvar"
                 Margin="0,24, 0,0"

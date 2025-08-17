@@ -11,7 +11,7 @@ using MeuCatalogo.Application.Infrastructure.Data.Repository;
 
 namespace MeuCatalogo.Application.Services;
 
-public class ClienteService : IClienteService
+public sealed class ClienteService : IClienteService
 {
     private readonly ApplicationDbContext _dbContext;
 

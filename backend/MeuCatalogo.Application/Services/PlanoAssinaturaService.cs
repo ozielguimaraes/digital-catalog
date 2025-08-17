@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Application.Services;
 
-public class PlanoAssinaturaService : IPlanoAssinaturaService
+public sealed class PlanoAssinaturaService : IPlanoAssinaturaService
 {
     private readonly ILogger<PlanoAssinaturaService> _logger;
     private readonly ApplicationDbContext _context;

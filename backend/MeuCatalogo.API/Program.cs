@@ -41,8 +41,13 @@ try
         options.LowercaseUrls = true;
     });
 
+    string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
+    }
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+        options.UseSqlServer(connectionString));
 
     builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
@@ -129,14 +134,16 @@ try
         var services = scope.ServiceProvider;
         try
         {
-            var context = services.GetRequiredService<ApplicationDbContext>();
+            #if DEBUG
+                var context = services.GetRequiredService<ApplicationDbContext>();
 
-            if (context.Database.GetPendingMigrations().Any())
-            {
-                context.Database.Migrate();
-            }
+                if (context.Database.GetPendingMigrations().Any())
+                {
+                    context.Database.Migrate();
+                }
 
-            await DbInitializer.InitializeAsync(services);
+                await DbInitializer.InitializeAsync(services);
+            #endif
 
             Log.Information("Database initialized successfully.");
         }

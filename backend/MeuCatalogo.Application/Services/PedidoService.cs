@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Application.Services;
 
-public class PedidoService : IPedidoService
+public sealed class PedidoService : IPedidoService
 {
     private readonly ILogger<PedidoService> _logger;
     private readonly ApplicationDbContext _dbContext;

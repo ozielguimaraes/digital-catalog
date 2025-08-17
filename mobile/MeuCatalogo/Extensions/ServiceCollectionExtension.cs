@@ -1,11 +1,17 @@
+using System;
 using MeuCatalogo.Features.Auth;
 using MeuCatalogo.Features.Auth.ApiClients;
 using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Catalogo.ApiClients;
+using MeuCatalogo.Features.Categoria;
+using MeuCatalogo.Features.Categoria.ApiClients;
 using MeuCatalogo.Features.Produto;
 using MeuCatalogo.Features.Produto.ApiClients;
 using MeuCatalogo.Features.Settings.Services;
 using MeuCatalogo.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Maui.Hosting;
+using Plugin.Maui.BottomSheet.Hosting;
 using Polly;
 using Polly.Extensions.Http;
 using Refit;
@@ -14,9 +20,9 @@ namespace MeuCatalogo.Extensions;
 
 public static class ServiceCollectionExtension
 {
-    public static IServiceCollection AddClientServices(this IServiceCollection services, string baseUrl)
+    public static MauiAppBuilder AddClientServices(this MauiAppBuilder builder, string baseUrl)
     {
-        services.AddHttpClient()
+        builder.Services.AddHttpClient()
             .ConfigureHttpClientDefaults(f =>
             {
                 {
@@ -30,7 +36,7 @@ public static class ServiceCollectionExtension
             .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 
         // Register Refit with Polly and IHttpClientFactory
-        services
+        builder.Services
             .AddRefitClient<IAuthApi>()
             .ConfigureHttpClient(c =>
             {
@@ -38,57 +44,68 @@ public static class ServiceCollectionExtension
             })
             .AddPolicyHandler(retryPolicy);
 
-        services
+        builder.Services
             .AddRefitClient<ICatalogoApi>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseUrl))
             .AddHttpMessageHandler<LoggingHttpClientHandler>()
             .AddPolicyHandler(retryPolicy);
 
-        services
+        builder.Services
+            .AddRefitClient<ICategoriaApi>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseUrl))
+            .AddHttpMessageHandler<LoggingHttpClientHandler>()
+            .AddPolicyHandler(retryPolicy);
+
+        builder.Services
             .AddRefitClient<IProdutoApi>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseUrl))
             .AddHttpMessageHandler<LoggingHttpClientHandler>()
             .AddPolicyHandler(retryPolicy);
 
-        return services;
+        return builder;
     }
 
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    public static MauiAppBuilder AddApplicationServices(this MauiAppBuilder builder)
     {
-        services.AddTransient<LoggingHttpClientHandler>();
-        services.AddSingleton<ISettingsService, SettingsService>();
-        services.AddSingleton<INavigationService, NavigationService>();
-        services.AddTransient<IAuthService, AuthService>();
-        services.AddTransient<ICatalogoService, CatalogoService>();
-        services.AddTransient<IProdutoService, ProdutoService>();
+        builder.Services.AddTransient<LoggingHttpClientHandler>();
+        builder.Services.AddSingleton<ISettingsService, SettingsService>();
+        builder.Services.AddSingleton<INavigationService, NavigationService>();
+        builder.Services.AddTransient<IAuthService, AuthService>();
+        builder.Services.AddTransient<ICatalogoService, CatalogoService>();
+        builder.Services.AddTransient<ICategoriaService, CategoriaService>();
+        builder.Services.AddTransient<IProdutoService, ProdutoService>();
 
-        return services;
+        return builder;
     }
 
-    public static IServiceCollection AddViewModels(this IServiceCollection services)
+    public static MauiAppBuilder AddViewModels(this MauiAppBuilder builder)
     {
-        services.AddTransient<AppShellViewModel>();
+        builder.Services.AddTransient<AppShellViewModel>();
 
         // Feature Auth
-        services.AddTransient<LoginPage>();
-        services.AddTransient<LoginPageViewModel>();
-        services.AddTransient<SignupPage>();
-        services.AddTransient<SignupPageViewModel>();
+        builder.Services.AddTransient<LoginPage>();
+        builder.Services.AddTransient<LoginPageViewModel>();
+        builder.Services.AddTransient<SignupPage>();
+        builder.Services.AddTransient<SignupPageViewModel>();
+
+        //Feature Categoria
+        builder.Services.AddTransient<CategoriaBottomSheet>();
+        builder.Services.AddBottomSheet<CategoriaBottomSheet, CategoriaBottomSheetViewModel>(BottomSheetKeys.ListaCategoria);
 
         //Feature Catalogos
-        services.AddTransient<CatalogoListaPage>();
-        services.AddTransient<CatalogoListaPageViewModel>();
-        services.AddTransient<CatalogoAdicionarPage>();
-        services.AddTransient<CatalogoAdicionarPageViewModel>();
+        builder.Services.AddTransient<CatalogoListaPage>();
+        builder.Services.AddTransient<CatalogoListaPageViewModel>();
+        builder.Services.AddTransient<CatalogoAdicionarPage>();
+        builder.Services.AddTransient<CatalogoAdicionarPageViewModel>();
 
         //Feature Produtos
-        services.AddTransient<ProdutoListaPage>();
-        services.AddTransient<ProdutoListaPageViewModel>();
-        services.AddTransient<ProdutoAdicionarPage>();
-        services.AddTransient<ProdutoAdicionarPageViewModel>();
+        builder.Services.AddTransient<ProdutoListaPage>();
+        builder.Services.AddTransient<ProdutoListaPageViewModel>();
+        builder.Services.AddTransient<ProdutoAdicionarPage>();
+        builder.Services.AddTransient<ProdutoAdicionarPageViewModel>();
 
         //Feature Settings
 
-        return services;
+        return builder;
     }
 }

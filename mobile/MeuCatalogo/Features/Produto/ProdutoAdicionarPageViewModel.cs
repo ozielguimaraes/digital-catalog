@@ -1,24 +1,35 @@
+using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MeuCatalogo.Features.Categoria;
+using MeuCatalogo.Features.Produto.Models;
 using MeuCatalogo.Features.Produto.Requests;
-using MeuCatalogo.Features.Produto.Responses;
 using MeuCatalogo.Features.Settings.Services;
 using Microsoft.Extensions.Logging;
+using Plugin.Maui.BottomSheet.Navigation;
 
 namespace MeuCatalogo.Features.Produto;
 
-public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel
+public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, IQueryAttributable
 {
     private readonly ILogger<ProdutoAdicionarPageViewModel> _logger;
     private readonly IProdutoService _produtoService;
+    private readonly ICategoriaService _categoriaService;
     private readonly ISettingsService _settingsService;
+    private readonly IBottomSheetNavigationService _bottomSheetNavigationService;
 
-    public ProdutoAdicionarPageViewModel(ILogger<ProdutoAdicionarPageViewModel> logger, IProdutoService produtoService, ISettingsService settingsService)
+    public ProdutoAdicionarPageViewModel(ILogger<ProdutoAdicionarPageViewModel> logger,
+        IProdutoService produtoService,
+        ISettingsService settingsService,
+        IBottomSheetNavigationService bottomSheetNavigationService,
+        ICategoriaService categoriaService)
     {
         _logger = logger;
         _produtoService = produtoService;
         _settingsService = settingsService;
+        _bottomSheetNavigationService = bottomSheetNavigationService;
+        _categoriaService = categoriaService;
     }
 
     [ObservableProperty] private string _nome;
@@ -136,6 +147,13 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel
                 }
             }
 
+            if (Categoria == null)
+            {
+                await Application.Current.MainPage.DisplayAlert("Erro", "Selecione uma categoria", "OK");
+                CategoriaErrorMessage = "Categoria é obrigatória";
+                return;
+            }
+
             var request = new ProdutoCreateRequest(Nome, Guid.Empty, Guid.Empty, Preco, _precoComDesconto,null);
 
             var response = await _produtoService.CreateAsync(request);
@@ -151,6 +169,63 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error salvar produto");
+        }
+    }
+
+    [RelayCommand]
+    private async Task ExibirCategorias()
+    {
+        try
+        {
+            var categoriasResponse = await _categoriaService.ObterPorCatalogoIdAsync(_settingsService.CatalogoFavorito!.Id);
+
+            if (categoriasResponse.RetornouComErro)
+            {
+                string mensagemErro = string.Join("\n", ObterErros(categoriasResponse));
+                await Application.Current.MainPage.DisplayAlert("Erro", mensagemErro, "OK");
+                return;
+            }
+
+            var parametros = new BottomSheetNavigationParameters
+            {
+                { BottomSheetParameters.Categorias, categoriasResponse.Dados! }
+            };
+
+            await _bottomSheetNavigationService.NavigateToAsync<CategoriaBottomSheetViewModel>(BottomSheetKeys.ListaCategoria, parametros);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao exibir as categorias");
+            await Application.Current.MainPage.DisplayAlert("Erro", "Não foi possível exibir as categorias", "OK");
+        }
+    }
+
+    [RelayCommand]
+    private async Task SelecionarCategoria()
+    {
+        try
+        {
+            await Task.CompletedTask;
+
+            // if (categoriaSelecionada != null)
+            // {
+            //     Categoria = categoriaSelecionada;
+            //     CategoriaErrorMessage = string.Empty;
+            // }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao selecionar categoria");
+            await Application.Current.MainPage.DisplayAlert("Erro", "Não foi possível selecionar a categoria", "OK");
+        }
+    }
+
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        if (_settingsService.CatalogoFavorito is null)
+        {
+            _logger.LogWarning("Nenhum catálogo favorito encontrado.");
+            Application.Current.MainPage.DisplayAlert("Erro", "Nenhum catálogo favorito encontrado. Por favor, selecione um catálogo.", "OK");
         }
     }
 }

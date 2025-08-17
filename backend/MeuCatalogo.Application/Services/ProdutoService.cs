@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace MeuCatalogo.Application.Services;
 
-public class ProdutoService : IProdutoService
+public sealed class ProdutoService : IProdutoService
 {
     private readonly ILogger<ProdutoService> _logger;
     private readonly ApplicationDbContext _dbContext;

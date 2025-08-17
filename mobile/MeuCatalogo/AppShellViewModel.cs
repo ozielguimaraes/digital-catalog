@@ -34,7 +34,7 @@ public partial class AppShellViewModel : ObservableObject
         var userInfo = JsonSerializer.Deserialize<UserResponse>(await SecureStorage.GetAsync(BaseApiService.UserInfoKey));
 
         UserDisplayName = userInfo!.Nome.Split(' ')[0];
-        Email = $"{userInfo!.Email}";
+        Email = $"{userInfo.Email}";
         VersionName = $"{_appInfo.VersionString} ({_appInfo.BuildString})";
     }
 
@@ -44,7 +44,7 @@ public partial class AppShellViewModel : ObservableObject
         bool possuiCatalogoFavorito = _settingsService.CatalogoFavorito is not null;
 
         string targetPage = isAuthenticated
-            ? (possuiCatalogoFavorito ? nameof(ProdutoAdicionarPage) : nameof(CatalogoListaPage))
+            ? possuiCatalogoFavorito ? nameof(ProdutoAdicionarPage) : nameof(CatalogoListaPage)
             : nameof(LoginPage);
 
         return targetPage;
