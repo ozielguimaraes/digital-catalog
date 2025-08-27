@@ -35,7 +35,7 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
             var response = await _catalogoService.GetCatalogosByUserIdAsync();
             if (response.RetornouComErro)
             {
-                await Application.Current.MainPage.DisplayAlert("Erro", response.ProblemDetails!.Title, "OK");
+                await Application.Current.MainPage.DisplayAlert(response.ProblemDetails!.Title, response.ProblemDetails!.Detail, "OK");
                 return;
             }
             Catalogos.Clear();
@@ -64,7 +64,7 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
             var response = await _catalogoService.DeleteCatalogoAsync(catalogo.Id);
             if (response.RetornouComErro)
             {
-                await Application.Current.MainPage.DisplayAlert("Erro", response.ProblemDetails!.Title, "OK");
+                await Application.Current.MainPage.DisplayAlert(response.ProblemDetails!.Title, response.ProblemDetails!.Detail, "OK");
                 return;
             }
 

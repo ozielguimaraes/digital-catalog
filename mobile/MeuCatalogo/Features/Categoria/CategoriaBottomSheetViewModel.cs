@@ -8,22 +8,22 @@ namespace MeuCatalogo.Features.Categoria;
 
 public partial class CategoriaBottomSheetViewModel : ObservableObject, INavigationAware
 {
-    //private readonly IBottomSheetNavigationService _bottomSheetNavigationService;
+    private readonly IBottomSheetNavigationService _bottomSheetNavigationService;
 
     private CategoriaModel? _itemSelecionado;
-    //
-    // public CategoriaBottomSheetViewModel(IBottomSheetNavigationService bottomSheetNavigationService)
-    // {
-    //     _bottomSheetNavigationService = bottomSheetNavigationService;
-    // }
+
+    public CategoriaBottomSheetViewModel(IBottomSheetNavigationService bottomSheetNavigationService)
+    {
+        _bottomSheetNavigationService = bottomSheetNavigationService;
+    }
 
     [ObservableProperty]
     private ObservableCollection<CategoriaModel> _categorias;
-
+    [ObservableProperty] private View _currentContent;
     [ObservableProperty] private string _titulo = "Selecione uma categoria";
 
     [RelayCommand]
-    private async Task SelecionarCategoriaAsync(CategoriaModel categoria)
+    private async Task SelecionarCategoria(CategoriaModel categoria)
     {
         _itemSelecionado = categoria;
 
@@ -32,7 +32,7 @@ public partial class CategoriaBottomSheetViewModel : ObservableObject, INavigati
             { BottomSheetParameters.CategoriaSelectionada, _itemSelecionado }
         };
 
-        //await _bottomSheetNavigationService.GoBackAsync(parametros);
+        await _bottomSheetNavigationService.GoBackAsync(parametros);
     }
 
     public void OnNavigatedTo(IBottomSheetNavigationParameters parameters)

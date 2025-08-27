@@ -89,7 +89,6 @@ public static class ServiceCollectionExtension
         builder.Services.AddTransient<SignupPageViewModel>();
 
         //Feature Categoria
-        builder.Services.AddTransient<CategoriaBottomSheet>();
         builder.Services.AddBottomSheet<CategoriaBottomSheet, CategoriaBottomSheetViewModel>(BottomSheetKeys.ListaCategoria);
 
         //Feature Catalogos

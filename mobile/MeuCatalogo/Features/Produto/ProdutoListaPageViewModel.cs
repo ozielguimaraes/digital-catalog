@@ -43,7 +43,7 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
             var response = await _produtoService.ObterPorCatalogoIdAsync(catalogo.Id);
             if (response.RetornouComErro)
             {
-                await Application.Current.MainPage.DisplayAlert("Erro", response.ProblemDetails!.Title, "OK");
+                await Application.Current.MainPage.DisplayAlert(response.ProblemDetails!.Title, response.ProblemDetails!.Detail, "OK");
                 return;
             }
             Produtos.Clear();

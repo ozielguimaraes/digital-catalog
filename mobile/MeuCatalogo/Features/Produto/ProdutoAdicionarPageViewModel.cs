@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -11,7 +10,7 @@ using Plugin.Maui.BottomSheet.Navigation;
 
 namespace MeuCatalogo.Features.Produto;
 
-public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, IQueryAttributable
+public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, INavigationAware
 {
     private readonly ILogger<ProdutoAdicionarPageViewModel> _logger;
     private readonly IProdutoService _produtoService;
@@ -19,7 +18,11 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
     private readonly ISettingsService _settingsService;
     private readonly IBottomSheetNavigationService _bottomSheetNavigationService;
 
-    public ProdutoAdicionarPageViewModel(ILogger<ProdutoAdicionarPageViewModel> logger,
+    private CancellationTokenSource? _ctsCategorias;
+    private Task<ApiResponse<List<CategoriaModel>>>? _taskCarregaCategorias;
+
+    public ProdutoAdicionarPageViewModel(
+        ILogger<ProdutoAdicionarPageViewModel> logger,
         IProdutoService produtoService,
         ISettingsService settingsService,
         IBottomSheetNavigationService bottomSheetNavigationService,
@@ -49,6 +52,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
     [ObservableProperty] private CategoriaModel? _categoria;
     [ObservableProperty] private string? _categoriaErrorMessage;
 
+    #region Conversão Preços
     partial void OnPrecoStringChanged(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -58,9 +62,9 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
             return;
         }
 
-        if (TentarConverterPreco(value, out decimal precoComDesconto))
+        if (TentarConverterPreco(value, out decimal preco))
         {
-            _precoComDesconto = precoComDesconto;
+            _preco = preco;
             PrecoErrorMessage = string.Empty;
         }
         else
@@ -74,13 +78,13 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         if (string.IsNullOrWhiteSpace(value))
         {
             _precoComDesconto = null;
-            PrecoErrorMessage = string.Empty;
+            PrecoComDescontoErrorMessage = string.Empty;
             return;
         }
 
-        if (TentarConverterPreco(value, out decimal precoComDesconto))
+        if (TentarConverterPreco(value, out decimal preco))
         {
-            _precoComDesconto = precoComDesconto;
+            _precoComDesconto = preco;
             PrecoComDescontoErrorMessage = string.Empty;
         }
         else
@@ -92,29 +96,133 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
     private static bool TentarConverterPreco(string? value, out decimal preco)
     {
         var culture = CultureInfo.CurrentCulture;
-
         string? sanitized = value?.Trim();
 
-        bool valido = decimal.TryParse(
+        return decimal.TryParse(
             sanitized,
             NumberStyles.AllowDecimalPoint | NumberStyles.AllowThousands | NumberStyles.AllowCurrencySymbol,
             culture,
             out preco);
+    }
+    #endregion
 
-        return valido;
+    #region Navegação
+    public void OnNavigatedFrom(IBottomSheetNavigationParameters parameters)
+    {
+        CancelarCarregamentoCategorias();
     }
 
+    public void OnNavigatedTo(IBottomSheetNavigationParameters parameters)
+    {
+        try
+        {
+            if (parameters.TryGetValue(BottomSheetParameters.CategoriaSelectionada, out object? categoriaSelecionada) &&
+                categoriaSelecionada is CategoriaModel categoria)
+            {
+                Categoria = categoria;
+                CategoriaErrorMessage = string.Empty;
+            }
+            else
+            {
+                CategoriaErrorMessage = "Categoria é obrigatória";
+            }
+
+            if (_settingsService.CatalogoFavorito is null)
+            {
+                _logger.LogWarning("Nenhum catálogo favorito encontrado.");
+                Application.Current.MainPage.DisplayAlert("Erro",
+                    "Nenhum catálogo favorito encontrado. Por favor, selecione um catálogo.", "OK");
+                return;
+            }
+
+            _ctsCategorias = new CancellationTokenSource();
+            var ct = _ctsCategorias.Token;
+
+            _taskCarregaCategorias = _categoriaService.ObterPorCatalogoIdAsync(_settingsService.CatalogoFavorito.Id, ct);
+
+            // dispara o carregamento em background
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _taskCarregaCategorias;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Erro ao carregar categorias");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao entrar na tela de adicionar produto");
+        }
+    }
+    #endregion
+
+    #region Categorias
+    [RelayCommand]
+    private async Task ExibirCategorias()
+    {
+        try
+        {
+            if (_taskCarregaCategorias == null)
+            {
+                await Application.Current.MainPage.DisplayAlert("Erro", "Carregamento das categorias não foi iniciado.", "OK");
+                return;
+            }
+
+            // garante que o carregamento terminou
+            var categoriasResponse = await _taskCarregaCategorias;
+
+            if (categoriasResponse.RetornouComErro)
+            {
+                string mensagemErro = string.Join("\n", ObterErros(categoriasResponse));
+                await Application.Current.MainPage.DisplayAlert("Erro", mensagemErro, "OK");
+                return;
+            }
+
+            var parametros = new BottomSheetNavigationParameters
+            {
+                { BottomSheetParameters.Categorias, categoriasResponse.Dados! }
+            };
+
+            await _bottomSheetNavigationService.NavigateToAsync<CategoriaBottomSheetViewModel>(
+                BottomSheetKeys.ListaCategoria, parametros);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Carregamento de categorias cancelado.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao exibir as categorias");
+            await Application.Current.MainPage.DisplayAlert("Erro", "Não foi possível exibir as categorias", "OK");
+        }
+    }
+
+    private void CancelarCarregamentoCategorias()
+    {
+        if (_ctsCategorias is { IsCancellationRequested: false })
+        {
+            _ctsCategorias.Cancel();
+            _ctsCategorias.Dispose();
+        }
+        _ctsCategorias = null;
+        _taskCarregaCategorias = null;
+    }
+    #endregion
+
+    #region Produto
     [RelayCommand]
     private async Task Salvar()
     {
         try
         {
-            //validations
-
+            // validações básicas
             if (string.IsNullOrWhiteSpace(Nome))
             {
                 await Application.Current.MainPage.DisplayAlert("Erro", "Campo Nome é obrigatório", "OK");
-
                 return;
             }
 
@@ -134,15 +242,13 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
             {
                 if (_precoComDesconto <= 0)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Erro", "Campo Preço com desconto deve ser maior que '0'",
-                        "OK");
+                    await Application.Current.MainPage.DisplayAlert("Erro", "Campo Preço com desconto deve ser maior que '0'", "OK");
                     return;
                 }
 
                 if (_precoComDesconto > Preco)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Erro",
-                        "Preço com desconto deve ser menor que o preço original", "OK");
+                    await Application.Current.MainPage.DisplayAlert("Erro", "Preço com desconto deve ser menor que o preço original", "OK");
                     return;
                 }
             }
@@ -154,7 +260,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
                 return;
             }
 
-            var request = new ProdutoCreateRequest(Nome, Guid.Empty, Guid.Empty, Preco, _precoComDesconto,null);
+            var request = new ProdutoCreateRequest(Nome, Guid.Empty, Guid.Empty, Preco, _precoComDesconto, null);
 
             var response = await _produtoService.CreateAsync(request);
             if (response.RetornouComErro)
@@ -168,64 +274,8 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error salvar produto");
+            _logger.LogError(ex, "Erro ao salvar produto");
         }
     }
-
-    [RelayCommand]
-    private async Task ExibirCategorias()
-    {
-        try
-        {
-            var categoriasResponse = await _categoriaService.ObterPorCatalogoIdAsync(_settingsService.CatalogoFavorito!.Id);
-
-            if (categoriasResponse.RetornouComErro)
-            {
-                string mensagemErro = string.Join("\n", ObterErros(categoriasResponse));
-                await Application.Current.MainPage.DisplayAlert("Erro", mensagemErro, "OK");
-                return;
-            }
-
-            var parametros = new BottomSheetNavigationParameters
-            {
-                { BottomSheetParameters.Categorias, categoriasResponse.Dados! }
-            };
-
-            await _bottomSheetNavigationService.NavigateToAsync<CategoriaBottomSheetViewModel>(BottomSheetKeys.ListaCategoria, parametros);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao exibir as categorias");
-            await Application.Current.MainPage.DisplayAlert("Erro", "Não foi possível exibir as categorias", "OK");
-        }
-    }
-
-    [RelayCommand]
-    private async Task SelecionarCategoria()
-    {
-        try
-        {
-            await Task.CompletedTask;
-
-            // if (categoriaSelecionada != null)
-            // {
-            //     Categoria = categoriaSelecionada;
-            //     CategoriaErrorMessage = string.Empty;
-            // }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao selecionar categoria");
-            await Application.Current.MainPage.DisplayAlert("Erro", "Não foi possível selecionar a categoria", "OK");
-        }
-    }
-
-    public void ApplyQueryAttributes(IDictionary<string, object> query)
-    {
-        if (_settingsService.CatalogoFavorito is null)
-        {
-            _logger.LogWarning("Nenhum catálogo favorito encontrado.");
-            Application.Current.MainPage.DisplayAlert("Erro", "Nenhum catálogo favorito encontrado. Por favor, selecione um catálogo.", "OK");
-        }
-    }
+    #endregion
 }

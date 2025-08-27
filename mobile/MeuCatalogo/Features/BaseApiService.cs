@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json;
 using Refit;
 
@@ -25,11 +26,30 @@ public abstract class BaseApiService
     protected static ProblemDetails? GetProblemDetails(ApiException apiEx)
     {
         string? content = apiEx.Content;
-        return string.IsNullOrWhiteSpace(content) ? null : JsonSerializer.Deserialize<ProblemDetails>(content, JsonOptions);
+        return string.IsNullOrWhiteSpace(content) ? GetProblemDetailsForStatusCode(apiEx.StatusCode) : JsonSerializer.Deserialize<ProblemDetails>(content, JsonOptions);
+    }
+
+    private static ProblemDetails GetProblemDetailsForStatusCode(HttpStatusCode statusCode)
+    {
+        return new ProblemDetails
+        {
+            Status = (int)statusCode,
+            Title = "Erro na requisição",
+            Detail = statusCode switch
+            {
+                HttpStatusCode.BadRequest => "A requisição foi inválida.",
+                HttpStatusCode.Unauthorized => "Você não tem autorização para acessar este recurso.",
+                HttpStatusCode.Forbidden => "Acesso proibido ao recurso.",
+                HttpStatusCode.NotFound => "O recurso solicitado não foi encontrado.",
+                HttpStatusCode.InternalServerError => "Ocorreu um erro interno no servidor.",
+                _ => "Ocorreu um erro inesperado ao processar a requisição."
+            }
+        };
     }
 
     protected static async Task<string> ObterBearerTokenAsync()
     {
-        return $"Bearer {await SecureStorage.GetAsync(TokenKey)}";
+        string bearerToken = await SecureStorage.GetAsync(TokenKey) ?? string.Empty;
+        return $"Bearer {bearerToken}";
     }
 }

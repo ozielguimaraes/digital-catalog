@@ -8,26 +8,57 @@
     xmlns:viewmodel="clr-namespace:MeuCatalogo.Features.Categoria"
     xmlns:models="clr-namespace:MeuCatalogo.Features.Produto.Models"
     x:DataType="viewmodel:CategoriaBottomSheetViewModel"
+    BackgroundColor="{StaticResource Gray100}"
     IgnoreSafeArea="True"
-    States="Medium"
-    IsOpen="True">
+    States="Peek"
+    CurrentState="Peek"
+    HasHandle="True"
+    IsModal="True"
+    IsCancelable="True"
+    IsDraggable="False">
     <bottomsheet:BottomSheet.Content>
         <bottomsheet:BottomSheetContent>
-            <Grid>
+            <Grid RowDefinitions="Auto,*">
+                <Grid.Behaviors>
+                    <bottomsheet:BottomSheetPeekBehavior />
+                </Grid.Behaviors>
+
                 <Label
                     Text="{Binding Titulo}"
                     FontSize="20"
-                    HorizontalOptions="Center"
-                    VerticalOptions="Start"
-                    Margin="0,16,0,0" />
-                <CollectionView ItemsSource="{Binding Categorias}" BackgroundColor="Transparent">
+                    HorizontalOptions="Center">
+                    <Label.Margin>
+                        <Thickness Top="16" />
+                    </Label.Margin>
+                </Label>
+                <CollectionView Grid.Row="1"
+                                ItemsSource="{Binding Categorias}"
+                                Margin="16">
                     <CollectionView.EmptyView>
+                        <Label Text="Nenhuma categoria cadastrada" />
                     </CollectionView.EmptyView>
                     <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                            <Border BackgroundColor="{StaticResource White}">
-
-                                <Label Text="{Binding Nome}" TextColor="Black" />
+                        <DataTemplate x:DataType="models:CategoriaModel">
+                            <Border BackgroundColor="#FFFFFF"
+                                    Padding="16"
+                                    StrokeThickness="1"
+                                    Margin="0,0,0,8">
+                                <Border.Shadow>
+                                    <Shadow Brush="{StaticResource Gray100}"
+                                            Offset="0,4"
+                                            Radius="8"
+                                            Opacity="0.3"/>
+                                </Border.Shadow>
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:CategoriaBottomSheetViewModel}}, Path=SelecionarCategoriaCommand}"
+                                                          CommandParameter="{Binding .}"/>
+                                </Border.GestureRecognizers>
+                                <Label Text="{Binding Nome}"
+                                       FontSize="16"
+                                       TextColor="Black" />
                             </Border>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
