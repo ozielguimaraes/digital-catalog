@@ -109,7 +109,6 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
     #region Navegação
     public void OnNavigatedFrom(IBottomSheetNavigationParameters parameters)
     {
-        CancelarCarregamentoCategorias();
     }
 
     public void OnNavigatedTo(IBottomSheetNavigationParameters parameters)
@@ -126,32 +125,6 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
             {
                 CategoriaErrorMessage = "Categoria é obrigatória";
             }
-
-            if (_settingsService.CatalogoFavorito is null)
-            {
-                _logger.LogWarning("Nenhum catálogo favorito encontrado.");
-                Application.Current.MainPage.DisplayAlert("Erro",
-                    "Nenhum catálogo favorito encontrado. Por favor, selecione um catálogo.", "OK");
-                return;
-            }
-
-            _ctsCategorias = new CancellationTokenSource();
-            var ct = _ctsCategorias.Token;
-
-            _taskCarregaCategorias = _categoriaService.ObterPorCatalogoIdAsync(_settingsService.CatalogoFavorito.Id, ct);
-
-            // dispara o carregamento em background
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await _taskCarregaCategorias;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Erro ao carregar categorias");
-                }
-            });
         }
         catch (Exception ex)
         {
@@ -166,13 +139,6 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
     {
         try
         {
-            if (_taskCarregaCategorias == null)
-            {
-                await Application.Current.MainPage.DisplayAlert("Erro", "Carregamento das categorias não foi iniciado.", "OK");
-                return;
-            }
-
-            // garante que o carregamento terminou
             var categoriasResponse = await _taskCarregaCategorias;
 
             if (categoriasResponse.RetornouComErro)
@@ -201,6 +167,23 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         }
     }
 
+    [RelayCommand]
+    private async Task CarregarCategorias()
+    {
+        if (_settingsService.CatalogoFavorito is null)
+        {
+            _logger.LogWarning("Nenhum catálogo favorito encontrado.");
+            Application.Current.MainPage.DisplayAlert("Erro",
+                "Nenhum catálogo favorito encontrado. Por favor, selecione um catálogo.", "OK");
+            return;
+        }
+
+        _ctsCategorias = new CancellationTokenSource();
+        var ct = _ctsCategorias.Token;
+
+        _taskCarregaCategorias = _categoriaService.ObterPorCatalogoIdAsync(_settingsService.CatalogoFavorito.Id, ct);
+    }
+
     private void CancelarCarregamentoCategorias()
     {
         if (_ctsCategorias is { IsCancellationRequested: false })
@@ -219,22 +202,27 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
     {
         try
         {
-            // validações básicas
             if (string.IsNullOrWhiteSpace(Nome))
             {
-                await Application.Current.MainPage.DisplayAlert("Erro", "Campo Nome é obrigatório", "OK");
+                NomeErrorMessage = "Campo Nome é obrigatório";
+                return;
+            }
+
+            if (Nome.Length > 50)
+            {
+                NomeErrorMessage = "Máximo 50 caracteres permitido";
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(PrecoString))
             {
-                await Application.Current.MainPage.DisplayAlert("Erro", "Campo Preço é obrigatório", "OK");
+                 PrecoErrorMessage = "Campo Preço é obrigatório";
                 return;
             }
 
             if (Preco <= 0)
             {
-                await Application.Current.MainPage.DisplayAlert("Erro", "Preço deve ser maior que '0'", "OK");
+                PrecoErrorMessage = "Preço deve ser maior que '0'";
                 return;
             }
 
@@ -242,20 +230,19 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
             {
                 if (_precoComDesconto <= 0)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Erro", "Campo Preço com desconto deve ser maior que '0'", "OK");
+                    PrecoComDescontoErrorMessage = "Campo Preço com desconto deve ser maior que '0'";
                     return;
                 }
 
                 if (_precoComDesconto > Preco)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Erro", "Preço com desconto deve ser menor que o preço original", "OK");
+                    PrecoComDescontoErrorMessage = "Preço com desconto deve ser menor que o preço original";
                     return;
                 }
             }
 
             if (Categoria == null)
             {
-                await Application.Current.MainPage.DisplayAlert("Erro", "Selecione uma categoria", "OK");
                 CategoriaErrorMessage = "Categoria é obrigatória";
                 return;
             }
@@ -270,6 +257,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
                 return;
             }
 
+            CancelarCarregamentoCategorias();
             await Shell.Current.GoToAsync($"//{nameof(ProdutoListaPage)}");
         }
         catch (Exception ex)

@@ -8,17 +8,17 @@
     xmlns:viewmodel="clr-namespace:MeuCatalogo.Features.Categoria"
     xmlns:models="clr-namespace:MeuCatalogo.Features.Produto.Models"
     x:DataType="viewmodel:CategoriaBottomSheetViewModel"
-    BackgroundColor="{StaticResource Gray100}"
+    BackgroundColor="{StaticResource White}"
     IgnoreSafeArea="True"
     States="Peek"
     CurrentState="Peek"
     HasHandle="True"
     IsModal="True"
-    IsCancelable="True"
+    IsCancelable="False"
     IsDraggable="False">
     <bottomsheet:BottomSheet.Content>
         <bottomsheet:BottomSheetContent>
-            <Grid RowDefinitions="Auto,*">
+            <Grid RowDefinitions="Auto,Auto,*" Padding="16,0">
                 <Grid.Behaviors>
                     <bottomsheet:BottomSheetPeekBehavior />
                 </Grid.Behaviors>
@@ -31,18 +31,42 @@
                         <Thickness Top="16" />
                     </Label.Margin>
                 </Label>
-                <CollectionView Grid.Row="1"
+                <Grid Grid.Row="1"
+                      Margin="0,16,0,0"
+                      ColumnDefinitions="*,Auto"
+                      RowDefinitions="Auto,Auto">
+                    <Entry Text="{Binding NovaCategoria}"
+                           Placeholder="Nova categoria" />
+                    <Border Grid.Column="1"
+                            Padding="4"
+                            HeightRequest="44"
+                            WidthRequest="44"
+                            BackgroundColor="{StaticResource Primary}"
+                            Stroke="Transparent"
+                            VerticalOptions="Center">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+                        <ImageButton Source="ic_plus.png"
+                                     Command="{Binding SalvarCommand}"/>
+                    </Border>
+
+                    <Label Grid.Row="1"
+                           Text="{Binding NovaCategoriaErrorMessage}"
+                           TextColor="{StaticResource Magenta}" />
+                </Grid>
+                <CollectionView Grid.Row="2"
                                 ItemsSource="{Binding Categorias}"
-                                Margin="16">
+                                Margin="0,16">
                     <CollectionView.EmptyView>
                         <Label Text="Nenhuma categoria cadastrada" />
                     </CollectionView.EmptyView>
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:CategoriaModel">
-                            <Border BackgroundColor="#FFFFFF"
+                            <Border BackgroundColor="{StaticResource Gray100}"
                                     Padding="16"
-                                    StrokeThickness="1"
-                                    Margin="0,0,0,8">
+                                    Margin="0,0,0,8"
+                                    Stroke="Transparent">
                                 <Border.Shadow>
                                     <Shadow Brush="{StaticResource Gray100}"
                                             Offset="0,4"

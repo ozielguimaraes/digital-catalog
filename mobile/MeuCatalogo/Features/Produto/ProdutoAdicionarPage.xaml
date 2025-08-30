@@ -5,9 +5,15 @@
              xmlns:components="clr-namespace:MeuCatalogo.Components"
              xmlns:viewmodel="clr-namespace:MeuCatalogo.Features.Produto"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:converters="clr-namespace:MeuCatalogo.Converters"
              x:Class="MeuCatalogo.Features.Produto.ProdutoAdicionarPage"
              x:DataType="viewmodel:ProdutoAdicionarPageViewModel"
              Title="Novo produto">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:NullToDefaultTextConverter x:Key="NullToDefaultTextConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <VerticalStackLayout Margin="16,0">
         <components:CustomEntry Title="Nome"
@@ -35,9 +41,12 @@
             </Border.GestureRecognizers>
             <Grid RowDefinitions="Auto, 1">
                 <Grid.Margin>
-                    <Thickness Left="4" Right="4" Bottom="6" Top="20" />
+                    <Thickness Left="4" Right="4" Bottom="6" Top="16" />
                 </Grid.Margin>
-                <Label Text="Selecione a categoria" Margin="0,0,0,8" />
+
+                <Label Margin="0,0,0,8"
+                       Text="{Binding Categoria, Converter={StaticResource NullToDefaultTextConverter}, ConverterParameter='Selecione a categoria'}" />
+
                 <BoxView Grid.Row="1"
                          HeightRequest="1"
                          Color="{StaticResource Gray500}" />
