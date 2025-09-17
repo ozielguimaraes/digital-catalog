@@ -37,7 +37,7 @@ public sealed partial class LoginPageViewModel : BasePageViewModel
     {
         try
         {
-            if (HasInternetConnection())
+            if (!HasInternetConnection())
             {
                 await Toast.Make("Sem conexão com a internet", ToastDuration.Long).Show();
                 return;
@@ -68,6 +68,7 @@ public sealed partial class LoginPageViewModel : BasePageViewModel
 
             if (string.IsNullOrEmpty(signinResponse.Dados!.Token))
             {
+                _logger.LogError("Token de autenticação retornado é nulo ou vazio.");
                 await Toast.Make("A requisição falhou, tente novamente.", ToastDuration.Long).Show();
                 return;
             }
@@ -79,7 +80,7 @@ public sealed partial class LoginPageViewModel : BasePageViewModel
         {
             _logger.LogError(ex.Message);
 
-            Application.Current.MainPage.DisplayAlert("Oops", "Ocorreu um erro inesperado, se persistir contacte o desenvolvedor", "OK");
+            await Application.Current.MainPage.DisplayAlert("Oops", "Ocorreu um erro inesperado, se persistir contacte o desenvolvedor", "OK");
         }
     }
 

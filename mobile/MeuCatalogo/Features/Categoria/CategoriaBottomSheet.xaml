@@ -10,12 +10,12 @@
     x:DataType="viewmodel:CategoriaBottomSheetViewModel"
     BackgroundColor="{StaticResource White}"
     IgnoreSafeArea="True"
-    States="Peek"
-    CurrentState="Peek"
+    States="Peek,Medium"
+    CurrentState="Medium"
     HasHandle="True"
     IsModal="True"
     IsCancelable="False"
-    IsDraggable="False">
+    IsDraggable="True">
     <bottomsheet:BottomSheet.Content>
         <bottomsheet:BottomSheetContent>
             <Grid RowDefinitions="Auto,Auto,*" Padding="16,0">

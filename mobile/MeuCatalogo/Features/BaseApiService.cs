@@ -49,7 +49,7 @@ public abstract class BaseApiService
 
     protected static async Task<string> ObterBearerTokenAsync()
     {
-        string bearerToken = await SecureStorage.GetAsync(TokenKey) ?? string.Empty;
-        return $"Bearer {bearerToken}";
+        string bearerToken = Preferences.Get(TokenKey, string.Empty);
+        return await Task.FromResult($"Bearer {bearerToken}");
     }
 }

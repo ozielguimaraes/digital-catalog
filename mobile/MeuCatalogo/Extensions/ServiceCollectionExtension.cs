@@ -5,12 +5,11 @@ using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Catalogo.ApiClients;
 using MeuCatalogo.Features.Categoria;
 using MeuCatalogo.Features.Categoria.ApiClients;
+using MeuCatalogo.Features.Estoque;
 using MeuCatalogo.Features.Produto;
 using MeuCatalogo.Features.Produto.ApiClients;
 using MeuCatalogo.Features.Settings.Services;
 using MeuCatalogo.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Maui.Hosting;
 using Plugin.Maui.BottomSheet.Hosting;
 using Polly;
 using Polly.Extensions.Http;
@@ -90,6 +89,9 @@ public static class ServiceCollectionExtension
 
         //Feature Categoria
         builder.Services.AddBottomSheet<CategoriaBottomSheet, CategoriaBottomSheetViewModel>(BottomSheetKeys.ListaCategoria);
+
+        //Feature Categoria
+        builder.Services.AddBottomSheet<EstoqueBottomSheet, EstoqueBottomSheetViewModel>(BottomSheetKeys.Estoque);
 
         //Feature Catalogos
         builder.Services.AddTransient<CatalogoListaPage>();

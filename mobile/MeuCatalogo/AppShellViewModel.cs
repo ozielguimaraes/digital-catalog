@@ -31,11 +31,14 @@ public partial class AppShellViewModel : ObservableObject
 
     public async Task UpdateUserInfo()
     {
-        var userInfo = JsonSerializer.Deserialize<UserResponse>(await SecureStorage.GetAsync(BaseApiService.UserInfoKey));
+        string json = Preferences.Get(BaseApiService.UserInfoKey, string.Empty);
+        var userInfo = JsonSerializer.Deserialize<UserResponse>(json);
 
         UserDisplayName = userInfo!.Nome.Split(' ')[0];
         Email = $"{userInfo.Email}";
         VersionName = $"{_appInfo.VersionString} ({_appInfo.BuildString})";
+
+        await Task.CompletedTask;
     }
 
     public string ObterPaginaInicial()

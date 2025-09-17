@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<bottomsheet:BottomSheet
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:bottomsheet="http://pluginmauibottomsheet.com"
+    x:Class="MeuCatalogo.Features.Estoque.EstoqueBottomSheet"
+    xmlns:viewmodel="clr-namespace:MeuCatalogo.Features.Estoque"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:components="clr-namespace:MeuCatalogo.Components"
+    x:DataType="viewmodel:EstoqueBottomSheetViewModel"
+    BackgroundColor="{StaticResource White}"
+    IgnoreSafeArea="True"
+    States="Peek"
+    CurrentState="Peek"
+    HasHandle="True"
+    IsModal="True"
+    IsCancelable="True"
+    IsDraggable="True">
+    <bottomsheet:BottomSheet.Content>
+        <bottomsheet:BottomSheetContent>
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto" Padding="16,0" BackgroundColor="red">
+                <Grid.Behaviors>
+                    <bottomsheet:BottomSheetPeekBehavior />
+                </Grid.Behaviors>
+
+                <Label BackgroundColor="Aqua"
+                    Text="{Binding Titulo}"
+                    HorizontalOptions="Center">
+                    <Label.Margin>
+                        <Thickness Top="16" />
+                    </Label.Margin>
+                </Label>
+
+                <Grid ColumnDefinitions="*,Auto" Grid.Row="1">
+                    <Label
+                        Text="Disponível em estoque?"
+                        VerticalOptions="Center"
+                        Grid.Column="0"/>
+                    <Switch
+                        IsToggled="{Binding DisponivelEmEstoque, Mode=TwoWay}"
+                        VerticalOptions="Center"
+                        Grid.Column="1" />
+                </Grid>
+                <VerticalStackLayout Grid.Row="2" IsVisible="{Binding DisponivelEmEstoque, Mode=TwoWay}">
+                    <VerticalStackLayout.Margin>
+                        <Thickness Top="16" />
+                    </VerticalStackLayout.Margin>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label
+                            Text="Estoque ilimitado?"
+                            VerticalOptions="Center"
+                            Grid.Column="0"/>
+                        <Switch
+                            IsToggled="{Binding EstoqueIlimitado}"
+                            VerticalOptions="Center"
+                            Grid.Column="1" />
+                    </Grid>
+                    <components:CustomEntry
+                        Title="Quantidade em estoque"
+                        Keyboard="Numeric"
+                        IsVisible="{Binding EstoqueIlimitado, Converter={toolkit:InvertedBoolConverter}}"
+                        Text="{Binding QuantidadeEmEstoque}"
+                        ErrorMessage="{Binding QuantidadeEmEstoqueErrorMessage}"
+                        HasError="{Binding QuantidadeEmEstoqueErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}">
+                        <components:CustomEntry.Margin>
+                            <Thickness Top="16" />
+                        </components:CustomEntry.Margin>
+                    </components:CustomEntry>
+                </VerticalStackLayout>
+                <Button
+                    Grid.Row="3"
+                    Text="Salvar"
+                    Command="{Binding SalvarCommand}"
+                    HorizontalOptions="Fill">
+                    <Button.Margin>
+                        <Thickness Top="16" Bottom="16" />
+                    </Button.Margin>
+                </Button>
+            </Grid>
+        </bottomsheet:BottomSheetContent>
+    </bottomsheet:BottomSheet.Content>
+</bottomsheet:BottomSheet>

@@ -7,26 +7,24 @@ using Plugin.Maui.BottomSheet.Navigation;
 
 namespace MeuCatalogo.Features.Categoria;
 
-public partial class CategoriaBottomSheetViewModel : BasePageViewModel, INavigationAware
+public partial class CategoriaBottomSheetViewModel(
+    IBottomSheetNavigationService bottomSheetNavigationService,
+    ICategoriaService categoriaService,
+    ISettingsService settingsService)
+    : BasePageViewModel, INavigationAware
 {
-    private readonly IBottomSheetNavigationService _bottomSheetNavigationService;
-    private readonly ICategoriaService _categoriaService;
-    private readonly ISettingsService _settingsService;
-
     private CategoriaModel? _itemSelecionado;
-
-    public CategoriaBottomSheetViewModel(IBottomSheetNavigationService bottomSheetNavigationService, ICategoriaService categoriaService, ISettingsService settingsService)
-    {
-        _bottomSheetNavigationService = bottomSheetNavigationService;
-        _categoriaService = categoriaService;
-        _settingsService = settingsService;
-    }
 
     [ObservableProperty] private ObservableCollection<CategoriaModel> _categorias;
     [ObservableProperty] private View _currentContent;
     [ObservableProperty] private string _titulo = "Selecione uma categoria";
     [ObservableProperty] private string _novaCategoria;
     [ObservableProperty] private string _novaCategoriaErrorMessage;
+
+    partial void OnNovaCategoriaChanged(string value)
+    {
+        NovaCategoriaEstaValida();
+    }
 
     [RelayCommand]
     private async Task SelecionarCategoria(CategoriaModel categoria)
@@ -38,36 +36,21 @@ public partial class CategoriaBottomSheetViewModel : BasePageViewModel, INavigat
             { BottomSheetParameters.CategoriaSelectionada, _itemSelecionado }
         };
 
-        await _bottomSheetNavigationService.GoBackAsync(parametros);
+        await bottomSheetNavigationService.GoBackAsync(parametros);
     }
 
     [RelayCommand]
     private async Task Salvar()
     {
-        if (string.IsNullOrWhiteSpace(NovaCategoria))
-        {
-            NovaCategoriaErrorMessage = "O nome da categoria é obrigatório.";
-            return;
-        }
-
-        if (NovaCategoria.Length > 50)
-        {
-            NovaCategoriaErrorMessage = "Máximo 50 caracteres permitido.";
-            return;
-        }
-
-        if (Categorias.Any(c => c.Nome.Equals(NovaCategoria, StringComparison.OrdinalIgnoreCase)))
-        {
-            NovaCategoriaErrorMessage = "Já existe uma categoria com esse nome.";
-            return;
-        }
+       if (!NovaCategoriaEstaValida())
+           return;
 
         var requestModel = new CategoriaModel(
             nome: NovaCategoria.Trim(),
             descricao: string.Empty,
-            catalogoId: _settingsService.CatalogoFavorito!.Id
+            catalogoId: settingsService.CatalogoFavorito!.Id
         );
-        var responseModel = await _categoriaService.AdicionarAsync(requestModel);
+        var responseModel = await categoriaService.AdicionarAsync(requestModel);
         if (responseModel.RetornouComErro)
         {
             NovaCategoriaErrorMessage = string.Join("\n", ObterErros(responseModel));
@@ -78,6 +61,30 @@ public partial class CategoriaBottomSheetViewModel : BasePageViewModel, INavigat
 
         NovaCategoria = string.Empty;
         NovaCategoriaErrorMessage = string.Empty;
+    }
+
+    private bool NovaCategoriaEstaValida()
+    {
+        if (string.IsNullOrWhiteSpace(NovaCategoria))
+        {
+            NovaCategoriaErrorMessage = "O nome da categoria é obrigatório.";
+            return false;
+        }
+
+        if (NovaCategoria.Length > 50)
+        {
+            NovaCategoriaErrorMessage = "Máximo 50 caracteres permitido.";
+            return false;
+        }
+
+        if (Categorias.Any(c => c.Nome.Equals(NovaCategoria, StringComparison.OrdinalIgnoreCase)))
+        {
+            NovaCategoriaErrorMessage = "Já existe uma categoria com esse nome.";
+            return false;
+        }
+
+        NovaCategoriaErrorMessage = string.Empty;
+        return true;
     }
 
     public void OnNavigatedTo(IBottomSheetNavigationParameters parameters)

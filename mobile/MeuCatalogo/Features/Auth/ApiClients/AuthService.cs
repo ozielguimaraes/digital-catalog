@@ -74,7 +74,9 @@ public class AuthService(ILogger<AuthService> logger, IAuthApi authApi) : BaseAp
     private static async Task SetUserInfo(SigninResponse response)
     {
         string json = JsonSerializer.Serialize(response.User);
-        await SecureStorage.SetAsync(UserInfoKey, json);
-        await SecureStorage.SetAsync(TokenKey, response.Token);
+        Preferences.Set(UserInfoKey, json);
+        Preferences.Set(TokenKey, response.Token);
+
+        await Task.CompletedTask;
     }
 }

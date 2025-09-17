@@ -1,7 +1,9 @@
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Categoria;
+using MeuCatalogo.Features.Estoque;
 using MeuCatalogo.Features.Produto.Models;
 using MeuCatalogo.Features.Produto.Requests;
 using MeuCatalogo.Features.Settings.Services;
@@ -52,25 +54,23 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
     [ObservableProperty] private CategoriaModel? _categoria;
     [ObservableProperty] private string? _categoriaErrorMessage;
 
+    [ObservableProperty] private int? _estoque;
+    [ObservableProperty] private string? _estoqueErrorMessage;
+
     #region Conversão Preços
+    partial void OnNomeChanged(string value) => ValidateNome();
+
     partial void OnPrecoStringChanged(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            _preco = 0;
-            PrecoErrorMessage = string.Empty;
-            return;
+            Preco = 0;
         }
-
-        if (TentarConverterPreco(value, out decimal preco))
+        else if (TentarConverterPreco(value, out decimal preco))
         {
-            _preco = preco;
-            PrecoErrorMessage = string.Empty;
+            Preco = preco;
         }
-        else
-        {
-            PrecoErrorMessage = "Valor inválido para o campo Preço";
-        }
+        ValidatePreco();
     }
 
     partial void OnPrecoComDescontoStringChanged(string value)
@@ -78,19 +78,12 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         if (string.IsNullOrWhiteSpace(value))
         {
             _precoComDesconto = null;
-            PrecoComDescontoErrorMessage = string.Empty;
-            return;
         }
-
-        if (TentarConverterPreco(value, out decimal preco))
+        else if (TentarConverterPreco(value, out decimal preco))
         {
             _precoComDesconto = preco;
-            PrecoComDescontoErrorMessage = string.Empty;
         }
-        else
-        {
-            PrecoComDescontoErrorMessage = "Valor inválido para o campo Preço com desconto";
-        }
+        ValidatePrecoComDesconto();
     }
 
     private static bool TentarConverterPreco(string? value, out decimal preco)
@@ -173,8 +166,11 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         if (_settingsService.CatalogoFavorito is null)
         {
             _logger.LogWarning("Nenhum catálogo favorito encontrado.");
-            Application.Current.MainPage.DisplayAlert("Erro",
+
+            await Application.Current.MainPage.DisplayAlert("Erro",
                 "Nenhum catálogo favorito encontrado. Por favor, selecione um catálogo.", "OK");
+
+            await Shell.Current.GoToAsync(nameof(CatalogoListaPage));
             return;
         }
 
@@ -196,58 +192,38 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
     }
     #endregion
 
+    #region Estoque
+    [RelayCommand]
+    private async Task ExibirEstoque()
+    {
+        try
+        {
+            var parametros = new BottomSheetNavigationParameters();
+
+            await _bottomSheetNavigationService.NavigateToAsync<EstoqueBottomSheet>(
+                BottomSheetKeys.Estoque, parametros);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao exibir o estoque");
+            await Application.Current.MainPage.DisplayAlert("Erro", "Não foi possível exibir o estoque", "OK");
+        }
+    }
+    #endregion
+
     #region Produto
     [RelayCommand]
     private async Task Salvar()
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(Nome))
-            {
-                NomeErrorMessage = "Campo Nome é obrigatório";
-                return;
-            }
+            if (IsBusy) return;
 
-            if (Nome.Length > 50)
-            {
-                NomeErrorMessage = "Máximo 50 caracteres permitido";
-                return;
-            }
+            IsBusy = true;
 
-            if (string.IsNullOrWhiteSpace(PrecoString))
-            {
-                 PrecoErrorMessage = "Campo Preço é obrigatório";
-                return;
-            }
+            if (!ValidateAll()) return;
 
-            if (Preco <= 0)
-            {
-                PrecoErrorMessage = "Preço deve ser maior que '0'";
-                return;
-            }
-
-            if (_precoComDesconto != null)
-            {
-                if (_precoComDesconto <= 0)
-                {
-                    PrecoComDescontoErrorMessage = "Campo Preço com desconto deve ser maior que '0'";
-                    return;
-                }
-
-                if (_precoComDesconto > Preco)
-                {
-                    PrecoComDescontoErrorMessage = "Preço com desconto deve ser menor que o preço original";
-                    return;
-                }
-            }
-
-            if (Categoria == null)
-            {
-                CategoriaErrorMessage = "Categoria é obrigatória";
-                return;
-            }
-
-            var request = new ProdutoCreateRequest(Nome, Guid.Empty, Guid.Empty, Preco, _precoComDesconto, null);
+            var request = new ProdutoCreateRequest(Nome, Categoria!.Id, catalogoId: _settingsService.CatalogoFavorito!.Id, Preco, _precoComDesconto, null);
 
             var response = await _produtoService.CreateAsync(request);
             if (response.RetornouComErro)

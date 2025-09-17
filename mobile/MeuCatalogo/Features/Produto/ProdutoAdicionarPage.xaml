@@ -31,7 +31,6 @@
                                 ErrorMessage="{Binding PrecoComDescontoErrorMessage}"
                                 HasError="{Binding PrecoComDescontoErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
 
-
         <Label FontAttributes="Bold"
                Margin="0,8,0,0"
                Text="Categoria"/>
@@ -52,11 +51,32 @@
                          Color="{StaticResource Gray500}" />
             </Grid>
         </Border>
+
+        <Label FontAttributes="Bold"
+               Margin="0,8,0,0"
+               Text="Estoque"/>
+        <Border BackgroundColor="{StaticResource Gray100}">
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding ExibirEstoqueCommand}" />
+            </Border.GestureRecognizers>
+            <Grid RowDefinitions="Auto, 1">
+                <Grid.Margin>
+                    <Thickness Left="4" Right="4" Bottom="6" Top="16" />
+                </Grid.Margin>
+
+                <Label Margin="0,0,0,8"
+                       Text="{Binding Estoque, Converter={StaticResource NullToDefaultTextConverter}, ConverterParameter='Disponível (estoque ilimitado)'}" />
+
+                <BoxView Grid.Row="1"
+                         HeightRequest="1"
+                         Color="{StaticResource Gray500}" />
+            </Grid>
+        </Border>
         <Label Text="{Binding CategoriaErrorMessage}"
                Margin="0,0,0,16"
                FontSize="16"
                TextColor="{StaticResource Magenta}"
-               IsVisible="{Binding CategoriaErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+               IsVisible="{Binding EstoqueErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
 
         <Button Text="Salvar"
                 Margin="0,24, 0,0"
