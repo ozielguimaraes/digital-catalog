@@ -19,10 +19,12 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDividerModule } from '@angular/material/divider';
 
 // Components
 import { ProductListComponent } from './components/product-list/product-list.component';
 import { ProductFormComponent } from './components/product-form/product-form.component';
+import { CategoryFormComponent } from './components/category-form/category-form.component';
 
 // Routes
 import { productRoutes } from './products.routes';
@@ -30,7 +32,8 @@ import { productRoutes } from './products.routes';
 @NgModule({
   declarations: [
     ProductListComponent,
-    ProductFormComponent
+    ProductFormComponent,
+    CategoryFormComponent
   ],
   imports: [
     CommonModule,
@@ -51,11 +54,13 @@ import { productRoutes } from './products.routes';
     MatSnackBarModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatChipsModule
+    MatChipsModule,
+    MatDividerModule
   ],
   exports: [
     ProductListComponent,
-    ProductFormComponent
+    ProductFormComponent,
+    CategoryFormComponent
   ]
 })
 export class ProductsModule { }

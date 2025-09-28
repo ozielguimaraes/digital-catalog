@@ -1,9 +1,12 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Product, ProductRequest, Category } from '../../../../core/models/product.model';
 import { ProductService } from '../../../../core/services/product.service';
+import { CategoryService } from '../../../../core/services/category.service';
+import { CatalogService, Catalog } from '../../../../core/services/catalog.service';
+import { CategoryFormComponent, CategoryFormData } from '../category-form/category-form.component';
 
 export interface ProductFormData {
   product?: Product;
@@ -18,6 +21,8 @@ export interface ProductFormData {
 export class ProductFormComponent implements OnInit {
   productForm: FormGroup;
   categories: Category[] = [];
+  catalogs: Catalog[] = [];
+  selectedCatalogId: string = '';
   isLoading = false;
   isSubmitting = false;
   selectedFile: File | null = null;
@@ -26,7 +31,10 @@ export class ProductFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private productService: ProductService,
+    private categoryService: CategoryService,
+    private catalogService: CatalogService,
     private snackBar: MatSnackBar,
+    private dialog: MatDialog,
     private dialogRef: MatDialogRef<ProductFormComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ProductFormData
   ) {
@@ -34,7 +42,7 @@ export class ProductFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadCategories();
+    this.loadCatalogs();
     
     if (this.data.isEdit && this.data.product) {
       this.populateForm(this.data.product);
@@ -69,18 +77,69 @@ export class ProductFormComponent implements OnInit {
     }
   }
 
-  private loadCategories(): void {
+  private loadCatalogs(): void {
     this.isLoading = true;
     
-    this.productService.getCategories().subscribe({
-      next: (response) => {
-        this.categories = response.data;
+    this.catalogService.getCatalogs().subscribe({
+      next: (catalogs) => {
+        this.catalogs = catalogs;
+        if (catalogs.length > 0) {
+          this.selectedCatalogId = catalogs[0].id;
+          this.loadCategories();
+        }
         this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading catalogs:', error);
+        this.showError('Erro ao carregar catálogos');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private loadCategories(): void {
+    if (!this.selectedCatalogId) return;
+    
+    this.categoryService.getCategoriesByCatalog(this.selectedCatalogId).subscribe({
+      next: (categories) => {
+        this.categories = categories;
       },
       error: (error) => {
         console.error('Error loading categories:', error);
         this.showError('Erro ao carregar categorias');
-        this.isLoading = false;
+      }
+    });
+  }
+
+  onCatalogChange(): void {
+    this.loadCategories();
+  }
+
+  createNewCategory(): void {
+    if (!this.selectedCatalogId) {
+      this.showError('Selecione um catálogo primeiro');
+      return;
+    }
+
+    const selectedCatalog = this.catalogs.find(c => c.id === this.selectedCatalogId);
+    if (!selectedCatalog) {
+      this.showError('Catálogo não encontrado');
+      return;
+    }
+
+    const dialogRef = this.dialog.open(CategoryFormComponent, {
+      width: '500px',
+      maxWidth: '90vw',
+      data: {
+        catalogoId: this.selectedCatalogId,
+        catalogoNome: selectedCatalog.nome
+      } as CategoryFormData
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadCategories();
+        this.showSuccess('Categoria criada com sucesso!');
       }
     });
   }

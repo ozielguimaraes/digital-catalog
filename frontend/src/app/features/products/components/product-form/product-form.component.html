@@ -73,12 +73,29 @@
       </div>
 
       <div class="form-row">
+        <!-- Catalog -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Catálogo</mat-label>
+          <mat-select [(ngModel)]="selectedCatalogId" (selectionChange)="onCatalogChange()">
+            <mat-option *ngFor="let catalog of catalogs" [value]="catalog.id">
+              {{ catalog.nome }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
         <!-- Category -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Categoria</mat-label>
           <mat-select formControlName="categoriaId">
             <mat-option *ngFor="let category of categories" [value]="category.id">
               {{ category.nome }}
+            </mat-option>
+            <mat-divider></mat-divider>
+            <mat-option value="create_new" (click)="createNewCategory()">
+              <mat-icon>add</mat-icon>
+              <span>Criar nova categoria</span>
             </mat-option>
           </mat-select>
           <mat-error *ngIf="productForm.get('categoriaId')?.invalid && productForm.get('categoriaId')?.touched">

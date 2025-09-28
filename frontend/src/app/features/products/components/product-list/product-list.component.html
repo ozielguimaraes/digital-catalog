@@ -20,6 +20,15 @@
   <mat-card class="filters-card">
     <mat-card-content>
       <div class="filters-row">
+        <mat-form-field appearance="outline" class="catalog-field">
+          <mat-label>Catálogo</mat-label>
+          <mat-select [(ngModel)]="selectedCatalogId" (selectionChange)="onCatalogChange()">
+            <mat-option *ngFor="let catalog of catalogs" [value]="catalog.id">
+              {{ catalog.nome }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
         <mat-form-field appearance="outline" class="search-field">
           <mat-label>Buscar produtos</mat-label>
           <input matInput 
@@ -35,6 +44,11 @@
             <mat-option value="">Todas as categorias</mat-option>
             <mat-option *ngFor="let category of categories" [value]="category.id">
               {{ category.nome }}
+            </mat-option>
+            <mat-divider></mat-divider>
+            <mat-option value="create_new" (click)="createNewCategory()">
+              <mat-icon>add</mat-icon>
+              <span>Criar nova categoria</span>
             </mat-option>
           </mat-select>
         </mat-form-field>

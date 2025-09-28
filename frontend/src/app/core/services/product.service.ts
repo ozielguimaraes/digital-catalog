@@ -90,18 +90,6 @@ export class ProductService {
       );
   }
 
-  /**
-   * Get all categories
-   */
-  getCategories(): Observable<CategoryResponse> {
-    return this.http.get<CategoryResponse>(`${this.API_URL}/categorias`)
-      .pipe(
-        catchError(error => {
-          console.error('Error fetching categories:', error);
-          return throwError(() => error);
-        })
-      );
-  }
 
   /**
    * Upload product image

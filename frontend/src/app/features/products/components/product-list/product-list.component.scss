@@ -337,3 +337,25 @@
     // Hide some columns on very small screens
   }
 }
+
+// Custom styles for "Create new category" option
+::ng-deep .mat-mdc-option[value="create_new"] {
+  color: #1976d2 !important;
+  font-weight: 500;
+  
+  mat-icon {
+    margin-right: 8px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+  
+  &:hover {
+    background-color: #e3f2fd !important;
+  }
+}
+
+::ng-deep .mat-mdc-option[value="create_new"] .mat-divider {
+  margin: 8px 0;
+  border-top-color: #e0e0e0;
+}

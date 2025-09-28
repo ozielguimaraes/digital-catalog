@@ -6,7 +6,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Product, Category } from '../../../../core/models/product.model';
 import { ProductService } from '../../../../core/services/product.service';
+import { CategoryService } from '../../../../core/services/category.service';
+import { CatalogService, Catalog } from '../../../../core/services/catalog.service';
 import { ProductFormComponent, ProductFormData } from '../product-form/product-form.component';
+import { CategoryFormComponent, CategoryFormData } from '../category-form/category-form.component';
 
 @Component({
   selector: 'app-product-list',
@@ -22,6 +25,8 @@ export class ProductListComponent implements OnInit {
   
   products: Product[] = [];
   categories: Category[] = [];
+  catalogs: Catalog[] = [];
+  selectedCatalogId: string = '';
   
   // Pagination
   totalItems = 0;
@@ -40,13 +45,14 @@ export class ProductListComponent implements OnInit {
 
   constructor(
     private productService: ProductService,
+    private categoryService: CategoryService,
+    private catalogService: CatalogService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
-    this.loadCategories();
-    this.loadProducts();
+    this.loadCatalogs();
   }
 
   ngAfterViewInit(): void {
@@ -77,15 +83,41 @@ export class ProductListComponent implements OnInit {
     });
   }
 
+  loadCatalogs(): void {
+    this.catalogService.getCatalogs().subscribe({
+      next: (catalogs) => {
+        this.catalogs = catalogs;
+        if (catalogs.length > 0) {
+          this.selectedCatalogId = catalogs[0].id;
+          this.loadCategories();
+          this.loadProducts();
+        }
+      },
+      error: (error) => {
+        console.error('Error loading catalogs:', error);
+        this.showError('Erro ao carregar catálogos');
+      }
+    });
+  }
+
   loadCategories(): void {
-    this.productService.getCategories().subscribe({
-      next: (response) => {
-        this.categories = response.data;
+    if (!this.selectedCatalogId) return;
+    
+    this.categoryService.getCategoriesByCatalog(this.selectedCatalogId).subscribe({
+      next: (categories) => {
+        this.categories = categories;
       },
       error: (error) => {
         console.error('Error loading categories:', error);
+        this.showError('Erro ao carregar categorias');
       }
     });
+  }
+
+  onCatalogChange(): void {
+    this.selectedCategoryId = '';
+    this.loadCategories();
+    this.loadProducts();
   }
 
   onPageChange(event: PageEvent): void {
@@ -180,6 +212,35 @@ export class ProductListComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.loadProducts();
+      }
+    });
+  }
+
+  createNewCategory(): void {
+    if (!this.selectedCatalogId) {
+      this.showError('Selecione um catálogo primeiro');
+      return;
+    }
+
+    const selectedCatalog = this.catalogs.find(c => c.id === this.selectedCatalogId);
+    if (!selectedCatalog) {
+      this.showError('Catálogo não encontrado');
+      return;
+    }
+
+    const dialogRef = this.dialog.open(CategoryFormComponent, {
+      width: '500px',
+      maxWidth: '90vw',
+      data: {
+        catalogoId: this.selectedCatalogId,
+        catalogoNome: selectedCatalog.nome
+      } as CategoryFormData
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadCategories();
+        this.showSuccess('Categoria criada com sucesso!');
       }
     });
   }
