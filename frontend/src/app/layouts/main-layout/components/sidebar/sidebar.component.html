@@ -1,0 +1,75 @@
+<mat-sidenav-container class="sidebar-container">
+  <mat-sidenav #sidenav 
+               mode="side" 
+               opened="true"
+               class="sidebar"
+               [class.sidebar-collapsed]="isCollapsed">
+    
+    <div class="sidebar-header">
+      <div class="sidebar-logo" *ngIf="!isCollapsed">
+        <mat-icon class="logo-icon">inventory</mat-icon>
+        <span class="logo-text">Digital Catalog</span>
+      </div>
+      <div class="sidebar-logo-collapsed" *ngIf="isCollapsed">
+        <mat-icon class="logo-icon">inventory</mat-icon>
+      </div>
+    </div>
+
+    <mat-nav-list class="sidebar-nav">
+      <ng-container *ngFor="let item of menuItems">
+        <!-- Menu item with children -->
+        <div *ngIf="item.children && item.children.length > 0">
+          <mat-list-item 
+            class="menu-item"
+            (click)="toggleMenu(item.label)"
+            [class.active]="isActiveRoute(item.route)">
+            <mat-icon matListIcon class="menu-icon">{{ item.icon }}</mat-icon>
+            <span matLine class="menu-label" *ngIf="!isCollapsed">{{ item.label }}</span>
+            <mat-icon class="expand-icon" 
+                      [class.expanded]="isMenuExpanded(item.label)"
+                      *ngIf="!isCollapsed">
+              expand_more
+            </mat-icon>
+          </mat-list-item>
+
+          <!-- Submenu -->
+          <div class="submenu" 
+               [class.expanded]="isMenuExpanded(item.label)"
+               *ngIf="!isCollapsed">
+            <mat-list-item 
+              *ngFor="let child of item.children"
+              class="submenu-item"
+              (click)="navigateTo(child.route)"
+              [class.active]="isActiveRoute(child.route)">
+              <mat-icon matListIcon class="submenu-icon">{{ child.icon }}</mat-icon>
+              <span matLine class="submenu-label">{{ child.label }}</span>
+            </mat-list-item>
+          </div>
+        </div>
+
+        <!-- Simple menu item -->
+        <mat-list-item 
+          *ngIf="!item.children || item.children.length === 0"
+          class="menu-item"
+          (click)="navigateTo(item.route)"
+          [class.active]="isActiveRoute(item.route)">
+          <mat-icon matListIcon class="menu-icon">{{ item.icon }}</mat-icon>
+          <span matLine class="menu-label" *ngIf="!isCollapsed">{{ item.label }}</span>
+        </mat-list-item>
+      </ng-container>
+    </mat-nav-list>
+
+    <div class="sidebar-footer" *ngIf="!isCollapsed">
+      <button mat-icon-button 
+              class="collapse-button"
+              (click)="toggleCollapse()"
+              [attr.aria-label]="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+        <mat-icon>{{ isCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="main-content">
+    <ng-content></ng-content>
+  </mat-sidenav-content>
+</mat-sidenav-container>

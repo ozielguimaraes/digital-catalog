@@ -1,0 +1,273 @@
+.dashboard {
+  padding: 0;
+}
+
+.dashboard-header {
+  margin-bottom: 32px;
+}
+
+.dashboard-title {
+  font-size: 32px;
+  font-weight: 300;
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.dark-theme .dashboard-title {
+  color: #fff;
+}
+
+.dashboard-subtitle {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+}
+
+.dark-theme .dashboard-subtitle {
+  color: #ccc;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.stat-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dark-theme .stat-title {
+  color: #ccc;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.dark-theme .stat-value {
+  color: #fff;
+}
+
+.stat-change {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.change-positive {
+  color: #4caf50;
+}
+
+.change-negative {
+  color: #f44336;
+}
+
+.change-icon {
+  font-size: 16px;
+  margin-right: 4px;
+}
+
+.stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.stat-icon mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.activities-card,
+.quick-actions-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.activities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  transition: background-color 0.3s ease;
+}
+
+.dark-theme .activity-item {
+  background-color: #2a2a2a;
+}
+
+.activity-item:hover {
+  background-color: #e9ecef;
+}
+
+.dark-theme .activity-item:hover {
+  background-color: #3a3a3a;
+}
+
+.activity-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: white;
+  flex-shrink: 0;
+}
+
+.icon-primary {
+  background-color: #667eea;
+}
+
+.icon-accent {
+  background-color: #ff4081;
+}
+
+.icon-warn {
+  background-color: #ff9800;
+}
+
+.activity-icon mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-action {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 4px 0;
+  color: #333;
+}
+
+.dark-theme .activity-action {
+  color: #fff;
+}
+
+.activity-description {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 4px 0;
+}
+
+.dark-theme .activity-description {
+  color: #ccc;
+}
+
+.activity-time {
+  font-size: 12px;
+  color: #999;
+}
+
+.dark-theme .activity-time {
+  color: #888;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  text-transform: none;
+}
+
+// Responsive design
+@media (max-width: 1024px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-title {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .stat-icon {
+    align-self: flex-end;
+  }
+}

@@ -1,0 +1,151 @@
+<div class="product-form-container">
+  <div class="form-header">
+    <h2 mat-dialog-title>
+      <mat-icon class="header-icon">{{ data.isEdit ? 'edit' : 'add' }}</mat-icon>
+      {{ data.isEdit ? 'Editar Produto' : 'Novo Produto' }}
+    </h2>
+    <button mat-icon-button (click)="onCancel()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="form-content">
+    <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="product-form">
+      <div class="form-row">
+        <!-- Product Name -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome do Produto</mat-label>
+          <input matInput 
+                 formControlName="nome"
+                 placeholder="Digite o nome do produto"
+                 maxlength="100">
+          <mat-hint align="end">{{ productForm.get('nome')?.value?.length || 0 }}/100</mat-hint>
+          <mat-error *ngIf="productForm.get('nome')?.invalid && productForm.get('nome')?.touched">
+            {{ getErrorMessage('nome') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <!-- Description -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Descrição</mat-label>
+          <textarea matInput 
+                    formControlName="descricao"
+                    placeholder="Descreva o produto"
+                    rows="3"
+                    maxlength="500"></textarea>
+          <mat-hint align="end">{{ productForm.get('descricao')?.value?.length || 0 }}/500</mat-hint>
+          <mat-error *ngIf="productForm.get('descricao')?.invalid && productForm.get('descricao')?.touched">
+            {{ getErrorMessage('descricao') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <!-- Price -->
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Preço</mat-label>
+          <input matInput 
+                 type="number"
+                 formControlName="preco"
+                 placeholder="0.00"
+                 step="0.01"
+                 min="0.01">
+          <span matPrefix>R$&nbsp;</span>
+          <mat-error *ngIf="productForm.get('preco')?.invalid && productForm.get('preco')?.touched">
+            {{ getErrorMessage('preco') }}
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Quantity -->
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Quantidade</mat-label>
+          <input matInput 
+                 type="number"
+                 formControlName="quantidade"
+                 placeholder="0"
+                 min="0">
+          <mat-error *ngIf="productForm.get('quantidade')?.invalid && productForm.get('quantidade')?.touched">
+            {{ getErrorMessage('quantidade') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <!-- Category -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Categoria</mat-label>
+          <mat-select formControlName="categoriaId">
+            <mat-option *ngFor="let category of categories" [value]="category.id">
+              {{ category.nome }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="productForm.get('categoriaId')?.invalid && productForm.get('categoriaId')?.touched">
+            {{ getErrorMessage('categoriaId') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Image Upload -->
+      <div class="form-row">
+        <div class="image-upload-section">
+          <label class="image-upload-label">Imagem do Produto</label>
+          
+          <div class="image-upload-area" 
+               [class.has-image]="imagePreview"
+               (click)="fileInput.click()">
+            
+            <input #fileInput 
+                   type="file" 
+                   accept="image/*"
+                   (change)="onFileSelected($event)"
+                   style="display: none;">
+            
+            <div *ngIf="!imagePreview" class="upload-placeholder">
+              <mat-icon class="upload-icon">cloud_upload</mat-icon>
+              <p>Clique para selecionar uma imagem</p>
+              <small>PNG, JPG ou JPEG (máx. 5MB)</small>
+            </div>
+            
+            <div *ngIf="imagePreview" class="image-preview">
+              <img [src]="imagePreview" alt="Preview">
+              <button type="button" 
+                      mat-icon-button 
+                      (click)="removeImage()"
+                      class="remove-image-button">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="form-row">
+        <mat-checkbox formControlName="ativo" class="status-checkbox">
+          Produto ativo
+        </mat-checkbox>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="form-actions">
+    <button mat-button 
+            type="button"
+            (click)="onCancel()"
+            [disabled]="isSubmitting">
+      Cancelar
+    </button>
+    
+    <button mat-raised-button 
+            color="primary"
+            type="submit"
+            (click)="onSubmit()"
+            [disabled]="productForm.invalid || isSubmitting">
+      <mat-spinner *ngIf="isSubmitting" diameter="20" class="mr-2"></mat-spinner>
+      <span *ngIf="!isSubmitting">{{ data.isEdit ? 'Atualizar' : 'Criar' }}</span>
+      <span *ngIf="isSubmitting">{{ data.isEdit ? 'Atualizando...' : 'Criando...' }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>

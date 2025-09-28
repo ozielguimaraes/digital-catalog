@@ -1,0 +1,12 @@
+<div class="main-layout">
+  <app-header 
+    [isMobile]="(isHandset$ | async) || false"
+    (toggleSidenav)="onToggleSidenav()">
+  </app-header>
+
+  <app-sidebar #sidenav>
+    <div class="content-wrapper">
+      <router-outlet></router-outlet>
+    </div>
+  </app-sidebar>
+</div>

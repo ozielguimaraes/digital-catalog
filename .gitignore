@@ -219,3 +219,5 @@ _Pvt_Extensions
 **/.idea
 .DS_Store
 **/logs
+frontend/.angular
+frontend/dist/digital-catalog

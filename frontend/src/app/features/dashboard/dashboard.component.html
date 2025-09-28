@@ -1,0 +1,88 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">Dashboard</h1>
+    <p class="dashboard-subtitle" *ngIf="user">
+      Bem-vindo de volta, {{ user.nome }}!
+    </p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <mat-card *ngFor="let stat of stats" class="stat-card" [class]="'stat-' + stat.color">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-info">
+            <h3 class="stat-title">{{ stat.title }}</h3>
+            <h2 class="stat-value">{{ stat.value }}</h2>
+            <div class="stat-change" [class]="'change-' + stat.changeType">
+              <mat-icon class="change-icon">
+                {{ stat.changeType === 'positive' ? 'trending_up' : 'trending_down' }}
+              </mat-icon>
+              <span>{{ stat.change }}</span>
+            </div>
+          </div>
+          <div class="stat-icon">
+            <mat-icon>{{ stat.icon }}</mat-icon>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Content Grid -->
+  <div class="content-grid">
+    <!-- Recent Activities -->
+    <mat-card class="activities-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>history</mat-icon>
+          Atividades Recentes
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="activities-list">
+          <div *ngFor="let activity of recentActivities" class="activity-item">
+            <div class="activity-icon" [class]="'icon-' + activity.color">
+              <mat-icon>{{ activity.icon }}</mat-icon>
+            </div>
+            <div class="activity-content">
+              <h4 class="activity-action">{{ activity.action }}</h4>
+              <p class="activity-description">{{ activity.description }}</p>
+              <span class="activity-time">{{ activity.time }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Quick Actions -->
+    <mat-card class="quick-actions-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>flash_on</mat-icon>
+          Ações Rápidas
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="quick-actions">
+          <button mat-raised-button color="primary" class="action-button">
+            <mat-icon>add</mat-icon>
+            Novo Produto
+          </button>
+          <button mat-raised-button color="accent" class="action-button">
+            <mat-icon>shopping_cart</mat-icon>
+            Novo Pedido
+          </button>
+          <button mat-raised-button color="warn" class="action-button">
+            <mat-icon>person_add</mat-icon>
+            Novo Cliente
+          </button>
+          <button mat-stroked-button class="action-button">
+            <mat-icon>assessment</mat-icon>
+            Relatórios
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

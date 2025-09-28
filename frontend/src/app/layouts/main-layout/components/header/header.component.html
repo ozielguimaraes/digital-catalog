@@ -1,0 +1,60 @@
+<mat-toolbar color="primary" class="header-toolbar">
+  <div class="header-content">
+    <!-- Menu button for mobile -->
+    <button mat-icon-button 
+            class="menu-button"
+            (click)="onToggleSidenav()"
+            *ngIf="isMobile">
+      <mat-icon>menu</mat-icon>
+    </button>
+
+    <!-- App title -->
+    <div class="app-title">
+      <mat-icon class="app-icon">inventory</mat-icon>
+      <span class="app-name">Digital Catalog</span>
+    </div>
+
+    <!-- Spacer -->
+    <div class="spacer"></div>
+
+    <!-- Theme toggle -->
+    <button mat-icon-button 
+            (click)="toggleTheme()"
+            [attr.aria-label]="isDarkTheme ? 'Switch to light theme' : 'Switch to dark theme'"
+            class="theme-toggle">
+      <mat-icon>{{ isDarkTheme ? 'wb_sunny' : 'nights_stay' }}</mat-icon>
+    </button>
+
+    <!-- User menu -->
+    <div class="user-menu" *ngIf="user">
+      <button mat-button 
+              [matMenuTriggerFor]="userMenu"
+              class="user-button">
+        <mat-icon class="user-avatar">account_circle</mat-icon>
+        <span class="user-name">{{ user.nome }}</span>
+        <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+      </button>
+
+      <mat-menu #userMenu="matMenu" class="user-menu-dropdown">
+        <div class="user-info">
+          <div class="user-info-name">{{ user.nome }}</div>
+          <div class="user-info-email">{{ user.email }}</div>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="openProfile()">
+          <mat-icon>person</mat-icon>
+          <span>Perfil</span>
+        </button>
+        <button mat-menu-item (click)="openSettings()">
+          <mat-icon>settings</mat-icon>
+          <span>Configurações</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()" class="logout-button">
+          <mat-icon>logout</mat-icon>
+          <span>Sair</span>
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+</mat-toolbar>
