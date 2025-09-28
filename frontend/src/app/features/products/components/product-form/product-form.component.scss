@@ -263,6 +263,10 @@
   color: #1976d2 !important;
   font-weight: 600 !important;
   font-size: 0.9rem !important;
+  margin: 0 !important;
+  padding: 0px 8px !important;
+  min-height: 48px !important;
+  box-sizing: border-box !important;
   
   mat-icon {
     margin-right: 8px;
@@ -283,4 +287,16 @@
   top: 48px !important;
   z-index: 9 !important;
   background-color: #f8f9fa !important;
+  height: 1px !important;
+}
+
+// Remove padding from select panel
+::ng-deep .mat-mdc-select-panel {
+  padding-top: 0 !important;
+}
+
+// Ensure other options don't overlap with sticky elements
+::ng-deep .mat-mdc-option:not(.create-category-option) {
+  position: relative !important;
+  z-index: 1 !important;
 }
