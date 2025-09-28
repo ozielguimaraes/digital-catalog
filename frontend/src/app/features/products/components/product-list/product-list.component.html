@@ -41,14 +41,14 @@
         <mat-form-field appearance="outline" class="category-field">
           <mat-label>Categoria</mat-label>
           <mat-select [(ngModel)]="selectedCategoryId" (selectionChange)="onCategoryFilter()">
+            <mat-option value="create_new" (click)="createNewCategory()" class="create-category-option">
+              <mat-icon>add</mat-icon>
+              <span>Criar nova categoria</span>
+            </mat-option>
+            <mat-divider></mat-divider>
             <mat-option value="">Todas as categorias</mat-option>
             <mat-option *ngFor="let category of categories" [value]="category.id">
               {{ category.nome }}
-            </mat-option>
-            <mat-divider></mat-divider>
-            <mat-option value="create_new" (click)="createNewCategory()">
-              <mat-icon>add</mat-icon>
-              <span>Criar nova categoria</span>
             </mat-option>
           </mat-select>
         </mat-form-field>

@@ -339,9 +339,15 @@
 }
 
 // Custom styles for "Create new category" option
-::ng-deep .mat-mdc-option[value="create_new"] {
+::ng-deep .mat-mdc-option.create-category-option {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #e0e0e0 !important;
   color: #1976d2 !important;
-  font-weight: 500;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
   
   mat-icon {
     margin-right: 8px;
@@ -355,7 +361,11 @@
   }
 }
 
-::ng-deep .mat-mdc-option[value="create_new"] .mat-divider {
-  margin: 8px 0;
-  border-top-color: #e0e0e0;
+::ng-deep .mat-mdc-option.create-category-option + .mat-divider {
+  margin: 0 !important;
+  border-top-color: #e0e0e0 !important;
+  position: sticky !important;
+  top: 48px !important;
+  z-index: 9 !important;
+  background-color: #f8f9fa !important;
 }
