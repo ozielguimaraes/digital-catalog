@@ -1,201 +1,95 @@
-# Digital Catalog Frontend
+# Free Angular Tailwind Admin Dashboard Template - TailAdmin Angular
 
-Aplicação Angular com Material Design para gerenciamento de catálogo digital, implementando autenticação e autorização com suporte a temas light e dark.
+TailAdmin Angular is a **free and open-source admin dashboard template** built with **Angular** and **Tailwind CSS**. It provides developers with everything they need to create a feature-rich, data-driven **back-end, dashboard, or admin panel** for any type of web project.
 
-## 🚀 Características
+![TailAdmin Angular Admin Dashboard](./angular-tailwind.png)
 
-- **Angular 18** com TypeScript
-- **Angular Material** para componentes UI
-- **Autenticação e Autorização** completa
-- **Temas Light/Dark** com persistência
-- **Layout Responsivo** com sidebar e header
-- **Clean Code** seguindo princípios KISS e DRY
-- **Interceptors HTTP** para autenticação automática
-- **Guards de Rota** para proteção de páginas
-- **Gerenciamento de Estado** reativo
 
-## 📋 Pré-requisitos
+With TailAdmin Angular, you’ll get access to a complete set of **dashboard UI components, elements, and ready-to-use pages** to build a modern, high-quality admin panel. Whether it’s for a **complex web application** or a **lightweight project**, TailAdmin Angular is designed to speed up development of any kind of dashboards and admin panels.
 
-- Node.js (versão 18 ou superior)
-- npm ou yarn
-- Angular CLI (instalar globalmente: `npm install -g @angular/cli`)
+TailAdmin leverages the **powerful ecosystem of Angular 20+**, along with **TypeScript** and the utility-first styling of **Tailwind CSS v4**. Combined, they make TailAdmin Angular a perfect foundation to launch your dashboard or admin panel quickly and effectively.
 
-## 🛠️ Instalação
+TailAdmin Angular comes with essential UI components and layouts for building **feature-rich, data-driven dashboards** and **admin panels**. TailAdmin Angular is built on:
 
-1. Clone o repositório:
-```bash
-git clone <repository-url>
-cd digital-catalog/frontend
-```
+* **Angular 20+**
+* **TypeScript**
+* **Tailwind CSS v4**
 
-2. Instale as dependências:
-```bash
-npm install
-# ou
-yarn install
-```
+### Quick Links
 
-3. Configure a API:
-   - Edite o arquivo `src/environments/environment.ts`
-   - Atualize a URL da API conforme necessário
+- ✨ [Visit Website](https://tailadmin.com/)
+- 🚀 [Angular Demo](https://angular-demo.tailadmin.com/)
+- 📄 [Documentation](https://tailadmin.com/docs)
+- ⬇️ [Download](https://tailadmin.com/download)
+- 🖌️ [Figma Design File (Free Edition)](https://www.figma.com/community/file/1463141366275764364)
+- ⚡ [Get PRO Version](https://tailadmin.com/pricing)
+---
 
-4. Execute a aplicação:
-```bash
-ng serve
-```
+## Feature Comparison
 
-5. Acesse `http://localhost:4200`
+| Feature | Free Version | Pro Version 🌟 |
+|---------|--------------|----------------|
+| **Dashboards** | 1 Unique Dashboard | 7 Unique Dashboards: Analytics, Ecommerce, Marketing, SaaS, CRM, Stocks, Logistics and more (more coming soon) 📈 |
+| **UI Elements and Components** | 100+ UI elements and components | Included in 500+ components and UI elements |
+| **Design Files** | Basic Figma design files | Complete Figma design system file |
+| **Support** | Community support| Email support |
 
-## 🏗️ Estrutura do Projeto
+## Installation
 
-```
-src/
-├── app/
-│   ├── core/                    # Serviços e funcionalidades core
-│   │   ├── guards/             # Guards de rota
-│   │   ├── interceptors/       # Interceptors HTTP
-│   │   ├── models/             # Modelos de dados
-│   │   └── services/           # Serviços principais
-│   ├── features/               # Módulos de funcionalidades
-│   │   ├── auth/               # Autenticação
-│   │   └── dashboard/          # Dashboard
-│   ├── layouts/                # Layouts da aplicação
-│   │   └── main-layout/        # Layout principal
-│   └── shared/                 # Componentes compartilhados
-├── assets/                     # Recursos estáticos
-└── environments/               # Configurações de ambiente
-```
+### Prerequisites
 
-## 🔐 Autenticação
+Before you start, make sure you have:
 
-A aplicação implementa um sistema completo de autenticação:
-
-- **Login** com email e senha
-- **Registro** de novos usuários
-- **Logout** com limpeza de dados
-- **Refresh Token** automático
-- **Proteção de rotas** com guards
-- **Interceptors HTTP** para adicionar tokens
-
-### Endpoints da API
-
-- `POST /auth/login` - Login
-- `POST /auth/register` - Registro
-- `POST /auth/logout` - Logout
-- `POST /auth/refresh` - Refresh token
-- `GET /auth/me` - Dados do usuário atual
-
-## 🎨 Temas
-
-A aplicação suporta temas light e dark:
-
-- **Tema Light**: Padrão com cores claras
-- **Tema Dark**: Tema escuro para melhor experiência noturna
-- **Persistência**: Preferência salva no localStorage
-- **Detecção automática**: Detecta preferência do sistema
-
-### Como alternar tema
-
-- Clique no ícone de sol/lua no header
-- A preferência será salva automaticamente
-
-## 📱 Responsividade
-
-A aplicação é totalmente responsiva:
-
-- **Desktop**: Layout completo com sidebar
-- **Tablet**: Sidebar colapsível
-- **Mobile**: Menu hambúrguer e layout adaptado
-
-## 🧪 Desenvolvimento
-
-### Scripts disponíveis
+* **Node.js 18.x or later** (Node.js 20.x recommended)
+* **Angular CLI** installed globally:
 
 ```bash
-# Desenvolvimento
-ng serve
-
-# Build de produção
-ng build
-
-# Testes
-ng test
-
-# Linting
-ng lint
-
-# Geração de componentes
-ng generate component nome-do-componente
-
-# Geração de serviços
-ng generate service nome-do-servico
+npm install -g @angular/cli
 ```
-
-### Estrutura de Componentes
-
-Cada componente segue a estrutura:
-- `component.ts` - Lógica do componente
-- `component.html` - Template
-- `component.scss` - Estilos
-- `component.spec.ts` - Testes (quando aplicável)
-
-## 🔧 Configuração
-
-### Variáveis de Ambiente
-
-```typescript
-// src/environments/environment.ts
-export const environment = {
-  production: false,
-  apiUrl: 'http://catalogo-api.sanyz.com.br/api',
-  appName: 'Digital Catalog',
-  version: '1.0.0'
-};
-```
-
-### Personalização de Temas
-
-Os temas podem ser personalizados em `src/styles.scss`:
-
-```scss
-// Tema personalizado
-$custom-primary: mat-palette($mat-indigo);
-$custom-accent: mat-palette($mat-pink, A200, A100, A400);
-$custom-theme: mat-light-theme((
-  color: (
-    primary: $custom-primary,
-    accent: $custom-accent,
-  )
-));
-```
-
-## 📚 Tecnologias Utilizadas
-
-- **Angular 18**
-- **Angular Material 18**
-- **TypeScript**
-- **SCSS**
-- **RxJS**
-- **Angular CDK**
-
-## 🤝 Contribuição
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
-
-## 🆘 Suporte
-
-Para suporte, entre em contato através de:
-- Email: suporte@exemplo.com
-- Issues do GitHub
 
 ---
 
-Desenvolvido com ❤️ seguindo princípios de Clean Code, KISS e DRY.
+### Cloning the Repository
+
+Clone the repository:
+
+```bash
+git clone https://github.com/TailAdmin/free-angular-admin-dashboard.git
+```
+
+---
+
+### Install Dependencies
+
+```bash
+npm install
+# or
+yarn install
+```
+
+---
+
+### Start Development Server
+
+```bash
+npm start
+```
+
+Then open:
+👉 `http://localhost:4200`
+
+---
+
+## Angualr.js Tailwind Components
+
+TailAdmin Angular ships with a rich set of **ready-to-use dashboard features**:
+
+* **Ecommerce Dashboard** with essential elements
+* Modern, accessible **sidebar navigation**
+* **Data visualization** with charts and graphs
+* **User profile management** and a **custom 404 page**
+* **Tables** and **charts** (line, bar, etc.)
+* **Authentication forms** and reusable input components
+* **UI elements**: alerts, dropdowns, modals, buttons, and more
+* Built-in **Dark Mode** 🕶️
+* and many more
