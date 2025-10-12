@@ -1,0 +1,9 @@
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="200" fill="#f3f4f6"/>
+  <rect x="80" y="40" width="140" height="100" rx="5" fill="#8b5cf6"/>
+  <rect x="85" y="45" width="130" height="90" rx="3" fill="#a78bfa"/>
+  <rect x="90" y="50" width="120" height="80" rx="2" fill="#c4b5fd"/>
+  <rect x="95" y="55" width="110" height="70" rx="1" fill="#ddd6fe"/>
+  <rect x="100" y="60" width="100" height="60" rx="1" fill="#ede9fe"/>
+  <text x="150" y="180" text-anchor="middle" font-family="Arial" font-size="14" fill="#6b7280">Livro</text>
+</svg>

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { User, LoginRequest, LoginResponse, RegisterRequest, AuthState } from '../models/user.model';
+import { User, LoginRequest, RegisterRequest, AuthState, SigninResponse } from '../models/user.model';
 import { ApiResponse } from '../models/api-response.model';
 
 @Injectable({
@@ -54,17 +54,21 @@ export class AuthService {
   /**
    * Login user
    */
-  login(credentials: LoginRequest): Observable<LoginResponse> {
+  login(credentials: LoginRequest): Observable<SigninResponse> {
     this.setLoading(true);
     
-    return this.http.post<LoginResponse>(`${this.API_URL}/auth/login`, credentials)
+    return this.http.post<ApiResponse<SigninResponse>>(`${this.API_URL}/auth/login`, credentials)
       .pipe(
         map(response => {
-          this.setAuthData(response);
-          return response;
+          const signinResponse: SigninResponse = {
+            token: response.data.token,
+            user: response.data.user
+          };
+          this.setAuthData(signinResponse);
+          return signinResponse;
         }),
         catchError(error => {
-          this.setError(error.error?.message || 'Login failed');
+          this.setError(error.error?.message || 'Falha ao efetuar login');
           return throwError(() => error);
         }),
         tap(() => this.setLoading(false))
@@ -74,17 +78,17 @@ export class AuthService {
   /**
    * Register new user
    */
-  register(userData: RegisterRequest): Observable<LoginResponse> {
+  register(userData: RegisterRequest): Observable<SigninResponse> {
     this.setLoading(true);
     
-    return this.http.post<LoginResponse>(`${this.API_URL}/auth/register`, userData)
+    return this.http.post<ApiResponse<SigninResponse>>(`${this.API_URL}/auth/register`, userData)
       .pipe(
         map(response => {
-          this.setAuthData(response);
-          return response;
+          this.setAuthData(response.data);
+          return response.data;
         }),
         catchError(error => {
-          this.setError(error.error?.message || 'Registration failed');
+          this.setError(error.error?.message || 'Falha ao efetuar cadastro');
           return throwError(() => error);
         }),
         tap(() => this.setLoading(false))
@@ -95,11 +99,10 @@ export class AuthService {
    * Logout user
    */
   logout(): Observable<any> {
-    return this.http.post(`${this.API_URL}/auth/logout`, {})
+    return this.http.post<ApiResponse<any>>(`${this.API_URL}/auth/logout`, {})
       .pipe(
         tap(() => this.clearAuthData()),
         catchError(error => {
-          // Even if logout fails on server, clear local data
           this.clearAuthData();
           return throwError(() => error);
         })
@@ -111,14 +114,14 @@ export class AuthService {
    * Get current user profile
    */
   getCurrentUser(): Observable<User> {
-    return this.http.get<User>(`${this.API_URL}/auth/me`)
+    return this.http.get<ApiResponse<User>>(`${this.API_URL}/auth/me`)
       .pipe(
-        map(user => {
-          this.updateUserData(user);
-          return user;
+        map(response => {
+          this.updateUserData(response.data);
+          return response.data;
         }),
         catchError(error => {
-          this.setError(error.error?.message || 'Failed to get user data');
+          this.setError(error.error?.message || 'Falha ao obter dados do usuário');
           return throwError(() => error);
         })
       );
@@ -129,6 +132,22 @@ export class AuthService {
    */
   isAuthenticated(): boolean {
     return this.authStateSubject.value.isAuthenticated;
+  }
+
+  /**
+   * Check if there's a valid token in localStorage without initializing auth state
+   */
+  hasValidToken(): boolean {
+    const token = localStorage.getItem(this.TOKEN_KEY);
+    const userData = localStorage.getItem(this.USER_KEY);
+    return !!(token && userData);
+  }
+
+  /**
+   * Clear all authentication data (useful for debugging)
+   */
+  clearAllAuthData(): void {
+    this.clearAuthData();
   }
 
   /**
@@ -148,7 +167,7 @@ export class AuthService {
   /**
    * Set authentication data
    */
-  private setAuthData(data: LoginResponse): void {
+  private setAuthData(data: SigninResponse): void {
     localStorage.setItem(this.TOKEN_KEY, data.token);
     localStorage.setItem(this.USER_KEY, JSON.stringify(data.user));
 

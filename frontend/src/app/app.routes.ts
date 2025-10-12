@@ -20,6 +20,18 @@ import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { CalenderComponent } from './pages/calender/calender.component';
 
 export const routes: Routes = [
+  // auth pages - SEM autenticação necessária
+  {
+    path:'signin',
+    component:SignInComponent,
+    title:'Angular Sign In Dashboard | TailAdmin - Angular Admin Dashboard Template'
+  },
+  {
+    path:'signup',
+    component:SignUpComponent,
+    title:'Angular Sign Up Dashboard | TailAdmin - Angular Admin Dashboard Template'
+  },
+  // páginas protegidas - COM autenticação necessária
   {
     path:'',
     component:AppLayoutComponent,
@@ -103,17 +115,6 @@ export const routes: Routes = [
         title:'Angular Videos Dashboard | TailAdmin - Angular Admin Dashboard Template'
       },
     ]
-  },
-  // auth pages
-  {
-    path:'signin',
-    component:SignInComponent,
-    title:'Angular Sign In Dashboard | TailAdmin - Angular Admin Dashboard Template'
-  },
-  {
-    path:'signup',
-    component:SignUpComponent,
-    title:'Angular Sign Up Dashboard | TailAdmin - Angular Admin Dashboard Template'
   },
   // error pages
   {
