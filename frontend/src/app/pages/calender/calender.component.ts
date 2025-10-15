@@ -10,6 +10,11 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { ModalComponent } from '../../shared/components/ui/modal/modal.component';
 
 interface CalendarEvent extends EventInput {
+  id?: string;
+  title?: string;
+  start?: string;
+  end?: string;
+  allDay?: boolean;
   extendedProps: {
     calendar: string;
   };
@@ -80,15 +85,15 @@ export class CalenderComponent {
       },
       selectable: true,
       events: this.events,
-      select: (info) => this.handleDateSelect(info),
-      eventClick: (info) => this.handleEventClick(info),
+      select: (info: DateSelectArg) => this.handleDateSelect(info),
+      eventClick: (info: EventClickArg) => this.handleEventClick(info),
       customButtons: {
         addEventButton: {
           text: 'Add Event +',
           click: () => this.openModal()
         }
       },
-      eventContent: (arg) => this.renderEventContent(arg)
+      eventContent: (arg: any) => this.renderEventContent(arg)
     };
   }
 
@@ -100,18 +105,18 @@ export class CalenderComponent {
   }
 
   handleEventClick(clickInfo: EventClickArg) {
-    const event = clickInfo.event as any;
+    const event = clickInfo.event;
     this.selectedEvent = {
       id: event.id,
       title: event.title,
       start: event.startStr,
       end: event.endStr,
-      extendedProps: { calendar: event.extendedProps.calendar }
+      extendedProps: { calendar: event.extendedProps['calendar'] }
     };
     this.eventTitle = event.title;
     this.eventStartDate = event.startStr;
     this.eventEndDate = event.endStr || '';
-    this.eventLevel = event.extendedProps.calendar;
+    this.eventLevel = event.extendedProps['calendar'];
     this.openModal();
   }
 
@@ -161,7 +166,7 @@ export class CalenderComponent {
     this.resetModalFields();
   }
 
-  renderEventContent(eventInfo: any) {
+  renderEventContent(eventInfo: { event: any; timeText?: string }) {
     const colorClass = `fc-bg-${eventInfo.event.extendedProps.calendar?.toLowerCase()}`;
     return {
       html: `

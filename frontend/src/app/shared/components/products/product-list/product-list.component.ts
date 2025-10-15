@@ -48,12 +48,13 @@ export class ProductListComponent implements OnInit, OnChanges {
     
     this.productService.getProductsByCatalog(this.catalogoId).subscribe({
       next: (response) => {
-        this.products = response.data;
+        this.products = response.data || [];
         this.loading = false;
       },
       error: (error) => {
         this.error = 'Erro ao carregar produtos';
         this.loading = false;
+        this.products = []; // Ensure products is always an array
         console.error('Error loading products:', error);
       }
     });

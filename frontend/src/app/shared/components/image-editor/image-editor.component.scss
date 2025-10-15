@@ -1,0 +1,10 @@
+canvas {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+canvas:active {
+  cursor: grabbing;
+}
