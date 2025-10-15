@@ -1,0 +1,23 @@
+// Product list component styles
+.product-card {
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.stock-indicator {
+  &.low {
+    color: #dc2626;
+  }
+  
+  &.medium {
+    color: #d97706;
+  }
+  
+  &.high {
+    color: #059669;
+  }
+}

@@ -1,15 +1,42 @@
 export interface Product {
   id: string;
   nome: string;
-  descricao: string;
-  preco: number;
-  quantidade: number;
   categoriaId: string;
-  categoria?: Category;
-  imagemUrl?: string;
-  ativo: boolean;
+  categoriaNome: string;
+  catalogoId: string;
+  preco: number;
+  precoComDesconto?: number;
+  informacoesAdicionais?: string;
+  estoque: Estoque;
+  variacoes: Variacao[];
   dataCriacao: string;
-  dataAtualizacao: string;
+  dataAtualizacao?: string;
+}
+
+export interface Estoque {
+  id: string;
+  produtoId: string;
+  quantidade?: number;
+  quantidadeMinima?: number;
+  quantidadeMaxima?: number;
+  dataCriacao: string;
+  dataAtualizacao?: string;
+}
+
+export interface Variacao {
+  id: string;
+  nome: string;
+  opcaoVariacao: OpcaoVariacao;
+  produtoId: string;
+  dataCriacao: string;
+  dataAtualizacao?: string;
+}
+
+export interface OpcaoVariacao {
+  id: string;
+  nome: string;
+  valor: string;
+  precoAdicional?: number;
 }
 
 export interface Category {
@@ -20,36 +47,56 @@ export interface Category {
   dataCriacao: string;
 }
 
-export interface ProductRequest {
+export interface ProductCreateRequest {
   nome: string;
-  descricao: string;
-  preco: number;
-  quantidade: number;
   categoriaId: string;
-  imagemUrl?: string;
-  ativo: boolean;
+  catalogoId: string;
+  preco: number;
+  precoComDesconto?: number;
+  informacoesAdicionais?: string;
+  estoque?: EstoqueCreateRequest;
+}
+
+export interface ProductUpdateRequest {
+  nome: string;
+  categoriaId: string;
+  preco: number;
+  precoComDesconto?: number;
+  informacoesAdicionais?: string;
+}
+
+export interface EstoqueCreateRequest {
+  quantidade: number;
+  quantidadeMinima?: number;
+  quantidadeMaxima?: number;
+}
+
+export interface EstoqueUpdateRequest {
+  quantidade: number;
+  quantidadeMinima?: number;
+  quantidadeMaxima?: number;
 }
 
 export interface ProductResponse {
-  success: boolean;
+  isSuccess: boolean;
   data: Product;
   message: string;
+  type: string;
+  errors?: string[];
 }
 
 export interface ProductListResponse {
-  success: boolean;
+  isSuccess: boolean;
   data: Product[];
-  pagination?: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
   message: string;
+  type: string;
+  errors?: string[];
 }
 
 export interface CategoryResponse {
-  success: boolean;
+  isSuccess: boolean;
   data: Category[];
   message: string;
+  type: string;
+  errors?: string[];
 }

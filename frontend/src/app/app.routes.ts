@@ -18,6 +18,8 @@ import { VideosComponent } from './pages/ui-elements/videos/videos.component';
 import { SignInComponent } from './pages/auth-pages/sign-in/sign-in.component';
 import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { CalenderComponent } from './pages/calender/calender.component';
+import { ProductsComponent } from './pages/products/products.component';
+import { CatalogsComponent } from './pages/catalogs/catalogs.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { GuestGuard } from './core/guards/guest.guard';
 
@@ -118,6 +120,16 @@ export const routes: Routes = [
         path:'videos',
         component:VideosComponent,
         title:'Vídeos | Catálogo Digital - Sany & Z'
+      },
+      {
+        path:'products',
+        component:ProductsComponent,
+        title:'Produtos | Catálogo Digital - Sany & Z'
+      },
+      {
+        path:'catalogs',
+        component:CatalogsComponent,
+        title:'Catálogos | Catálogo Digital - Sany & Z'
       },
     ]
   },

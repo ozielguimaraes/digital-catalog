@@ -3,7 +3,18 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { Product, ProductRequest, ProductResponse, ProductListResponse, Category, CategoryResponse } from '../models/product.model';
+import { 
+  Product, 
+  ProductCreateRequest, 
+  ProductUpdateRequest, 
+  ProductResponse, 
+  ProductListResponse, 
+  Category, 
+  CategoryResponse,
+  EstoqueUpdateRequest,
+  Estoque
+} from '../models/product.model';
+import { ApiResponse } from '../models/api-response.model';
 
 @Injectable({
   providedIn: 'root'
@@ -14,25 +25,20 @@ export class ProductService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Get all products with pagination and filters
+   * Get products by catalog ID
    */
-  getProducts(page: number = 1, limit: number = 10, search?: string, categoriaId?: string): Observable<ProductListResponse> {
-    let params = new HttpParams()
-      .set('page', page.toString())
-      .set('limit', limit.toString());
-
-    if (search) {
-      params = params.set('search', search);
-    }
-
-    if (categoriaId) {
-      params = params.set('categoriaId', categoriaId);
-    }
-
-    return this.http.get<ProductListResponse>(`${this.API_URL}/produtos`, { params })
+  getProductsByCatalog(catalogoId: string): Observable<ProductListResponse> {
+    return this.http.get<ApiResponse<Product[]>>(`${this.API_URL}/produtos/catalogo/${catalogoId}`)
       .pipe(
+        map(response => ({
+          isSuccess: response.isSuccess,
+          data: response.data,
+          message: response.message,
+          type: response.type,
+          errors: response.errors
+        })),
         catchError(error => {
-          console.error('Error fetching products:', error);
+          console.error('Error fetching products by catalog:', error);
           return throwError(() => error);
         })
       );
@@ -42,8 +48,15 @@ export class ProductService {
    * Get product by ID
    */
   getProductById(id: string): Observable<ProductResponse> {
-    return this.http.get<ProductResponse>(`${this.API_URL}/produtos/${id}`)
+    return this.http.get<ApiResponse<Product>>(`${this.API_URL}/produtos/${id}`)
       .pipe(
+        map(response => ({
+          isSuccess: response.isSuccess,
+          data: response.data,
+          message: response.message,
+          type: response.type,
+          errors: response.errors
+        })),
         catchError(error => {
           console.error('Error fetching product:', error);
           return throwError(() => error);
@@ -54,9 +67,16 @@ export class ProductService {
   /**
    * Create new product
    */
-  createProduct(product: ProductRequest): Observable<ProductResponse> {
-    return this.http.post<ProductResponse>(`${this.API_URL}/produtos`, product)
+  createProduct(product: ProductCreateRequest): Observable<ProductResponse> {
+    return this.http.post<ApiResponse<Product>>(`${this.API_URL}/produtos`, product)
       .pipe(
+        map(response => ({
+          isSuccess: response.isSuccess,
+          data: response.data,
+          message: response.message,
+          type: response.type,
+          errors: response.errors
+        })),
         catchError(error => {
           console.error('Error creating product:', error);
           return throwError(() => error);
@@ -67,9 +87,16 @@ export class ProductService {
   /**
    * Update existing product
    */
-  updateProduct(id: string, product: ProductRequest): Observable<ProductResponse> {
-    return this.http.put<ProductResponse>(`${this.API_URL}/produtos/${id}`, product)
+  updateProduct(id: string, product: ProductUpdateRequest): Observable<ProductResponse> {
+    return this.http.put<ApiResponse<Product>>(`${this.API_URL}/produtos/${id}`, product)
       .pipe(
+        map(response => ({
+          isSuccess: response.isSuccess,
+          data: response.data,
+          message: response.message,
+          type: response.type,
+          errors: response.errors
+        })),
         catchError(error => {
           console.error('Error updating product:', error);
           return throwError(() => error);
@@ -80,9 +107,13 @@ export class ProductService {
   /**
    * Delete product
    */
-  deleteProduct(id: string): Observable<{ success: boolean; message: string }> {
-    return this.http.delete<{ success: boolean; message: string }>(`${this.API_URL}/produtos/${id}`)
+  deleteProduct(id: string): Observable<{ isSuccess: boolean; message: string }> {
+    return this.http.delete<ApiResponse<boolean>>(`${this.API_URL}/produtos/${id}`)
       .pipe(
+        map(response => ({
+          isSuccess: response.isSuccess,
+          message: response.message
+        })),
         catchError(error => {
           console.error('Error deleting product:', error);
           return throwError(() => error);
@@ -92,29 +123,18 @@ export class ProductService {
 
 
   /**
-   * Upload product image
+   * Update product stock
    */
-  uploadImage(file: File): Observable<{ url: string }> {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    return this.http.post<{ url: string }>(`${this.API_URL}/produtos/upload-image`, formData)
+  updateStock(produtoId: string, estoque: EstoqueUpdateRequest): Observable<{ isSuccess: boolean; data: Estoque; message: string }> {
+    return this.http.put<ApiResponse<Estoque>>(`${this.API_URL}/produtos/${produtoId}/estoque`, estoque)
       .pipe(
+        map(response => ({
+          isSuccess: response.isSuccess,
+          data: response.data,
+          message: response.message
+        })),
         catchError(error => {
-          console.error('Error uploading image:', error);
-          return throwError(() => error);
-        })
-      );
-  }
-
-  /**
-   * Toggle product active status
-   */
-  toggleProductStatus(id: string, ativo: boolean): Observable<ProductResponse> {
-    return this.http.patch<ProductResponse>(`${this.API_URL}/produtos/${id}/status`, { ativo })
-      .pipe(
-        catchError(error => {
-          console.error('Error toggling product status:', error);
+          console.error('Error updating stock:', error);
           return throwError(() => error);
         })
       );
