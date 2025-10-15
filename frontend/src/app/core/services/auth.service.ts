@@ -61,14 +61,28 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<SigninResponse> {
     this.setLoading(true);
     
-    return this.http.post<ApiResponse<SigninResponse>>(`${this.API_URL}/auth/login`, credentials)
+    return this.http.post<any>(`${this.API_URL}/auth/login`, credentials)
       .pipe(
         map(response => {
-          const signinResponse: SigninResponse = {
-            token: response.data.token,
-            refreshToken: response.data.refreshToken,
-            user: response.data.user
-          };
+          // Handle both ApiResponse format and direct SigninResponse format
+          let signinResponse: SigninResponse;
+          
+          if (response.data) {
+            // ApiResponse format
+            signinResponse = {
+              token: response.data.token,
+              refreshToken: response.data.refreshToken,
+              user: response.data.user
+            };
+          } else {
+            // Direct SigninResponse format
+            signinResponse = {
+              token: response.token,
+              refreshToken: response.refreshToken,
+              user: response.user
+            };
+          }
+          
           this.setAuthData(signinResponse);
           return signinResponse;
         }),
@@ -86,11 +100,22 @@ export class AuthService {
   register(userData: RegisterRequest): Observable<SigninResponse> {
     this.setLoading(true);
     
-    return this.http.post<ApiResponse<SigninResponse>>(`${this.API_URL}/auth/register`, userData)
+    return this.http.post<any>(`${this.API_URL}/auth/register`, userData)
       .pipe(
         map(response => {
-          this.setAuthData(response.data);
-          return response.data;
+          // Handle both ApiResponse format and direct SigninResponse format
+          let signinResponse: SigninResponse;
+          
+          if (response.data) {
+            // ApiResponse format
+            signinResponse = response.data;
+          } else {
+            // Direct SigninResponse format
+            signinResponse = response;
+          }
+          
+          this.setAuthData(signinResponse);
+          return signinResponse;
         }),
         catchError(error => {
           this.setError(error.error?.message || 'Falha ao efetuar cadastro');

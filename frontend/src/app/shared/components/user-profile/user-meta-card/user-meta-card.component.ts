@@ -1,9 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { InputFieldComponent } from './../../form/input/input-field.component';
 import { ModalService } from '../../../services/modal.service';
 import { CommonModule } from '@angular/common';
 import { ModalComponent } from '../../ui/modal/modal.component';
 import { ButtonComponent } from '../../ui/button/button.component';
+import { AuthService } from '../../../../core/services/auth.service';
+import { User, AuthState } from '../../../../core/models/user.model';
 
 @Component({
   selector: 'app-user-meta-card',
@@ -16,31 +18,55 @@ import { ButtonComponent } from '../../ui/button/button.component';
   templateUrl: './user-meta-card.component.html',
   styles: ``
 })
-export class UserMetaCardComponent {
-
-  constructor(public modal: ModalService) {}
-
+export class UserMetaCardComponent implements OnInit {
   isOpen = false;
-  openModal() { this.isOpen = true; }
-  closeModal() { this.isOpen = false; }
-
-  // Example user data (could be made dynamic)
-  user = {
-    firstName: 'Musharof',
-    lastName: 'Chowdhury',
-    role: 'Team Manager',
-    location: 'Arizona, United States',
+  user: User | null = null;
+  userProfile = {
+    firstName: '',
+    lastName: '',
+    role: 'Usuário',
+    location: 'Brasil',
     avatar: '/images/user/owner.jpg',
     social: {
-      facebook: 'https://www.facebook.com/PimjoHQ',
-      x: 'https://x.com/PimjoHQ',
-      linkedin: 'https://www.linkedin.com/company/pimjo',
-      instagram: 'https://instagram.com/PimjoHQ',
+      facebook: '',
+      x: '',
+      linkedin: '',
+      instagram: '',
     },
-    email: 'randomuser@pimjo.com',
-    phone: '+09 363 398 46',
-    bio: 'Team Manager',
+    email: '',
+    phone: '',
+    bio: '',
   };
+
+  constructor(
+    public modal: ModalService,
+    private authService: AuthService
+  ) {}
+
+  ngOnInit() {
+    this.authService.authState$.subscribe((authState: AuthState) => {
+      this.user = authState.user;
+      if (this.user) {
+        this.updateUserProfile();
+      }
+    });
+  }
+
+  private updateUserProfile() {
+    if (this.user) {
+      // Dividir o nome completo em primeiro e último nome
+      const nameParts = this.user.nome?.split(' ') || ['Usuário'];
+      this.userProfile.firstName = nameParts[0] || 'Usuário';
+      this.userProfile.lastName = nameParts.slice(1).join(' ') || '';
+      this.userProfile.email = this.user.email || '';
+      this.userProfile.role = 'Usuário';
+      this.userProfile.location = 'Brasil';
+      this.userProfile.bio = 'Usuário do sistema';
+    }
+  }
+
+  openModal() { this.isOpen = true; }
+  closeModal() { this.isOpen = false; }
 
   handleSave() {
     // Handle save logic here
