@@ -20,10 +20,18 @@ import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { CalenderComponent } from './pages/calender/calender.component';
 import { ProductsComponent } from './pages/products/products.component';
 import { CatalogsComponent } from './pages/catalogs/catalogs.component';
+import { HomeComponent } from './pages/home/home.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { GuestGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
+  // Home page - Public e-commerce catalog
+  {
+    path: '',
+    component: HomeComponent,
+    pathMatch: 'full',
+    title: 'Catálogo Digital - Sany & Z | Produtos Exclusivos e Personalizados'
+  },
   // auth pages - SEM autenticação necessária, mas redireciona se já autenticado
   {
     path:'signin',
@@ -39,7 +47,7 @@ export const routes: Routes = [
   },
   // páginas protegidas - COM autenticação necessária
   {
-    path:'',
+    path:'dashboard',
     component:AppLayoutComponent,
     canActivate: [AuthGuard],
     children:[
@@ -47,8 +55,7 @@ export const routes: Routes = [
         path: '',
         component: EcommerceComponent,
         pathMatch: 'full',
-        title:
-          'Dashboard | Catálogo Digital - Sany & Z',
+        title: 'Dashboard | Catálogo Digital - Sany & Z',
       },
       {
         path:'calendar',

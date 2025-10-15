@@ -1,0 +1,168 @@
+<!-- Header Section -->
+<header class="header">
+  <div class="container">
+    <div class="header-content">
+      <div class="logo">
+        <h1>Sany&Z</h1>
+        <span>Catálogo Digital</span>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn btn-outline" (click)="goToLogin()">Entrar</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Hero Section -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <h2>Produtos Exclusivos e Personalizados</h2>
+      <p>Descubra nossa coleção única de produtos de alta qualidade</p>
+      
+      <!-- Search Bar -->
+      <div class="search-container">
+        <div class="search-box">
+          <input 
+            type="text" 
+            [(ngModel)]="searchTerm"
+            placeholder="Buscar produtos..."
+            (keyup.enter)="onSearch()"
+            class="search-input"
+          >
+          <button class="search-btn" (click)="onSearch()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <button *ngIf="searchTerm" class="clear-search" (click)="onClearSearch()">Limpar</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Filters Section -->
+<section class="filters">
+  <div class="container">
+    <div class="filters-content">
+      <div class="filter-group">
+        <label for="catalog-select">Catálogo:</label>
+        <select 
+          id="catalog-select" 
+          [(ngModel)]="selectedCatalog" 
+          (change)="onCatalogChange()"
+          class="filter-select"
+        >
+          <option value="">Todos os catálogos</option>
+          <option *ngFor="let catalog of catalogs" [value]="catalog.id">
+            {{ catalog.nome }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="category-select">Categoria:</label>
+        <select 
+          id="category-select" 
+          [(ngModel)]="selectedCategory" 
+          (change)="onCategoryChange()"
+          class="filter-select"
+        >
+          <option value="">Todas as categorias</option>
+          <option *ngFor="let category of categories" [value]="category.id">
+            {{ category.nome }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Products Section -->
+<section class="products">
+  <div class="container">
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Carregando produtos...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="error">
+      <p>{{ error }}</p>
+      <button class="btn btn-primary" (click)="loadProducts()">Tentar novamente</button>
+    </div>
+
+    <!-- Products Grid -->
+    <div *ngIf="!loading && !error" class="products-grid">
+      <div *ngIf="products.length === 0" class="no-products">
+        <h3>Nenhum produto encontrado</h3>
+        <p>Tente ajustar os filtros ou termo de busca</p>
+      </div>
+
+      <div *ngFor="let product of products" class="product-card" (click)="onProductClick(product)">
+        <div class="product-image">
+          <img [src]="getProductImage(product)" [alt]="product.nome" loading="lazy">
+          <div *ngIf="hasDiscount(product)" class="discount-badge">
+            -{{ getDiscountPercentage(product) }}%
+          </div>
+        </div>
+        
+        <div class="product-info">
+          <h3 class="product-name">{{ product.nome }}</h3>
+          <p class="product-description">{{ product.informacoesAdicionais }}</p>
+          
+          <div class="product-price">
+            <span *ngIf="hasDiscount(product)" class="original-price">
+              R$ {{ product.preco | number:'1.2-2' }}
+            </span>
+            <span class="current-price">
+              R$ {{ getProductPrice(product) | number:'1.2-2' }}
+            </span>
+          </div>
+
+          <div class="product-actions">
+            <button 
+              class="btn btn-primary btn-sm" 
+              (click)="onAddToCart(product); $event.stopPropagation()"
+            >
+              Adicionar ao Carrinho
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>Sany&Z</h4>
+        <p>Produtos exclusivos e personalizados de alta qualidade</p>
+      </div>
+      
+      <div class="footer-section">
+        <h4>Contato</h4>
+        <p>Email: contato@sanyz.com.br</p>
+        <p>Telefone: (11) 99999-9999</p>
+      </div>
+      
+      <div class="footer-section">
+        <h4>Links</h4>
+        <ul>
+          <li><a href="#" (click)="goToLogin()">Entrar</a></li>
+          <li><a href="#" (click)="goToSignup()">Cadastrar</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p>&copy; 2024 Sany&Z. Todos os direitos reservados.</p>
+    </div>
+  </div>
+</footer>

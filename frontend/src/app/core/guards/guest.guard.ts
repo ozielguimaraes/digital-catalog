@@ -20,7 +20,7 @@ export class GuestGuard implements CanActivate {
         if (!authState.isAuthenticated) {
           return true;
         }
-        return this.router.createUrlTree(['/']);
+        return this.router.createUrlTree(['/dashboard']);
       })
     );
   }
