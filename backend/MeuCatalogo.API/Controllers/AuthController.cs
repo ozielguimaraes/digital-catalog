@@ -20,6 +20,7 @@ public class AuthController : BaseApiController
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IConfiguration _configuration;
     private readonly IPlanoAssinaturaService _planoAssinaturaService;
+    private readonly IRefreshTokenService _refreshTokenService;
     private readonly ILogger<AuthController> _logger;
 
     public AuthController(
@@ -27,12 +28,14 @@ public class AuthController : BaseApiController
         SignInManager<ApplicationUser> signInManager,
         IConfiguration configuration,
         IPlanoAssinaturaService planoAssinaturaService,
+        IRefreshTokenService refreshTokenService,
         ILogger<AuthController> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _configuration = configuration;
         _planoAssinaturaService = planoAssinaturaService;
+        _refreshTokenService = refreshTokenService;
         _logger = logger;
     }
 
@@ -110,7 +113,9 @@ public class AuthController : BaseApiController
         }
 
         string token = GenerateJwtToken(user);
-        var response = ApiResponse<SigninResponse>.Success(new SigninResponse(token,
+        var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(user.Id);
+        
+        var response = ApiResponse<SigninResponse>.Success(new SigninResponse(token, refreshToken.Token,
             new UserDto
             {
                 Id = user.Id,
@@ -122,6 +127,60 @@ public class AuthController : BaseApiController
 
         _logger.LogInformation("Login bem-sucedido para {UserId}", user.Id);
 
+        return HandleApiResponse(response);
+    }
+
+    [HttpPost("refresh-token")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RefreshTokenResponse))]
+    public async Task<IActionResult> RefreshToken(RefreshTokenDto refreshTokenDto)
+    {
+        _logger.LogInformation("Tentativa de refresh token");
+
+        try
+        {
+            var signinResponse = await _refreshTokenService.RefreshAccessTokenAsync(refreshTokenDto.RefreshToken);
+            var response = ApiResponse<RefreshTokenResponse>.Success(new RefreshTokenResponse
+            {
+                Token = signinResponse.Token,
+                RefreshToken = signinResponse.RefreshToken
+            });
+
+            _logger.LogInformation("Refresh token realizado com sucesso");
+            return HandleApiResponse(response);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning("Refresh token falhou: {Message}", ex.Message);
+            return UnauthorizedResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro inesperado durante refresh token");
+            return BadRequestResponse("Erro interno do servidor");
+        }
+    }
+
+    [HttpPost("logout")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> Logout(RefreshTokenDto? refreshTokenDto = null)
+    {
+        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        _logger.LogInformation("Logout solicitado para usuário: {UserId}", userId);
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            if (refreshTokenDto != null && !string.IsNullOrEmpty(refreshTokenDto.RefreshToken))
+            {
+                await _refreshTokenService.RevokeRefreshTokenAsync(refreshTokenDto.RefreshToken);
+            }
+            else
+            {
+                await _refreshTokenService.RevokeAllRefreshTokensAsync(userId);
+            }
+        }
+
+        var response = ApiResponse<object>.Success(null, "Logout realizado com sucesso");
         return HandleApiResponse(response);
     }
 
@@ -190,7 +249,7 @@ public class AuthController : BaseApiController
             _configuration["JwtSettings:Issuer"],
             _configuration["JwtSettings:Audience"],
             claims,
-            expires: DateTime.UtcNow.AddDays(7),
+            expires: DateTime.UtcNow.AddMinutes(15),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

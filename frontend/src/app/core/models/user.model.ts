@@ -13,6 +13,7 @@ export interface LoginRequest {
 
 export interface SigninResponse {
   token: string;
+  refreshToken: string;
   user: User;
 }
 
@@ -23,10 +24,20 @@ export interface RegisterRequest {
   password: string;
 }
 
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
+  token: string;
+  refreshToken: string;
+}
+
 export interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   isLoading: boolean;
   error: string | null;
 }

@@ -47,7 +47,7 @@ try
         throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
     }
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(connectionString));
+        options.UseSqlServer(connectionString, b => b.MigrationsAssembly("MeuCatalogo.API")));
 
     builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
@@ -86,6 +86,7 @@ try
     builder.Services.AddScoped<IProdutoService, ProdutoService>();
     builder.Services.AddScoped<ICategoriaService, CategoriaService>();
     builder.Services.AddScoped<IPlanoAssinaturaService, PlanoAssinaturaService>();
+    builder.Services.AddScoped<IRefreshTokenService, MeuCatalogo.API.Services.RefreshTokenService>();
 
     builder.Services.AddCors(options =>
     {

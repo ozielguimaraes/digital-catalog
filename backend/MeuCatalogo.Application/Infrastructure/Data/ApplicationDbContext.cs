@@ -21,6 +21,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ItemPedido> ItensPedido { get; set; }
     public DbSet<PlanoAssinatura> PlanosAssinatura { get; set; }
     public DbSet<AssinaturaUsuario> AssinaturasUsuarios { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -78,6 +79,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .HasOne(p => p.Cliente)
                 .WithMany(c => c.Pedidos)
                 .HasForeignKey(p => p.ClienteId);
+        }
+
+        // Configurações para RefreshToken
+        if (!modelBuilder.Model.FindEntityType(typeof(RefreshToken)).GetForeignKeys().Any(fk => fk.PrincipalEntityType.ClrType == typeof(ApplicationUser)))
+        {
+            modelBuilder.Entity<RefreshToken>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId);
         }
     }
 }

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { User, LoginRequest, RegisterRequest, AuthState, SigninResponse } from '../models/user.model';
+import { User, LoginRequest, RegisterRequest, AuthState, SigninResponse, RefreshTokenRequest, RefreshTokenResponse } from '../models/user.model';
 import { ApiResponse } from '../models/api-response.model';
 
 @Injectable({
@@ -12,12 +12,14 @@ import { ApiResponse } from '../models/api-response.model';
 export class AuthService {
   private readonly API_URL = environment.apiUrl;
   private readonly TOKEN_KEY = 'auth_token';
+  private readonly REFRESH_TOKEN_KEY = 'refresh_token';
   private readonly USER_KEY = 'user_data';
 
   private authStateSubject = new BehaviorSubject<AuthState>({
     isAuthenticated: false,
     user: null,
     token: null,
+    refreshToken: null,
     isLoading: false,
     error: null
   });
@@ -33,15 +35,17 @@ export class AuthService {
    */
   private initializeAuthState(): void {
     const token = localStorage.getItem(this.TOKEN_KEY);
+    const refreshToken = localStorage.getItem(this.REFRESH_TOKEN_KEY);
     const userData = localStorage.getItem(this.USER_KEY);
 
-    if (token && userData) {
+    if (token && refreshToken && userData) {
       try {
         const user = JSON.parse(userData);
         this.authStateSubject.next({
           isAuthenticated: true,
           user,
           token,
+          refreshToken,
           isLoading: false,
           error: null
         });
@@ -62,6 +66,7 @@ export class AuthService {
         map(response => {
           const signinResponse: SigninResponse = {
             token: response.data.token,
+            refreshToken: response.data.refreshToken,
             user: response.data.user
           };
           this.setAuthData(signinResponse);
@@ -99,7 +104,10 @@ export class AuthService {
    * Logout user
    */
   logout(): Observable<any> {
-    return this.http.post<ApiResponse<any>>(`${this.API_URL}/auth/logout`, {})
+    const refreshToken = this.getRefreshToken();
+    const body = refreshToken ? { refreshToken } : {};
+    
+    return this.http.post<ApiResponse<any>>(`${this.API_URL}/auth/logout`, body)
       .pipe(
         tap(() => this.clearAuthData()),
         catchError(error => {
@@ -128,6 +136,40 @@ export class AuthService {
   }
 
   /**
+   * Refresh access token
+   */
+  refreshToken(): Observable<RefreshTokenResponse> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    return this.http.post<ApiResponse<RefreshTokenResponse>>(`${this.API_URL}/auth/refresh-token`, { refreshToken })
+      .pipe(
+        map(response => {
+          // Update stored tokens
+          localStorage.setItem(this.TOKEN_KEY, response.data.token);
+          localStorage.setItem(this.REFRESH_TOKEN_KEY, response.data.refreshToken);
+          
+          // Update auth state
+          const currentState = this.authStateSubject.value;
+          this.authStateSubject.next({
+            ...currentState,
+            token: response.data.token,
+            refreshToken: response.data.refreshToken
+          });
+          
+          return response.data;
+        }),
+        catchError(error => {
+          // If refresh fails, logout user
+          this.clearAuthData();
+          return throwError(() => error);
+        })
+      );
+  }
+
+  /**
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
@@ -139,8 +181,23 @@ export class AuthService {
    */
   hasValidToken(): boolean {
     const token = localStorage.getItem(this.TOKEN_KEY);
+    const refreshToken = localStorage.getItem(this.REFRESH_TOKEN_KEY);
     const userData = localStorage.getItem(this.USER_KEY);
-    return !!(token && userData);
+    return !!(token && refreshToken && userData);
+  }
+
+  /**
+   * Get current access token
+   */
+  getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
+  }
+
+  /**
+   * Get current refresh token
+   */
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
 
   /**
@@ -158,23 +215,18 @@ export class AuthService {
   }
 
   /**
-   * Get current token
-   */
-  getToken(): string | null {
-    return this.authStateSubject.value.token;
-  }
-
-  /**
    * Set authentication data
    */
   private setAuthData(data: SigninResponse): void {
     localStorage.setItem(this.TOKEN_KEY, data.token);
+    localStorage.setItem(this.REFRESH_TOKEN_KEY, data.refreshToken);
     localStorage.setItem(this.USER_KEY, JSON.stringify(data.user));
 
     this.authStateSubject.next({
       isAuthenticated: true,
       user: data.user,
       token: data.token,
+      refreshToken: data.refreshToken,
       isLoading: false,
       error: null
     });
@@ -198,12 +250,14 @@ export class AuthService {
    */
   private clearAuthData(): void {
     localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
 
     this.authStateSubject.next({
       isAuthenticated: false,
       user: null,
       token: null,
+      refreshToken: null,
       isLoading: false,
       error: null
     });

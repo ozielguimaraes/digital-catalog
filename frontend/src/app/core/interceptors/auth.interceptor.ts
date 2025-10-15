@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse, HttpStatusCode } from '@angular/common/http';
+import { Observable, throwError, switchMap, catchError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 @Injectable()
@@ -24,9 +23,25 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
-        if (error.status === 401 && this.authService.isAuthenticated()) {
-          // If 401 and user is authenticated, logout and redirect to login
-          this.authService.logout().subscribe();
+        if (error.status === HttpStatusCode.Unauthorized && this.authService.isAuthenticated()) {
+          // Try to refresh token if 401 and user is authenticated
+          return this.authService.refreshToken().pipe(
+            switchMap(() => {
+              // Retry the original request with new token
+              const newToken = this.authService.getToken();
+              const retryReq = req.clone({
+                setHeaders: {
+                  Authorization: `Bearer ${newToken}`
+                }
+              });
+              return next.handle(retryReq);
+            }),
+            catchError(() => {
+              // If refresh fails, logout and redirect to login
+              this.authService.logout().subscribe();
+              return throwError(() => error);
+            })
+          );
         }
         return throwError(() => error);
       })
