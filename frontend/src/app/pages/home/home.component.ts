@@ -23,7 +23,8 @@ export class HomeComponent implements OnInit {
   loading = false;
   error: string | null = null;
   searchTerm = '';
-
+  currentYear: number = new Date().getFullYear();
+  
   constructor(
     private productService: ProductService,
     private categoryService: CategoryService,
@@ -187,4 +188,5 @@ export class HomeComponent implements OnInit {
   goToLogin() {
     this.router.navigate(['/signin']);
   }
+
 }

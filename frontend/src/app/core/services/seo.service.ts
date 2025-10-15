@@ -13,7 +13,7 @@ export class SeoService {
   ) {}
 
   updateTitle(title: string) {
-    this.title.setTitle(`${title} | Sany&Z - Catálogo Digital`);
+    this.title.setTitle(`${title} | Sany & Z - Catálogo Digital`);
   }
 
   updateMetaTags(config: {

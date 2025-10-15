@@ -1,4 +1,4 @@
-# SEO Configuration - Sany&Z Catálogo Digital
+# SEO Configuration - Sany & Z Catálogo Digital
 
 ## 📋 Configurações Implementadas
 
@@ -101,7 +101,7 @@ this.seoService.updateMetaTags({
 ## 🎯 Palavras-chave Principais
 
 ### Primárias
-- Sany&Z
+- Sany & Z
 - catálogo digital
 - produtos exclusivos
 - produtos personalizados
@@ -117,7 +117,7 @@ this.seoService.updateMetaTags({
 ### Long-tail
 - catálogo digital de produtos exclusivos
 - produtos personalizados de alta qualidade
-- marca de produtos exclusivos Sany&Z
+- marca de produtos exclusivos Sany & Z
 - catálogo online produtos personalizados
 
 ## 📱 PWA Features

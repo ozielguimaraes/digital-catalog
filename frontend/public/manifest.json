@@ -1,7 +1,7 @@
 {
-  "name": "Sany&Z - Catálogo Digital",
-  "short_name": "Sany&Z",
-  "description": "Catálogo digital de produtos exclusivos, personalizados e de alta qualidade da Sany&Z",
+  "name": "Sany & Z - Catálogo Digital",
+  "short_name": "Sany & Z",
+  "description": "Catálogo digital de produtos exclusivos, personalizados e de alta qualidade da Sany & Z",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ede8e2",

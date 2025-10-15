@@ -387,6 +387,29 @@ $transition: all 0.3s ease;
             &:hover {
               color: $primary-color;
             }
+
+            &.instagram-link {
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+              color: #ccc;
+              text-decoration: none;
+              transition: $transition;
+
+              svg {
+                width: 16px;
+                height: 16px;
+                fill: currentColor;
+              }
+
+              &:hover {
+                color: #e4405f; // Instagram brand color
+                
+                svg {
+                  fill: #e4405f;
+                }
+              }
+            }
           }
         }
       }
