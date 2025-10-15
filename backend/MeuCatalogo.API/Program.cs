@@ -70,12 +70,14 @@ try
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
+                ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
                 ValidAudience = builder.Configuration["JwtSettings:Audience"],
                 IssuerSigningKey =
-                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
+                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"])),
+                ClockSkew = TimeSpan.Zero
             };
         });
     builder.Services.AddAuthorization();
@@ -89,9 +91,15 @@ try
     {
         options.AddPolicy("AllowAngularApp", policy =>
         {
-            policy.AllowAnyOrigin()
+            policy.WithOrigins(
+                    "http://localhost:4200", 
+                    "https://localhost:4200",
+                    "http://catalogo-api.sanyz.com.br",
+                    "https://catalogo-api.sanyz.com.br"
+                )
                 .AllowAnyMethod()
-                .AllowAnyHeader();
+                .AllowAnyHeader()
+                .AllowCredentials();
         });
     });
 
@@ -160,13 +168,13 @@ try
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "MeuCatalogo API v1");
         c.RoutePrefix = "swagger";
     });
+    app.UseCors("AllowAngularApp");
     app.UseMiddleware<CorrelationIdMiddleware>();
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseMiddleware<ProblemDetailsStatusCodeMiddleware>();
 
     app.UseHttpsRedirection();
 
-    app.UseCors("AllowAngularApp");
 
     app.UseAuthentication();
     app.UseAuthorization();

@@ -9,13 +9,18 @@ export class AuthInterceptor implements HttpInterceptor {
   constructor(private authService: AuthService) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    // Add credentials to all requests
+    const reqWithCredentials = req.clone({
+      withCredentials: true
+    });
+
     // Skip auth for login and register endpoints
     if (this.isAuthEndpoint(req.url)) {
-      return next.handle(req);
+      return next.handle(reqWithCredentials);
     }
 
     // Add token to request
-    const authReq = this.addTokenToRequest(req);
+    const authReq = this.addTokenToRequest(reqWithCredentials);
 
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
