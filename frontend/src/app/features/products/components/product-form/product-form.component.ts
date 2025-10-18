@@ -11,6 +11,7 @@ import { CategoryFormComponent, CategoryFormData } from '../category-form/catego
 export interface ProductFormData {
   product?: Product;
   isEdit: boolean;
+  catalogoId?: string;
 }
 
 @Component({
@@ -84,7 +85,8 @@ export class ProductFormComponent implements OnInit {
       next: (catalogs) => {
         this.catalogs = catalogs;
         if (catalogs.length > 0) {
-          this.selectedCatalogId = catalogs[0].id;
+          // Use catalogoId from data if provided, otherwise use first catalog
+          this.selectedCatalogId = this.data.catalogoId || catalogs[0].id;
           this.loadCategories();
         }
         this.isLoading = false;
@@ -98,6 +100,7 @@ export class ProductFormComponent implements OnInit {
   }
 
   private loadCategories(): void {
+    console.log('Loading categories for catalog:', this.selectedCatalogId);
     if (!this.selectedCatalogId) return;
     
     this.categoryService.getCategoriesByCatalog(this.selectedCatalogId).subscribe({
@@ -112,6 +115,9 @@ export class ProductFormComponent implements OnInit {
   }
 
   onCatalogChange(): void {
+    // Clear the category selection when catalog changes
+    this.productForm.patchValue({ categoriaId: '' });
+    this.categories = [];
     this.loadCategories();
   }
 

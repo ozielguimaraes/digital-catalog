@@ -14,7 +14,6 @@ import {
   EstoqueUpdateRequest,
   Estoque
 } from '../models/product.model';
-import { ApiResponse } from '../models/api-response.model';
 
 @Injectable({
   providedIn: 'root'
@@ -28,14 +27,10 @@ export class ProductService {
    * Get products by catalog ID
    */
   getProductsByCatalog(catalogoId: string): Observable<ProductListResponse> {
-    return this.http.get<ApiResponse<Product[]>>(`${this.API_URL}/produtos/catalogo/${catalogoId}`)
+    return this.http.get<Product[]>(`${this.API_URL}/produtos/catalogo/${catalogoId}`)
       .pipe(
         map(response => ({
-          isSuccess: response.isSuccess,
-          data: response.data,
-          message: response.message,
-          type: response.type,
-          errors: response.errors
+          return response;
         })),
         catchError(error => {
           console.error('Error fetching products by catalog:', error);
@@ -48,7 +43,7 @@ export class ProductService {
    * Get product by ID
    */
   getProductById(id: string): Observable<ProductResponse> {
-    return this.http.get<ApiResponse<Product>>(`${this.API_URL}/produtos/${id}`)
+    return this.http.get<Product>(`${this.API_URL}/produtos/${id}`)
       .pipe(
         map(response => ({
           isSuccess: response.isSuccess,

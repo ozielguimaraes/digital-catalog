@@ -144,12 +144,16 @@ export class ProductListComponent implements OnInit {
   }
 
   editProduct(product: Product): void {
+    // Load categories before opening the form
+    this.loadCategories();
+    
     const dialogRef = this.dialog.open(ProductFormComponent, {
       width: '600px',
       maxWidth: '90vw',
       data: {
         product: product,
-        isEdit: true
+        isEdit: true,
+        catalogoId: this.catalogoId
       } as ProductFormData
     });
 
@@ -201,11 +205,15 @@ export class ProductListComponent implements OnInit {
   }
 
   addProduct(): void {
+    // Load categories before opening the form
+    this.loadCategories();
+    
     const dialogRef = this.dialog.open(ProductFormComponent, {
       width: '600px',
       maxWidth: '90vw',
       data: {
-        isEdit: false
+        isEdit: false,
+        catalogoId: this.catalogoId
       } as ProductFormData
     });
 

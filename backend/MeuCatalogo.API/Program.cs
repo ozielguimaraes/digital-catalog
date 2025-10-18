@@ -15,23 +15,52 @@ using Serilog;
 
 try
 {
-    string logPath = Path.Combine(AppContext.BaseDirectory, "logs");
-    if (!Directory.Exists(logPath))
-    {
-        Directory.CreateDirectory(logPath);
-    }
-
-    Log.Logger = new LoggerConfiguration()
-        .MinimumLevel.Debug()
-        .Enrich.FromLogContext()
-        .WriteTo.Console()
-        .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)
-        .CreateLogger();
-
     var builder = WebApplication.CreateBuilder(args);
 
-    // Usa o Serilog no lugar do logger padrão do .NET
-    builder.Host.UseSerilog();
+    // Configure logging first - use built-in logging as fallback
+    builder.Logging.ClearProviders();
+    builder.Logging.AddConsole();
+    builder.Logging.AddDebug();
+    
+    // Try to configure Serilog, but don't fail if it doesn't work
+    try
+    {
+        var environment = builder.Environment.EnvironmentName;
+        var isDevelopment = environment == "Development";
+ 
+        if (isDevelopment)
+        {
+            string logPath = Path.Combine(AppContext.BaseDirectory, "logs");
+            if (!Directory.Exists(logPath))
+            {
+                Directory.CreateDirectory(logPath);
+            }
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)
+                .CreateLogger();
+        }
+        else
+        {
+            // Production logging configuration - simpler approach
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Warning()
+                .WriteTo.Console()
+                .CreateLogger();
+        }
+
+        // Usa o Serilog no lugar do logger padrão do .NET
+        builder.Host.UseSerilog();
+    }
+    catch (Exception serilogEx)
+    {
+        // If Serilog fails, continue with built-in logging
+        Console.WriteLine($"Serilog configuration failed: {serilogEx.Message}");
+        Console.WriteLine("Continuing with built-in logging...");
+    }
 
     builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
@@ -41,11 +70,25 @@ try
         options.LowercaseUrls = true;
     });
 
+    // Get logger for detailed logging
+    var logger = builder.Services.BuildServiceProvider().GetService<ILogger<Program>>();
+    
+    Console.WriteLine("=== MEUCATALOGO API STARTUP ===");
+    Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
+    Console.WriteLine($"Content Root: {builder.Environment.ContentRootPath}");
+    Console.WriteLine($"Application Name: {builder.Environment.ApplicationName}");
+    
     string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     if (string.IsNullOrEmpty(connectionString))
     {
-        throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
+        var errorMsg = "Connection string 'DefaultConnection' is not configured.";
+        Console.WriteLine($"ERROR: {errorMsg}");
+        Log.Fatal(errorMsg);
+        throw new InvalidOperationException(errorMsg);
     }
+ 
+    Console.WriteLine("✓ Connection string configured successfully.");
+    Log.Information("Connection string configured successfully.");
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlServer(connectionString, b => b.MigrationsAssembly("MeuCatalogo.API")));
 
@@ -60,6 +103,28 @@ try
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders();
 
+    Console.WriteLine("✓ Database context configured successfully.");
+    
+    // Validate JWT configuration
+    Console.WriteLine("Validating JWT configuration...");
+    string? jwtKey = builder.Configuration["JwtSettings:Key"];
+    string? jwtIssuer = builder.Configuration["JwtSettings:Issuer"];
+    string? jwtAudience = builder.Configuration["JwtSettings:Audience"];
+ 
+    if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
+    {
+        var errorMsg = "JWT settings are not properly configured.";
+        Console.WriteLine($"ERROR: {errorMsg}");
+        Console.WriteLine($"JWT Key: {(string.IsNullOrEmpty(jwtKey) ? "MISSING" : "OK")}");
+        Console.WriteLine($"JWT Issuer: {(string.IsNullOrEmpty(jwtIssuer) ? "MISSING" : "OK")}");
+        Console.WriteLine($"JWT Audience: {(string.IsNullOrEmpty(jwtAudience) ? "MISSING" : "OK")}");
+        Log.Fatal(errorMsg);
+        throw new InvalidOperationException(errorMsg);
+    }
+ 
+    Console.WriteLine("✓ JWT settings configured successfully.");
+    Log.Information("JWT settings configured successfully.");
+
     builder.Services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -73,10 +138,9 @@ try
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-                ValidAudience = builder.Configuration["JwtSettings:Audience"],
-                IssuerSigningKey =
-                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"])),
+                ValidIssuer = jwtIssuer,
+                ValidAudience = jwtAudience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
                 ClockSkew = TimeSpan.Zero
             };
         });
@@ -93,7 +157,7 @@ try
         options.AddPolicy("AllowAngularApp", policy =>
         {
             policy.WithOrigins(
-                    "http://localhost:4200", 
+                    "http://localhost:4200",
                     "https://localhost:4200",
                     "http://catalogo-api.sanyz.com.br",
                     "https://catalogo-api.sanyz.com.br"
@@ -109,11 +173,26 @@ try
         options.SuppressModelStateInvalidFilter = true;
     });
 
+    // Add health checks
+    builder.Services.AddHealthChecks();
+        // .AddDbContext<ApplicationDbContext>();
+
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>
     {
-        c.SwaggerDoc("v1", new OpenApiInfo { Title = "MeuCatalogo API", Version = "v1" });
+        c.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title = "MeuCatalogo API",
+            Version = "v1",
+            Description = "API para gerenciamento de catálogos digitais com sistema de assinaturas",
+            Contact = new OpenApiContact
+            {
+                Name = "MeuCatalogo Team",
+                Email = "contato@meucatalogo.com"
+            }
+        });
         c.DocumentFilter<LowercaseDocumentFilter>();
+        c.EnableAnnotations();
         c.AddSecurityDefinition("Bearer",
             new OpenApiSecurityScheme
             {
@@ -138,28 +217,42 @@ try
 
     var app = builder.Build();
 
+    Console.WriteLine("✓ Application built successfully.");
+    Console.WriteLine("Starting database migration...");
+    
     using (var scope = app.Services.CreateScope())
     {
         var services = scope.ServiceProvider;
+        var env = services.GetRequiredService<IHostEnvironment>();
+
         try
         {
-            #if DEBUG
-                var context = services.GetRequiredService<ApplicationDbContext>();
+            var context = services.GetRequiredService<ApplicationDbContext>();
+ 
+            // Always run migrations in production to ensure database is up to date
+            Console.WriteLine("Running database migration...");
+            Log.Information("Starting database migration...");
+            await context.Database.MigrateAsync();
+            Console.WriteLine("✓ Database migration completed successfully.");
+            Log.Information("Database migration completed successfully.");
 
-                if (context.Database.GetPendingMigrations().Any())
-                {
-                    context.Database.Migrate();
-                }
-
+            // Only run database initialization in development
+            if (env.IsDevelopment())
+            {
+                Console.WriteLine("Initializing database with sample data (development)...");
                 await DbInitializer.InitializeAsync(services);
-            #endif
-
-            Log.Information("Database initialized successfully.");
+                Console.WriteLine("✓ Database initialized (development).");
+                Log.Information("Database initialized (development).");
+            }
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "An error occurred while creating or seeding the database.");
-            throw; // opcional, depende se quer parar a aplicação aqui
+            var errorMsg = $"Database migration failed: {ex.Message}";
+            Console.WriteLine($"ERROR: {errorMsg}");
+            Console.WriteLine($"Exception Type: {ex.GetType().Name}");
+            Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+            Log.Fatal(ex, "Database migration failed. Application cannot start.");
+            throw;
         }
     }
 
@@ -180,13 +273,31 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
 
+    // Add health check endpoint
+    app.MapHealthChecks("/health");
+ 
     app.MapGet("/", () => Results.Redirect("/swagger"));
     app.MapControllers();
 
+    Console.WriteLine("✓ Application configured successfully.");
+    Console.WriteLine("✓ Starting web server...");
+    Console.WriteLine("=== MEUCATALOGO API READY ===");
+    
     app.Run();
 }
 catch (Exception ex)
 {
+    Console.WriteLine("=== FATAL ERROR ===");
+    Console.WriteLine($"Application start-up failed: {ex.Message}");
+    Console.WriteLine($"Exception Type: {ex.GetType().Name}");
+    Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+    
+    if (ex.InnerException != null)
+    {
+        Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+        Console.WriteLine($"Inner Exception Type: {ex.InnerException.GetType().Name}");
+    }
+    
     Log.Fatal(ex, "Application start-up failed");
     throw;
 }

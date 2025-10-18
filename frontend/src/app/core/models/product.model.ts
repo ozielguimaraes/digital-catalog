@@ -42,9 +42,10 @@ export interface OpcaoVariacao {
 export interface Category {
   id: string;
   nome: string;
-  descricao?: string;
-  ativo: boolean;
-  dataCriacao: string;
+  descricao: string;
+  catalogoId: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface ProductCreateRequest {

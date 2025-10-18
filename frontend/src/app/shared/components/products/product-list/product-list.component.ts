@@ -31,14 +31,12 @@ export class ProductListComponent implements OnInit, OnChanges {
   ngOnInit() {
     if (this.catalogoId) {
       this.loadProducts();
-      this.loadCategories();
     }
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['catalogoId'] && changes['catalogoId'].currentValue) {
       this.loadProducts();
-      this.loadCategories();
     }
   }
 

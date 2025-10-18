@@ -3,12 +3,14 @@ using MeuCatalogo.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace MeuCatalogo.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[SwaggerTag("Gerenciamento de produtos")]
 public class ProdutosController : BaseApiController
 {
     private readonly IProdutoService _produtoService;
@@ -20,8 +22,24 @@ public class ProdutosController : BaseApiController
         _logger = logger;
     }
 
+    /// <summary>
+    /// Obtém todos os produtos de um catálogo específico
+    /// </summary>
+    /// <param name="catalogoId">ID do catálogo</param>
+    /// <returns>Lista de produtos do catálogo</returns>
+    /// <response code="200">Lista de produtos retornada com sucesso</response>
+    /// <response code="401">Usuário não autenticado</response>
+    /// <response code="403">Usuário não tem acesso ao catálogo</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpGet("catalogo/{catalogoId}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ProdutoDto>))]
+    [SwaggerOperation(
+        Summary = "Listar produtos por catálogo",
+        Description = "Retorna todos os produtos de um catálogo específico do usuário autenticado."
+    )]
+    [SwaggerResponse(200, "Lista de produtos retornada com sucesso", typeof(IEnumerable<ProdutoDto>))]
+    [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
+    [SwaggerResponse(403, "Usuário não tem acesso ao catálogo", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> ObterPorCatalogo(Guid catalogoId)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -30,8 +48,26 @@ public class ProdutosController : BaseApiController
         return HandleApiResponse(response);
     }
 
+    /// <summary>
+    /// Obtém um produto específico por ID
+    /// </summary>
+    /// <param name="id">ID do produto</param>
+    /// <returns>Dados do produto</returns>
+    /// <response code="200">Produto encontrado e retornado com sucesso</response>
+    /// <response code="401">Usuário não autenticado</response>
+    /// <response code="403">Usuário não tem acesso ao produto</response>
+    /// <response code="404">Produto não encontrado</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProdutoDto))]
+    [SwaggerOperation(
+        Summary = "Obter produto por ID",
+        Description = "Retorna os dados de um produto específico do usuário autenticado."
+    )]
+    [SwaggerResponse(200, "Produto encontrado e retornado com sucesso", typeof(ProdutoDto))]
+    [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
+    [SwaggerResponse(403, "Usuário não tem acesso ao produto", typeof(ProblemDetails))]
+    [SwaggerResponse(404, "Produto não encontrado", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> Obter(Guid id)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -41,8 +77,26 @@ public class ProdutosController : BaseApiController
         return HandleApiResponse(response);
     }
 
+    /// <summary>
+    /// Cria um novo produto
+    /// </summary>
+    /// <param name="produtoDto">Dados do produto a ser criado</param>
+    /// <returns>Dados do produto criado</returns>
+    /// <response code="201">Produto criado com sucesso</response>
+    /// <response code="400">Dados inválidos fornecidos</response>
+    /// <response code="401">Usuário não autenticado</response>
+    /// <response code="403">Usuário não tem acesso ao catálogo</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ProdutoDto))]
+    [SwaggerOperation(
+        Summary = "Criar novo produto",
+        Description = "Cria um novo produto no catálogo do usuário autenticado."
+    )]
+    [SwaggerResponse(201, "Produto criado com sucesso", typeof(ProdutoDto))]
+    [SwaggerResponse(400, "Dados inválidos fornecidos", typeof(ProblemDetails))]
+    [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
+    [SwaggerResponse(403, "Usuário não tem acesso ao catálogo", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> Adicionar([FromBody] ProdutoCreateDto produtoDto)
     {
         if (!ModelState.IsValid)
@@ -57,8 +111,29 @@ public class ProdutosController : BaseApiController
         return HandleApiResponse(response);
     }
 
+    /// <summary>
+    /// Atualiza um produto existente
+    /// </summary>
+    /// <param name="id">ID do produto</param>
+    /// <param name="produtoDto">Dados atualizados do produto</param>
+    /// <returns>Dados do produto atualizado</returns>
+    /// <response code="200">Produto atualizado com sucesso</response>
+    /// <response code="400">Dados inválidos fornecidos</response>
+    /// <response code="401">Usuário não autenticado</response>
+    /// <response code="403">Usuário não tem acesso ao produto</response>
+    /// <response code="404">Produto não encontrado</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpPut("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProdutoDto))]
+    [SwaggerOperation(
+        Summary = "Atualizar produto",
+        Description = "Atualiza os dados de um produto existente do usuário autenticado."
+    )]
+    [SwaggerResponse(200, "Produto atualizado com sucesso", typeof(ProdutoDto))]
+    [SwaggerResponse(400, "Dados inválidos fornecidos", typeof(ProblemDetails))]
+    [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
+    [SwaggerResponse(403, "Usuário não tem acesso ao produto", typeof(ProblemDetails))]
+    [SwaggerResponse(404, "Produto não encontrado", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> Atualizar(Guid id, [FromBody] ProdutoUpdateDto produtoDto)
     {
         if (!ModelState.IsValid)
@@ -74,8 +149,26 @@ public class ProdutosController : BaseApiController
         return HandleApiResponse(produto);
     }
 
+    /// <summary>
+    /// Remove um produto
+    /// </summary>
+    /// <param name="id">ID do produto</param>
+    /// <returns>Confirmação da remoção</returns>
+    /// <response code="204">Produto removido com sucesso</response>
+    /// <response code="401">Usuário não autenticado</response>
+    /// <response code="403">Usuário não tem acesso ao produto</response>
+    /// <response code="404">Produto não encontrado</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [SwaggerOperation(
+        Summary = "Remover produto",
+        Description = "Remove um produto do catálogo do usuário autenticado."
+    )]
+    [SwaggerResponse(204, "Produto removido com sucesso")]
+    [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
+    [SwaggerResponse(403, "Usuário não tem acesso ao produto", typeof(ProblemDetails))]
+    [SwaggerResponse(404, "Produto não encontrado", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> Remover(Guid id)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -84,8 +177,29 @@ public class ProdutosController : BaseApiController
         return HandleApiResponse(response);
     }
 
+    /// <summary>
+    /// Atualiza o estoque de um produto
+    /// </summary>
+    /// <param name="id">ID do produto</param>
+    /// <param name="estoqueDto">Dados do estoque</param>
+    /// <returns>Dados do estoque atualizado</returns>
+    /// <response code="200">Estoque atualizado com sucesso</response>
+    /// <response code="400">Dados inválidos fornecidos</response>
+    /// <response code="401">Usuário não autenticado</response>
+    /// <response code="403">Usuário não tem acesso ao produto</response>
+    /// <response code="404">Produto não encontrado</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpPut("{id}/estoque")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EstoqueDto))]
+    [SwaggerOperation(
+        Summary = "Atualizar estoque do produto",
+        Description = "Atualiza as informações de estoque de um produto específico."
+    )]
+    [SwaggerResponse(200, "Estoque atualizado com sucesso", typeof(EstoqueDto))]
+    [SwaggerResponse(400, "Dados inválidos fornecidos", typeof(ProblemDetails))]
+    [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
+    [SwaggerResponse(403, "Usuário não tem acesso ao produto", typeof(ProblemDetails))]
+    [SwaggerResponse(404, "Produto não encontrado", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> AtualizarEstoque(Guid id, [FromBody] EstoqueUpdateDto estoqueDto)
     {
         if (!ModelState.IsValid)

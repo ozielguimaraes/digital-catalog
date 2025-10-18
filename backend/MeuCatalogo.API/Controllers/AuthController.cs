@@ -9,11 +9,13 @@ using System.Security.Claims;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace MeuCatalogo.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[SwaggerTag("Autenticação e autorização de usuários")]
 public class AuthController : BaseApiController
 {
     private readonly UserManager<ApplicationUser> _userManager;
@@ -39,8 +41,22 @@ public class AuthController : BaseApiController
         _logger = logger;
     }
 
+    /// <summary>
+    /// Registra um novo usuário no sistema
+    /// </summary>
+    /// <param name="registerDto">Dados de registro do usuário</param>
+    /// <returns>Dados do usuário criado</returns>
+    /// <response code="200">Usuário registrado com sucesso</response>
+    /// <response code="400">Dados inválidos ou email já em uso</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpPost("register")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserDto))]
+    [SwaggerOperation(
+        Summary = "Registrar novo usuário",
+        Description = "Cria uma nova conta de usuário no sistema e atribui automaticamente um plano gratuito."
+    )]
+    [SwaggerResponse(200, "Usuário registrado com sucesso", typeof(UserDto))]
+    [SwaggerResponse(400, "Dados inválidos ou email já em uso", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> Register(UserRegisterDto registerDto)
     {
         _logger.LogInformation("Iniciando registro de novo usuário: {Email}", registerDto.Email);
@@ -91,8 +107,22 @@ public class AuthController : BaseApiController
         return HandleApiResponse(response);
     }
 
+    /// <summary>
+    /// Autentica um usuário no sistema
+    /// </summary>
+    /// <param name="loginDto">Dados de login do usuário</param>
+    /// <returns>Token de acesso e dados do usuário</returns>
+    /// <response code="200">Login realizado com sucesso</response>
+    /// <response code="401">Credenciais inválidas</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpPost("login")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SigninResponse))]
+    [SwaggerOperation(
+        Summary = "Fazer login",
+        Description = "Autentica um usuário e retorna um token JWT de acesso junto com um refresh token."
+    )]
+    [SwaggerResponse(200, "Login realizado com sucesso", typeof(SigninResponse))]
+    [SwaggerResponse(401, "Credenciais inválidas", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> Login(UserLoginDto loginDto)
     {
         _logger.LogInformation("Tentativa de login: {Email}", loginDto.Email);
@@ -130,8 +160,24 @@ public class AuthController : BaseApiController
         return HandleApiResponse(response);
     }
 
+    /// <summary>
+    /// Renova o token de acesso usando refresh token
+    /// </summary>
+    /// <param name="refreshTokenDto">Dados do refresh token</param>
+    /// <returns>Novo token de acesso e refresh token</returns>
+    /// <response code="200">Token renovado com sucesso</response>
+    /// <response code="400">Refresh token inválido ou expirado</response>
+    /// <response code="401">Refresh token não autorizado</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpPost("refresh-token")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RefreshTokenResponse))]
+    [SwaggerOperation(
+        Summary = "Renovar token de acesso",
+        Description = "Gera um novo token de acesso usando um refresh token válido."
+    )]
+    [SwaggerResponse(200, "Token renovado com sucesso", typeof(RefreshTokenResponse))]
+    [SwaggerResponse(400, "Refresh token inválido ou expirado", typeof(ProblemDetails))]
+    [SwaggerResponse(401, "Refresh token não autorizado", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> RefreshToken(RefreshTokenDto refreshTokenDto)
     {
         _logger.LogInformation("Tentativa de refresh token");
@@ -160,9 +206,23 @@ public class AuthController : BaseApiController
         }
     }
 
+    /// <summary>
+    /// Faz logout do usuário e invalida tokens
+    /// </summary>
+    /// <param name="refreshTokenDto">Refresh token opcional para invalidar</param>
+    /// <returns>Confirmação do logout</returns>
+    /// <response code="200">Logout realizado com sucesso</response>
+    /// <response code="401">Usuário não autenticado</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpPost("logout")]
     [Authorize]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [SwaggerOperation(
+        Summary = "Fazer logout",
+        Description = "Invalida os tokens do usuário autenticado, fazendo logout do sistema."
+    )]
+    [SwaggerResponse(200, "Logout realizado com sucesso")]
+    [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> Logout(RefreshTokenDto? refreshTokenDto = null)
     {
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -184,8 +244,23 @@ public class AuthController : BaseApiController
         return HandleApiResponse(response);
     }
 
+    /// <summary>
+    /// Confirma o email do usuário
+    /// </summary>
+    /// <param name="userId">ID do usuário</param>
+    /// <param name="token">Token de confirmação</param>
+    /// <returns>Confirmação da validação do email</returns>
+    /// <response code="204">Email confirmado com sucesso</response>
+    /// <response code="400">Token inválido ou usuário não encontrado</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpGet("confirmar-email")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SigninResponse))]
+    [SwaggerOperation(
+        Summary = "Confirmar email do usuário",
+        Description = "Confirma o endereço de email do usuário usando o token de confirmação."
+    )]
+    [SwaggerResponse(204, "Email confirmado com sucesso")]
+    [SwaggerResponse(400, "Token inválido ou usuário não encontrado", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<ActionResult> ConfirmEmail(string userId, string token)
     {
         _logger.LogInformation("Confirmação de e-mail solicitada para {UserId}", userId);
@@ -207,9 +282,24 @@ public class AuthController : BaseApiController
         return BadRequestResponse("Erro ao confirmar e-mail");
     }
 
+    /// <summary>
+    /// Obtém dados do usuário autenticado
+    /// </summary>
+    /// <returns>Dados do usuário autenticado</returns>
+    /// <response code="200">Dados do usuário retornados com sucesso</response>
+    /// <response code="401">Usuário não autenticado</response>
+    /// <response code="404">Usuário não encontrado</response>
+    /// <response code="500">Erro interno do servidor</response>
     [Authorize]
     [HttpGet("me")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserDto))]
+    [SwaggerOperation(
+        Summary = "Obter dados do usuário autenticado",
+        Description = "Retorna os dados do usuário atualmente autenticado."
+    )]
+    [SwaggerResponse(200, "Dados do usuário retornados com sucesso", typeof(UserDto))]
+    [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
+    [SwaggerResponse(404, "Usuário não encontrado", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> GetCurrentUser()
     {
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

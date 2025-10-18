@@ -81,13 +81,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .HasForeignKey(p => p.ClienteId);
         }
 
-        // Configurações para RefreshToken
-        if (!modelBuilder.Model.FindEntityType(typeof(RefreshToken)).GetForeignKeys().Any(fk => fk.PrincipalEntityType.ClrType == typeof(ApplicationUser)))
-        {
-            modelBuilder.Entity<RefreshToken>()
-                .HasOne(r => r.User)
-                .WithMany()
-                .HasForeignKey(r => r.UserId);
-        }
     }
 }

@@ -3,12 +3,14 @@ using MeuCatalogo.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace MeuCatalogo.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[SwaggerTag("Gerenciamento de catálogos de produtos")]
 public class CatalogosController : BaseApiController
 {
     private readonly ICatalogoService _catalogoService;
@@ -20,8 +22,21 @@ public class CatalogosController : BaseApiController
         _logger = logger;
     }
 
+    /// <summary>
+    /// Obtém todos os catálogos do usuário autenticado
+    /// </summary>
+    /// <returns>Lista de catálogos do usuário</returns>
+    /// <response code="200">Lista de catálogos retornada com sucesso</response>
+    /// <response code="401">Usuário não autenticado</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<CatalogoDto>))]
+    [SwaggerOperation(
+        Summary = "Listar catálogos do usuário",
+        Description = "Retorna todos os catálogos pertencentes ao usuário autenticado."
+    )]
+    [SwaggerResponse(200, "Lista de catálogos retornada com sucesso", typeof(IEnumerable<CatalogoDto>))]
+    [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> Obter()
     {
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -31,8 +46,26 @@ public class CatalogosController : BaseApiController
         return HandleApiResponse(response);
     }
 
+    /// <summary>
+    /// Obtém um catálogo específico por ID
+    /// </summary>
+    /// <param name="id">ID do catálogo</param>
+    /// <returns>Dados do catálogo</returns>
+    /// <response code="200">Catálogo encontrado e retornado com sucesso</response>
+    /// <response code="401">Usuário não autenticado</response>
+    /// <response code="403">Usuário não tem acesso ao catálogo</response>
+    /// <response code="404">Catálogo não encontrado</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CatalogoDto))]
+    [SwaggerOperation(
+        Summary = "Obter catálogo por ID",
+        Description = "Retorna os dados de um catálogo específico do usuário autenticado."
+    )]
+    [SwaggerResponse(200, "Catálogo encontrado e retornado com sucesso", typeof(CatalogoDto))]
+    [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
+    [SwaggerResponse(403, "Usuário não tem acesso ao catálogo", typeof(ProblemDetails))]
+    [SwaggerResponse(404, "Catálogo não encontrado", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> Obter(Guid id)
     {
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -47,8 +80,24 @@ public class CatalogosController : BaseApiController
         return HandleApiResponse(response);
     }
 
+    /// <summary>
+    /// Cria um novo catálogo
+    /// </summary>
+    /// <param name="catalogoDto">Dados do catálogo a ser criado</param>
+    /// <returns>Dados do catálogo criado</returns>
+    /// <response code="201">Catálogo criado com sucesso</response>
+    /// <response code="400">Dados inválidos fornecidos</response>
+    /// <response code="401">Usuário não autenticado</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CatalogoDto))]
+    [SwaggerOperation(
+        Summary = "Criar novo catálogo",
+        Description = "Cria um novo catálogo para o usuário autenticado."
+    )]
+    [SwaggerResponse(201, "Catálogo criado com sucesso", typeof(CatalogoDto))]
+    [SwaggerResponse(400, "Dados inválidos fornecidos", typeof(ProblemDetails))]
+    [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> Adicionar([FromBody] CatalogoCreateDto catalogoDto)
     {
         if (!ModelState.IsValid)
@@ -64,7 +113,29 @@ public class CatalogosController : BaseApiController
         return HandleApiResponse(response);
     }
 
+    /// <summary>
+    /// Atualiza um catálogo existente
+    /// </summary>
+    /// <param name="id">ID do catálogo</param>
+    /// <param name="catalogoDto">Dados atualizados do catálogo</param>
+    /// <returns>Dados do catálogo atualizado</returns>
+    /// <response code="200">Catálogo atualizado com sucesso</response>
+    /// <response code="400">Dados inválidos fornecidos</response>
+    /// <response code="401">Usuário não autenticado</response>
+    /// <response code="403">Usuário não tem acesso ao catálogo</response>
+    /// <response code="404">Catálogo não encontrado</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpPut("{id}")]
+    [SwaggerOperation(
+        Summary = "Atualizar catálogo",
+        Description = "Atualiza os dados de um catálogo existente do usuário autenticado."
+    )]
+    [SwaggerResponse(200, "Catálogo atualizado com sucesso", typeof(CatalogoDto))]
+    [SwaggerResponse(400, "Dados inválidos fornecidos", typeof(ProblemDetails))]
+    [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
+    [SwaggerResponse(403, "Usuário não tem acesso ao catálogo", typeof(ProblemDetails))]
+    [SwaggerResponse(404, "Catálogo não encontrado", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> Atualizar(Guid id, [FromBody] CatalogoUpdateDto catalogoDto)
     {
         if (!ModelState.IsValid)
@@ -80,10 +151,26 @@ public class CatalogosController : BaseApiController
         return HandleApiResponse(response);
     }
 
+    /// <summary>
+    /// Remove um catálogo
+    /// </summary>
+    /// <param name="id">ID do catálogo</param>
+    /// <returns>Confirmação da remoção</returns>
+    /// <response code="204">Catálogo removido com sucesso</response>
+    /// <response code="401">Usuário não autenticado</response>
+    /// <response code="403">Usuário não tem acesso ao catálogo</response>
+    /// <response code="404">Catálogo não encontrado</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(ProblemDetails))]
+    [SwaggerOperation(
+        Summary = "Remover catálogo",
+        Description = "Remove um catálogo do usuário autenticado."
+    )]
+    [SwaggerResponse(204, "Catálogo removido com sucesso")]
+    [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
+    [SwaggerResponse(403, "Usuário não tem acesso ao catálogo", typeof(ProblemDetails))]
+    [SwaggerResponse(404, "Catálogo não encontrado", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> Remover(Guid id)
     {
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
