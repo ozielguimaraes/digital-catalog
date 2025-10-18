@@ -49,6 +49,8 @@ export class ImageEditorComponent implements OnInit, OnChanges, AfterViewInit, O
     if (this.imageFile) {
       this.loadImage();
     }
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
   }
 
   ngOnChanges() {
@@ -342,8 +344,11 @@ export class ImageEditorComponent implements OnInit, OnChanges, AfterViewInit, O
   onWheel(event: WheelEvent) {
     if (!this.imageLoaded) return;
 
+    // Prevent default scroll behavior and stop propagation
     event.preventDefault();
     event.stopPropagation();
+    event.stopImmediatePropagation();
+
     const delta = event.deltaY > 0 ? -0.1 : 0.1;
     const newScale = Math.max(0.1, Math.min(3, this.cropData.scale + delta));
 
@@ -449,6 +454,8 @@ export class ImageEditorComponent implements OnInit, OnChanges, AfterViewInit, O
     this.loadedImage = null;
     this.imageLoaded = false;
     this.imagePreview = '';
+    // Restore body scroll when modal is closed
+    document.body.style.overflow = '';
   }
 
   // Force redraw when component becomes visible
@@ -457,11 +464,6 @@ export class ImageEditorComponent implements OnInit, OnChanges, AfterViewInit, O
       setTimeout(() => {
         this.initializeCanvas();
       }, 300);
-    }
-    
-    // Add passive event listener for wheel event
-    if (this.canvasRef?.nativeElement) {
-      this.canvasRef.nativeElement.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
     }
   }
 }

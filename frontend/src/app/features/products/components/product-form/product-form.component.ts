@@ -51,7 +51,7 @@ export class ProductFormComponent implements OnInit {
 
   private createForm(): FormGroup {
     return this.fb.group({
-      nome: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+      nome: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(100)]],
       descricao: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
       preco: [0, [Validators.required, Validators.min(0.01)]],
       quantidade: [0, [Validators.required, Validators.min(0)]],
