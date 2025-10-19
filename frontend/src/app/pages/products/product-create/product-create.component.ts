@@ -52,22 +52,32 @@ export class ProductCreateComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadCatalogs();
-    this.loadCategories();
-    
-    // Get catalog ID from query params if provided
+    // Get catalog ID from query params first
     this.route.queryParams.subscribe(params => {
       if (params['catalogId']) {
         this.selectedCatalogId = params['catalogId'];
         this.productForm.patchValue({ catalogoId: this.selectedCatalogId });
       }
     });
+    
+    // Load catalogs and categories
+    this.loadCatalogs();
   }
 
   loadCatalogs() {
     this.catalogService.getCatalogs().subscribe({
       next: (catalogs) => {
         this.catalogs = catalogs;
+        
+        // If no catalogId from query params, select first catalog
+        if (!this.selectedCatalogId && catalogs.length > 0) {
+          this.selectedCatalogId = catalogs[0].id;
+        }
+        
+        // Load categories for the selected catalog
+        if (this.selectedCatalogId) {
+          this.loadCategories();
+        }
       },
       error: (error) => {
         this.error = error.message || 'Erro ao carregar catálogos';
@@ -77,7 +87,9 @@ export class ProductCreateComponent implements OnInit {
   }
 
   loadCategories() {
-    if (!this.selectedCatalogId) return;
+    if (!this.selectedCatalogId) {
+      return;
+    }
     
     this.categoryService.getCategoriesByCatalog(this.selectedCatalogId).subscribe({
       next: (categories: Category[]) => {
