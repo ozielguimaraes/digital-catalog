@@ -23,6 +23,7 @@ import { ProductCreateComponent } from './pages/products/product-create/product-
 import { ProductEditComponent } from './pages/products/product-edit/product-edit.component';
 import { CatalogsComponent } from './pages/catalogs/catalogs.component';
 import { HomeComponent } from './pages/home/home.component';
+import { CheckoutComponent } from './pages/checkout/checkout.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { GuestGuard } from './core/guards/guest.guard';
 
@@ -46,6 +47,12 @@ export const routes: Routes = [
     component:SignUpComponent,
     canActivate: [GuestGuard],
     title:'Cadastro | Catálogo Digital - Sany & Z'
+  },
+  // Checkout page - Public
+  {
+    path:'checkout',
+    component:CheckoutComponent,
+    title:'Finalizar Compra | Catálogo Digital - Sany & Z'
   },
   // páginas protegidas - COM autenticação necessária
   {

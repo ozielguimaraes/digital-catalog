@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Product, Category } from '../../core/models/product.model';
@@ -8,15 +8,18 @@ import { CatalogService, Catalog } from '../../core/services/catalog.service';
 import { ImageUrlService } from '../../core/services/image-url.service';
 import { CartService } from '../../services/cart.service';
 import { Router } from '@angular/router';
+import { CartModalComponent } from '../../shared/components/cart-modal/cart-modal.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CartModalComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
+  @ViewChild('cartModal') cartModal!: CartModalComponent;
+  
   products: Product[] = [];
   categories: Category[] = [];
   catalogs: Catalog[] = [];
@@ -27,6 +30,9 @@ export class HomeComponent implements OnInit {
   searchTerm = '';
   currentYear: number = new Date().getFullYear();
   cartItemCount = 0;
+  productQuantities: { [key: string]: number } = {};
+  showToast = false;
+  toastMessage = '';
   
   constructor(
     private productService: ProductService,
@@ -34,7 +40,8 @@ export class HomeComponent implements OnInit {
     private catalogService: CatalogService,
     private imageUrlService: ImageUrlService,
     private cartService: CartService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -45,6 +52,7 @@ export class HomeComponent implements OnInit {
     // Inscrever-se para atualizações do contador do carrinho
     this.cartService.getCartCount().subscribe(count => {
       this.cartItemCount = count;
+      this.cdr.detectChanges();
     });
   }
 
@@ -219,14 +227,38 @@ export class HomeComponent implements OnInit {
   }
 
   addToCart(product: Product): void {
-    this.cartService.addToCart(product);
+    const quantity = this.productQuantities[product.id] || 1;
+    this.cartService.addToCart(product, quantity);
+    
+    // Reset quantity to 1 after adding
+    this.productQuantities[product.id] = 1;
+    
+    // Show success feedback
+    this.showAddToCartFeedback(product.nome);
   }
-  
+
+  increaseQuantity(product: Product): void {
+    const currentQuantity = this.productQuantities[product.id] || 1;
+    this.productQuantities[product.id] = Math.min(currentQuantity + 1, 99);
+  }
+
+  decreaseQuantity(product: Product): void {
+    const currentQuantity = this.productQuantities[product.id] || 1;
+    this.productQuantities[product.id] = Math.max(currentQuantity - 1, 1);
+  }
+
   openCart(): void {
-    // Aqui você pode implementar a abertura do carrinho
-    // Por exemplo, navegando para uma página de carrinho ou abrindo um modal
-    alert('Carrinho de compras: ' + this.cartItemCount + ' item(s)');
-    // Implementação futura: this.router.navigate(['/cart']);
+    this.cartModal.open();
+  }
+
+  private showAddToCartFeedback(productName: string): void {
+    this.toastMessage = `${productName} adicionado ao carrinho!`;
+    this.showToast = true;
+    
+    // Hide toast after 3 seconds
+    setTimeout(() => {
+      this.showToast = false;
+    }, 3000);
   }
 
   goToLogin() {

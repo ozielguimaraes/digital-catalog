@@ -12,7 +12,7 @@ export class CartItem {
     }
 
     get precoTotal(): number {
-        return this.produto.precoComDesconto > 0 
+        return (this.produto.precoComDesconto && this.produto.precoComDesconto > 0) 
             ? this.produto.precoComDesconto * this.quantidade 
             : this.produto.preco * this.quantidade;
     }

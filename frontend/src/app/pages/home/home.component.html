@@ -126,6 +126,33 @@
           </div>
 
           <div class="product-actions">
+            <div class="quantity-selector">
+              <label for="quantity-{{product.id}}">Qtd:</label>
+              <div class="quantity-controls">
+                <button 
+                  type="button"
+                  class="quantity-btn" 
+                  (click)="decreaseQuantity(product)"
+                >
+                  -
+                </button>
+                <input 
+                  type="number" 
+                  id="quantity-{{product.id}}"
+                  [(ngModel)]="productQuantities[product.id]"
+                  min="1"
+                  max="99"
+                  class="quantity-input"
+                >
+                <button 
+                  type="button"
+                  class="quantity-btn" 
+                  (click)="increaseQuantity(product)"
+                >
+                  +
+                </button>
+              </div>
+            </div>
             <button 
               class="btn btn-primary" 
               (click)="addToCart(product)"
@@ -181,3 +208,16 @@
     </div>
   </div>
 </footer>
+
+<!-- Toast Notification -->
+<div *ngIf="showToast" class="toast">
+  <div class="toast-content">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span>{{ toastMessage }}</span>
+  </div>
+</div>
+
+<!-- Cart Modal -->
+<app-cart-modal #cartModal></app-cart-modal>
