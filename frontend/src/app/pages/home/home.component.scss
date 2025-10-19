@@ -53,37 +53,48 @@ $transition: all 0.3s ease;
 
   .header-actions {
     display: flex;
+    align-items: center;
     gap: 1rem;
+  }
+  
+  .cart-icon {
+    position: relative;
+    cursor: pointer;
+    padding: 0.5rem;
+    
+    svg {
+      color: $primary-color;
+    }
+    
+    .cart-count {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: $primary-color;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 0.75rem;
+      @include flex-center;
+    }
+    
+    &:hover {
+      svg {
+        color: darken($primary-color, 10%);
+      }
+    }
   }
 }
 
-// Hero Section
-.hero {
+// Search Section
+.search-section {
   background: linear-gradient(135deg, $secondary-color 0%, #f5f5f5 100%);
-  padding: 4rem 0;
-  text-align: center;
-
-  .hero-content {
-    max-width: 600px;
-    margin: 0 auto;
-
-    h2 {
-      font-size: 2.5rem;
-      color: $text-color;
-      margin-bottom: 1rem;
-      font-weight: 700;
-    }
-
-    p {
-      font-size: 1.2rem;
-      color: $text-light;
-      margin-bottom: 2rem;
-    }
-  }
-
+  padding: 2rem 0;
+  
   .search-container {
     position: relative;
-    max-width: 500px;
+    max-width: 600px;
     margin: 0 auto;
 
     .search-box {
@@ -98,6 +109,45 @@ $transition: all 0.3s ease;
         border: none;
         padding: 1rem 1.5rem;
         font-size: 1rem;
+        outline: none;
+        
+        &::placeholder {
+          color: lighten($text-light, 20%);
+        }
+      }
+
+      .search-btn {
+        background: $primary-color;
+        border: none;
+        color: white;
+        padding: 0 1.5rem;
+        cursor: pointer;
+        transition: $transition;
+        
+        &:hover {
+          background: darken($primary-color, 10%);
+        }
+      }
+    }
+
+    .clear-search {
+      position: absolute;
+      right: -80px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: $text-light;
+      cursor: pointer;
+      font-size: 0.9rem;
+      
+      &:hover {
+        color: $text-color;
+        text-decoration: underline;
+      }
+    }
+  }
+}
         outline: none;
 
         &::placeholder {

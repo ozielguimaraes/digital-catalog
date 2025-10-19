@@ -6,6 +6,7 @@ import { ProductService } from '../../core/services/product.service';
 import { CategoryService } from '../../core/services/category.service';
 import { CatalogService, Catalog } from '../../core/services/catalog.service';
 import { ImageUrlService } from '../../core/services/image-url.service';
+import { CartService } from '../../services/cart.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -25,12 +26,14 @@ export class HomeComponent implements OnInit {
   error: string | null = null;
   searchTerm = '';
   currentYear: number = new Date().getFullYear();
+  cartItemCount = 0;
   
   constructor(
     private productService: ProductService,
     private categoryService: CategoryService,
     private catalogService: CatalogService,
     private imageUrlService: ImageUrlService,
+    private cartService: CartService,
     private router: Router
   ) {}
 
@@ -38,6 +41,11 @@ export class HomeComponent implements OnInit {
     this.loading = true;
     this.loadCatalogs();
     // Não carregamos os produtos aqui, vamos esperar os catálogos primeiro
+    
+    // Inscrever-se para atualizações do contador do carrinho
+    this.cartService.getCartCount().subscribe(count => {
+      this.cartItemCount = count;
+    });
   }
 
   loadCatalogs() {
@@ -210,9 +218,15 @@ export class HomeComponent implements OnInit {
     console.log('Product clicked:', product);
   }
 
-  onAddToCart(product: Product) {
-    // Add to cart logic
-    console.log('Add to cart:', product);
+  addToCart(product: Product): void {
+    this.cartService.addToCart(product);
+  }
+  
+  openCart(): void {
+    // Aqui você pode implementar a abertura do carrinho
+    // Por exemplo, navegando para uma página de carrinho ou abrindo um modal
+    alert('Carrinho de compras: ' + this.cartItemCount + ' item(s)');
+    // Implementação futura: this.router.navigate(['/cart']);
   }
 
   goToLogin() {

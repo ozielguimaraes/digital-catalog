@@ -8,37 +8,39 @@
       </div>
       
       <div class="header-actions">
+        <div class="cart-icon" (click)="openCart()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 22C9.55228 22 10 21.5523 10 21C10 20.4477 9.55228 20 9 20C8.44772 20 8 20.4477 8 21C8 21.5523 8.44772 22 9 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M20 22C20.5523 22 21 21.5523 21 21C21 20.4477 20.5523 20 20 20C19.4477 20 19 20.4477 19 21C19 21.5523 19.4477 22 20 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M1 1H5L7.68 14.39C7.77144 14.8504 8.02191 15.264 8.38755 15.5583C8.75318 15.8526 9.2107 16.009 9.68 16H19.4C19.8693 16.009 20.3268 15.8526 20.6925 15.5583C21.0581 15.264 21.3086 14.8504 21.4 14.39L23 6H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span *ngIf="cartItemCount > 0" class="cart-count">{{ cartItemCount }}</span>
+        </div>
         <button class="btn btn-outline" (click)="goToLogin()">Entrar</button>
       </div>
     </div>
   </div>
 </header>
 
-<!-- Hero Section -->
-<section class="hero">
+<!-- Search Bar Section -->
+<section class="search-section">
   <div class="container">
-    <div class="hero-content">
-      <h2>Produtos Exclusivos e Personalizados</h2>
-      <p>Descubra nossa coleção única de produtos de alta qualidade</p>
-      
-      <!-- Search Bar -->
-      <div class="search-container">
-        <div class="search-box">
-          <input 
-            type="text" 
-            [(ngModel)]="searchTerm"
-            placeholder="Buscar produtos..."
-            (keyup.enter)="onSearch()"
-            class="search-input"
-          >
-          <button class="search-btn" (click)="onSearch()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        </div>
-        <button *ngIf="searchTerm" class="clear-search" (click)="onClearSearch()">Limpar</button>
+    <div class="search-container">
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm"
+          placeholder="Buscar produtos..."
+          (keyup.enter)="onSearch()"
+          class="search-input"
+        >
+        <button class="search-btn" (click)="onSearch()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
       </div>
+      <button *ngIf="searchTerm" class="clear-search" (click)="onClearSearch()">Limpar</button>
     </div>
   </div>
 </section>
@@ -102,8 +104,8 @@
         <p>Tente ajustar os filtros ou termo de busca</p>
       </div>
 
-      <div *ngFor="let product of products" class="product-card" (click)="onProductClick(product)">
-        <div class="product-image">
+      <div *ngFor="let product of products" class="product-card">
+        <div class="product-image" (click)="onProductClick(product)">
           <img [src]="getProductImage(product)" [alt]="product.nome" loading="lazy">
           <div *ngIf="hasDiscount(product)" class="discount-badge">
             -{{ getDiscountPercentage(product) }}%
@@ -111,7 +113,7 @@
         </div>
         
         <div class="product-info">
-          <h3 class="product-name">{{ product.nome }}</h3>
+          <h3 class="product-name" (click)="onProductClick(product)">{{ product.nome }}</h3>
           <p class="product-description">{{ product.informacoesAdicionais }}</p>
           
           <div class="product-price">
@@ -125,9 +127,14 @@
 
           <div class="product-actions">
             <button 
-              class="btn btn-primary btn-sm" 
-              (click)="onAddToCart(product); $event.stopPropagation()"
+              class="btn btn-primary" 
+              (click)="addToCart(product)"
             >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 22C9.55228 22 10 21.5523 10 21C10 20.4477 9.55228 20 9 20C8.44772 20 8 20.4477 8 21C8 21.5523 8.44772 22 9 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M20 22C20.5523 22 21 21.5523 21 21C21 20.4477 20.5523 20 20 20C19.4477 20 19 20.4477 19 21C19 21.5523 19.4477 22 20 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M1 1H5L7.68 14.39C7.77144 14.8504 8.02191 15.264 8.38755 15.5583C8.75318 15.8526 9.2107 16.009 9.68 16H19.4C19.8693 16.009 20.3268 15.8526 20.6925 15.5583C21.0581 15.264 21.3086 14.8504 21.4 14.39L23 6H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
               Adicionar ao Carrinho
             </button>
           </div>
