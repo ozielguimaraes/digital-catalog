@@ -1,9 +1,9 @@
-import { Component, Input, Output, EventEmitter, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ImageEditorComponent } from '../image-editor/image-editor.component';
 
 export interface ImageUploadData {
-  file: File;
+  file: File | null;
   preview: string;
   isEdited: boolean;
 }
@@ -15,10 +15,11 @@ export interface ImageUploadData {
   templateUrl: './image-upload.component.html',
   styleUrls: ['./image-upload.component.scss']
 })
-export class ImageUploadComponent {
+export class ImageUploadComponent implements OnInit {
   @Input() maxFiles: number = 10;
   @Input() maxFileSize: number = 10 * 1024 * 1024; // 10MB
-  @Input() acceptedTypes: string[] = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml', 'image/avif'];
+  @Input() acceptedTypes: string[] = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
+  @Input() existingImages: string[] = [];
   @Output() imagesUploaded = new EventEmitter<ImageUploadData[]>();
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
@@ -31,6 +32,17 @@ export class ImageUploadComponent {
   errorMessage: string | null = null;
   successMessage: string | null = null;
   isProcessing = false;
+
+  ngOnInit() {
+    // Process existing images when component initializes
+    if (this.existingImages && this.existingImages.length > 0) {
+      this.uploadedImages = this.existingImages.map(url => ({
+        file: null as any, // Existing images don't have files
+        preview: url,
+        isEdited: false
+      }));
+    }
+  }
 
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -80,8 +92,8 @@ export class ImageUploadComponent {
     const duplicateFiles: string[] = [];
 
     files.forEach(file => {
-      // Check for duplicates
-      const isDuplicate = this.uploadedImages.some(img => img.file.name === file.name && img.file.size === file.size);
+      // Check for duplicates (only check against images that have files)
+      const isDuplicate = this.uploadedImages.some(img => img.file && img.file.name === file.name && img.file.size === file.size);
       if (isDuplicate) {
         duplicateFiles.push(file.name);
         return;
@@ -107,7 +119,7 @@ export class ImageUploadComponent {
       this.errorMessage = `Arquivos duplicados ignorados: ${duplicateFiles.join(', ')}`;
     }
     if (invalidFiles.length > 0) {
-      this.errorMessage = `Arquivos não suportados: ${invalidFiles.join(', ')}. Tipos aceitos: PNG, JPG, WebP, SVG, AVIF`;
+      this.errorMessage = `Arquivos não suportados: ${invalidFiles.join(', ')}. Tipos aceitos: PNG, JPG, WebP, SVG, GIF`;
     }
     if (tooLargeFiles.length > 0) {
       const sizeMB = Math.round(this.maxFileSize / (1024 * 1024));
@@ -157,8 +169,14 @@ export class ImageUploadComponent {
   }
 
   editImage(index: number) {
+    const imageData = this.uploadedImages[index];
+    if (!imageData.file) {
+      // Cannot edit existing images that don't have files
+      this.errorMessage = 'Não é possível editar imagens existentes. Remova e adicione novamente para editar.';
+      return;
+    }
     this.editingIndex = index;
-    this.editingImage = this.uploadedImages[index].file;
+    this.editingImage = imageData.file;
     this.showImageEditor = true;
   }
 

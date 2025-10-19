@@ -14,12 +14,14 @@ namespace MeuCatalogo.API.Controllers;
 public class ProdutosController : BaseApiController
 {
     private readonly IProdutoService _produtoService;
+    private readonly ICatalogoService _catalogoService;
     private readonly ILogger<ProdutosController> _logger;
 
-    public ProdutosController(IProdutoService produtoService, ILogger<ProdutosController> logger)
+    public ProdutosController(IProdutoService produtoService, ILogger<ProdutosController> logger, ICatalogoService catalogoService)
     {
         _produtoService = produtoService;
         _logger = logger;
+        _catalogoService = catalogoService;
     }
 
     /// <summary>
@@ -36,6 +38,7 @@ public class ProdutosController : BaseApiController
         Summary = "Listar produtos por catálogo",
         Description = "Retorna todos os produtos de um catálogo específico do usuário autenticado."
     )]
+    [AllowAnonymous]
     [SwaggerResponse(200, "Lista de produtos retornada com sucesso", typeof(IEnumerable<ProdutoDto>))]
     [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
     [SwaggerResponse(403, "Usuário não tem acesso ao catálogo", typeof(ProblemDetails))]
@@ -220,85 +223,35 @@ public class ProdutosController : BaseApiController
     /// </summary>
     /// <param name="produtoId">ID do produto</param>
     /// <param name="file">Arquivo de imagem</param>
-    /// <returns>URL da imagem enviada</returns>
+    /// <returns>Dados da imagem enviada</returns>
+    /// <response code="200">Imagem enviada com sucesso</response>
+    /// <response code="400">Arquivo inválido</response>
+    /// <response code="401">Usuário não autenticado</response>
+    /// <response code="403">Usuário não tem acesso ao produto</response>
+    /// <response code="404">Produto não encontrado</response>
+    /// <response code="500">Erro interno do servidor</response>
     [HttpPost("{produtoId}/upload-image")]
     [SwaggerOperation(
         Summary = "Upload de imagem para produto",
         Description = "Faz upload de uma imagem para um produto específico."
     )]
-    [SwaggerResponse(200, "Imagem enviada com sucesso")]
+    [SwaggerResponse(200, "Imagem enviada com sucesso", typeof(ImageDto))]
     [SwaggerResponse(400, "Arquivo inválido", typeof(ProblemDetails))]
+    [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
+    [SwaggerResponse(403, "Usuário não tem acesso ao produto", typeof(ProblemDetails))]
     [SwaggerResponse(404, "Produto não encontrado", typeof(ProblemDetails))]
     [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
-    public async Task<IActionResult> UploadImage(Guid produtoId, IFormFile file)
+    public async Task<IActionResult> UploadImage(Guid produtoId, IFormFile? file)
     {
-        try
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        _logger.LogInformation("Upload de imagem para produto {ProdutoId} pelo usuário {UserId}", produtoId, userId);
+
+        if (file == null || file.Length == 0)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            _logger.LogInformation("Upload de imagem para produto {ProdutoId} pelo usuário {UserId}", produtoId, userId);
-
-            // Validar arquivo
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest(new { message = "Arquivo não pode ser vazio" });
-            }
-
-            // Validar tipo de arquivo
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (!allowedExtensions.Contains(extension))
-            {
-                return BadRequest(new { message = "Tipo de arquivo não permitido" });
-            }
-
-            // Validar tamanho (10MB)
-            if (file.Length > 10 * 1024 * 1024)
-            {
-                return BadRequest(new { message = "Arquivo muito grande. Tamanho máximo: 10MB" });
-            }
-
-            // Obter informações do produto para pegar o catalogoId
-            var produtoResponse = await _produtoService.ObterPorIdAsync(produtoId, userId);
-            if (!produtoResponse.IsSuccess || produtoResponse.Data == null)
-            {
-                return NotFound(new { message = "Produto não encontrado" });
-            }
-
-            var catalogoId = produtoResponse.Data.CatalogoId;
-
-            // Criar estrutura de diretórios: catalogo/{catalogoId}/produtos/{produtoId}/
-            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads", "catalogo", catalogoId.ToString(), "produtos", produtoId.ToString());
-            if (!Directory.Exists(uploadsPath))
-            {
-                Directory.CreateDirectory(uploadsPath);
-            }
-
-            // Gerar nome único para o arquivo
-            var fileName = $"{Guid.NewGuid()}{extension}";
-            var filePath = Path.Combine(uploadsPath, fileName);
-
-            // Salvar arquivo
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            // Gerar URL da imagem
-            var imageUrl = $"/uploads/catalogo/{catalogoId}/produtos/{produtoId}/{fileName}";
-
-            _logger.LogInformation("Imagem salva com sucesso: {FileName} em {FilePath}", fileName, filePath);
-            
-            return Ok(new { 
-                success = true, 
-                message = "Imagem enviada com sucesso",
-                imageUrl = imageUrl,
-                fileName = fileName
-            });
+            return BadRequest(new { message = "Arquivo não pode ser vazio" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao fazer upload da imagem para o produto {ProdutoId}", produtoId);
-            return StatusCode(500, new { message = "Erro interno do servidor" });
-        }
+
+        var response = await _produtoService.UploadImagemAsync(produtoId, file, userId);
+        return HandleApiResponse(response);
     }
 }

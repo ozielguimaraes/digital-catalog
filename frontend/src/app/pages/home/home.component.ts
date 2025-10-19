@@ -5,6 +5,7 @@ import { Product, Category } from '../../core/models/product.model';
 import { ProductService } from '../../core/services/product.service';
 import { CategoryService } from '../../core/services/category.service';
 import { CatalogService, Catalog } from '../../core/services/catalog.service';
+import { ImageUrlService } from '../../core/services/image-url.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -29,12 +30,14 @@ export class HomeComponent implements OnInit {
     private productService: ProductService,
     private categoryService: CategoryService,
     private catalogService: CatalogService,
+    private imageUrlService: ImageUrlService,
     private router: Router
   ) {}
 
   ngOnInit() {
+    this.loading = true;
     this.loadCatalogs();
-    this.loadAllProducts();
+    // Não carregamos os produtos aqui, vamos esperar os catálogos primeiro
   }
 
   loadCatalogs() {
@@ -45,9 +48,13 @@ export class HomeComponent implements OnInit {
           this.selectedCatalog = catalogs[0].id;
           this.loadCategories();
         }
+        // Carrega os produtos após obter os catálogos
+        this.loadAllProducts();
       },
       error: (error) => {
         console.error('Error loading catalogs:', error);
+        // Mesmo com erro nos catálogos, tenta carregar os produtos
+        this.loadAllProducts();
       }
     });
   }
@@ -69,9 +76,12 @@ export class HomeComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    // Load products from the first catalog if available
-    if (this.catalogs.length > 0) {
-      this.productService.getProductsByCatalog(this.catalogs[0].id).subscribe({
+    // Verifica se temos catálogos disponíveis
+    if (this.catalogs && this.catalogs.length > 0) {
+      // Usa o primeiro catálogo da lista para carregar os produtos
+      const firstCatalogId = this.catalogs[0].id;
+      
+      this.productService.getAllProducts(firstCatalogId).subscribe({
         next: (response) => {
           this.products = response.data || [];
           this.loading = false;
@@ -83,7 +93,9 @@ export class HomeComponent implements OnInit {
         }
       });
     } else {
+      // Não há catálogos disponíveis
       this.loading = false;
+      this.error = 'Nenhum catálogo disponível para exibir produtos';
       this.products = [];
     }
   }
@@ -105,7 +117,14 @@ export class HomeComponent implements OnInit {
     if (this.selectedCatalog) {
       this.productService.getProductsByCatalog(this.selectedCatalog).subscribe({
         next: (response) => {
-          this.products = response.data || [];
+          let allProducts = response.data || [];
+          
+          // Filter by category if one is selected
+          if (this.selectedCategory) {
+            allProducts = allProducts.filter(product => product.categoriaId === this.selectedCategory);
+          }
+          
+          this.products = allProducts;
           this.loading = false;
         },
         error: (error: any) => {
@@ -128,7 +147,13 @@ export class HomeComponent implements OnInit {
       if (this.selectedCatalog) {
         this.productService.getProductsByCatalog(this.selectedCatalog).subscribe({
           next: (response) => {
-            const allProducts = response.data || [];
+            let allProducts = response.data || [];
+            
+            // Filter by category if one is selected
+            if (this.selectedCategory) {
+              allProducts = allProducts.filter(product => product.categoriaId === this.selectedCategory);
+            }
+            
             this.products = allProducts.filter(product => 
               product.nome.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
               (product.informacoesAdicionais && product.informacoesAdicionais.toLowerCase().includes(this.searchTerm.toLowerCase()))
@@ -157,6 +182,11 @@ export class HomeComponent implements OnInit {
 
   getProductImage(product: Product): string {
     // Return a placeholder image since Product model doesn't have images yet
+    if (product.imagens && product.imagens.length > 0) {
+      // Use the first image (principal image)
+      const imageUrl = product.imagens[0];
+      return this.imageUrlService.getImageUrl(imageUrl);
+    }
     return 'assets/images/placeholder-product.jpg';
   }
 

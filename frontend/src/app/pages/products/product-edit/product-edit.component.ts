@@ -2,11 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { Product, ProductUpdateRequest, Category } from '../../../core/models/product.model';
 import { ProductService } from '../../../core/services/product.service';
 import { CatalogService, Catalog } from '../../../core/services/catalog.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { ImageUploadService, ImageUploadResponse } from '../../../core/services/image-upload.service';
+import { ImageUrlService } from '../../../core/services/image-url.service';
 import { ImageUploadComponent, ImageUploadData } from '../../../shared/components/image-upload/image-upload.component';
 import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { CategoryFormComponent } from '../../../shared/components/category-form/category-form.component';
@@ -30,12 +32,14 @@ export class ProductEditComponent implements OnInit {
   productForm: FormGroup;
   uploadedImages: ImageUploadData[] = [];
   productId: string = '';
+  stockType: 'limited' | 'unlimited' | 'out' = 'limited';
 
   constructor(
     private productService: ProductService,
     private catalogService: CatalogService,
     private categoryService: CategoryService,
     private imageUploadService: ImageUploadService,
+    private imageUrlService: ImageUrlService,
     private fb: FormBuilder,
     private router: Router,
     private route: ActivatedRoute
@@ -47,9 +51,11 @@ export class ProductEditComponent implements OnInit {
       precoComDesconto: [0, [Validators.min(0.01)]],
       informacoesAdicionais: ['', [Validators.maxLength(500)]],
       estoque: this.fb.group({
-        quantidade: [0, [Validators.required, Validators.min(0)]],
-        quantidadeMinima: [0, [Validators.min(0)]],
-        quantidadeMaxima: [null, [Validators.min(0)]]
+        quantidade: [null, [Validators.min(0)]],
+        quantidadeMinima: [null, [Validators.min(0)]],
+        quantidadeMaxima: [null, [Validators.min(0)]],
+        disponivel: [true],
+        ehIlimitado: [false]
       })
     });
   }
@@ -63,7 +69,6 @@ export class ProductEditComponent implements OnInit {
     });
     
     this.loadCatalogs();
-    this.loadCategories();
   }
 
   loadProduct() {
@@ -72,6 +77,8 @@ export class ProductEditComponent implements OnInit {
       next: (response) => {
         this.product = response.data;
         this.populateForm(response.data);
+        // Load categories after product is loaded
+        this.loadCategories();
         this.loading = false;
       },
       error: (error) => {
@@ -87,17 +94,40 @@ export class ProductEditComponent implements OnInit {
       nome: product.nome,
       categoriaId: product.categoriaId,
       preco: product.preco,
-      precoComDesconto: product.precoComDesconto || 0,
+      precoComDesconto: product.precoComDesconto || null,
       informacoesAdicionais: product.informacoesAdicionais || '',
       estoque: {
-        quantidade: product.estoque?.quantidade || 0,
-        quantidadeMinima: product.estoque?.quantidadeMinima || 0,
-        quantidadeMaxima: product.estoque?.quantidadeMaxima || null
+        quantidade: product.estoque?.quantidade || null,
+        quantidadeMinima: product.estoque?.quantidadeMinima || null,
+        quantidadeMaxima: product.estoque?.quantidadeMaxima || null,
+        disponivel: product.estoque?.disponivel ?? true,
+        ehIlimitado: product.estoque?.ehIlimitado ?? false
       }
     });
 
-    // TODO: Handle existing images when the Product interface includes them
-    this.uploadedImages = [];
+    // Determine stock type based on product data
+    if (product.estoque) {
+      if (product.estoque.ehIlimitado) {
+        this.stockType = 'unlimited';
+      } else if (!product.estoque.disponivel) {
+        this.stockType = 'out';
+      } else {
+        this.stockType = 'limited';
+      }
+    } else {
+      this.stockType = 'limited';
+    }
+
+    // Handle existing images
+    if (product.imagens && product.imagens.length > 0) {
+      this.uploadedImages = product.imagens.map(url => ({
+        file: null as any, // Existing images don't have files
+        preview: this.imageUrlService.getImageUrl(url),
+        isEdited: false
+      }));
+    } else {
+      this.uploadedImages = [];
+    }
   }
 
   loadCatalogs() {
@@ -154,6 +184,50 @@ export class ProductEditComponent implements OnInit {
     this.showCategoryModal = false;
   }
 
+  onStockTypeChange(type: 'limited' | 'unlimited' | 'out') {
+    this.stockType = type;
+    
+    const estoqueGroup = this.productForm.get('estoque') as FormGroup;
+    
+    switch (type) {
+      case 'limited':
+        estoqueGroup.patchValue({
+          quantidade: null,
+          quantidadeMinima: null,
+          quantidadeMaxima: null,
+          disponivel: true,
+          ehIlimitado: false
+        });
+        // Adicionar validação obrigatória para quantidade
+        estoqueGroup.get('quantidade')?.setValidators([Validators.required, Validators.min(0)]);
+        break;
+      case 'unlimited':
+        estoqueGroup.patchValue({
+          quantidade: null,
+          quantidadeMinima: null,
+          quantidadeMaxima: null,
+          disponivel: true,
+          ehIlimitado: true
+        });
+        // Remover validação obrigatória para quantidade
+        estoqueGroup.get('quantidade')?.clearValidators();
+        break;
+      case 'out':
+        estoqueGroup.patchValue({
+          quantidade: 0,
+          quantidadeMinima: null,
+          quantidadeMaxima: null,
+          disponivel: false,
+          ehIlimitado: false
+        });
+        // Remover validação obrigatória para quantidade
+        estoqueGroup.get('quantidade')?.clearValidators();
+        break;
+    }
+    
+    estoqueGroup.get('quantidade')?.updateValueAndValidity();
+  }
+
   onSaveProduct() {
     if (this.productForm.invalid || !this.product) {
       this.markFormGroupTouched();
@@ -171,8 +245,13 @@ export class ProductEditComponent implements OnInit {
       preco: formValue.preco,
       precoComDesconto: formValue.precoComDesconto || null,
       informacoesAdicionais: formValue.informacoesAdicionais || null,
-      // Note: estoque and imagens are not part of ProductUpdateRequest
-      // They should be handled separately if needed
+      estoque: {
+        quantidade: formValue.estoque.quantidade,
+        quantidadeMinima: formValue.estoque.quantidadeMinima || null,
+        quantidadeMaxima: formValue.estoque.quantidadeMaxima || null,
+        disponivel: formValue.estoque.disponivel,
+        ehIlimitado: formValue.estoque.ehIlimitado
+      }
     };
 
     // First update the product
@@ -201,36 +280,46 @@ export class ProductEditComponent implements OnInit {
     });
   }
 
-  private uploadImages(productId: string) {
-    const uploadPromises = this.uploadedImages.map(imageData => {
-      if (imageData.file) {
-        return this.imageUploadService.uploadImage(productId, imageData.file).toPromise();
+  private async uploadImages(productId: string) {
+    try {
+      // Filter only new images (with files)
+      const newImages = this.uploadedImages.filter(imageData => imageData.file);
+      
+      if (newImages.length === 0) {
+        this.success = 'Produto atualizado com sucesso!';
+        this.loading = false;
+        this.redirectToProducts();
+        return;
       }
-      return Promise.resolve(null);
-    });
 
-    Promise.all(uploadPromises).then(results => {
+      const uploadPromises = newImages.map(imageData => {
+        if (imageData.file) {
+          return firstValueFrom(this.imageUploadService.uploadImage(productId, imageData.file));
+        }
+        return Promise.resolve(null);
+      });
+
+      const results = await Promise.all(uploadPromises);
+      console.log('Images uploaded successfully:', results);
+      
       this.success = 'Produto atualizado com sucesso!';
       this.loading = false;
+      this.redirectToProducts();
       
-      // Redirect to products list after 2 seconds
-      setTimeout(() => {
-        this.router.navigate(['/dashboard/products'], { 
-          queryParams: { catalogId: this.product?.catalogoId } 
-        });
-      }, 2000);
-    }).catch(error => {
+    } catch (error) {
       console.error('Error uploading images:', error);
       this.success = 'Produto atualizado com sucesso, mas houve erro no upload das imagens.';
       this.loading = false;
-      
-      // Redirect to products list after 2 seconds
-      setTimeout(() => {
-        this.router.navigate(['/dashboard/products'], { 
-          queryParams: { catalogId: this.product?.catalogoId } 
-        });
-      }, 2000);
-    });
+      this.redirectToProducts();
+    }
+  }
+
+  private redirectToProducts() {
+    setTimeout(() => {
+      this.router.navigate(['/dashboard/products'], { 
+        queryParams: { catalogId: this.product?.catalogoId } 
+      });
+    }, 2000);
   }
 
   onCancel() {
@@ -283,5 +372,9 @@ export class ProductEditComponent implements OnInit {
         });
       }
     });
+  }
+
+  getImageUrl(imageUrl: string): string {
+    return this.imageUrlService.getImageUrl(imageUrl);
   }
 }

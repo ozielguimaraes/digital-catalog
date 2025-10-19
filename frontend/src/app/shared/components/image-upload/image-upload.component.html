@@ -96,13 +96,14 @@
       <!-- Image Preview -->
       <img
         [src]="image.preview"
-        [alt]="image.file.name"
+        [alt]="image.file?.name || 'Image'"
         class="w-full h-32 object-cover"
       />
 
       <!-- Action buttons - always visible but with hover effect -->
       <div class="absolute top-2 right-2 flex space-x-1">
         <button
+          *ngIf="image.file"
           (click)="editImage(i)"
           class="p-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors opacity-0 group-hover:opacity-100"
           title="Editar imagem"
@@ -134,7 +135,7 @@
 
       <!-- File name -->
       <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white text-xs p-2 truncate">
-        {{ image.file.name }}
+        {{ image.file?.name || 'Image' }}
       </div>
     </div>
   </div>

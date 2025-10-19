@@ -15,6 +15,7 @@ public static class ProdutoRepositoryExtensions
         return await context.Produtos
             .Include(p => p.Categoria)
             .Include(p => p.Estoque)
+            .Include(p => p.Imagens)
             .Where(p => p.CatalogoId == catalogoId)
             .ToListAsync();
     }
@@ -25,6 +26,7 @@ public static class ProdutoRepositoryExtensions
             .Include(p => p.Categoria)
             .Include(p => p.Estoque)
             .Include(p => p.Variacoes)
+            .Include(p => p.Imagens)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 

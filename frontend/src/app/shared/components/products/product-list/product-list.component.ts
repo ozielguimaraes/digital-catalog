@@ -99,6 +99,38 @@ export class ProductListComponent implements OnInit, OnChanges {
     return category ? category.nome : 'Categoria não encontrada';
   }
 
+  getStockDisplayText(estoque: any): string {
+    if (!estoque) return 'Sem estoque';
+    
+    if (estoque.ehIlimitado) {
+      return 'Ilimitado';
+    }
+    
+    if (!estoque.disponivel) {
+      return 'Esgotado';
+    }
+    
+    return estoque.quantidade?.toString() || '0';
+  }
+
+  getStockStatusClass(estoque: any): string {
+    if (!estoque) return 'text-gray-500';
+    
+    if (estoque.ehIlimitado) {
+      return 'text-blue-600 dark:text-blue-400';
+    }
+    
+    if (!estoque.disponivel) {
+      return 'text-red-600 dark:text-red-400';
+    }
+    
+    if (estoque.quantidade && estoque.quantidade > 0) {
+      return 'text-green-600 dark:text-green-400';
+    }
+    
+    return 'text-red-600 dark:text-red-400';
+  }
+
   formatPrice(price: number): string {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',

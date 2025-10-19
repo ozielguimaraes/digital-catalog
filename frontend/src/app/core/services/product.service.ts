@@ -43,6 +43,31 @@ export class ProductService {
         })
       );
   }
+  
+  /**
+   * Get products by catalog ID
+   * @param catalogoId ID do catálogo para buscar produtos
+   */
+  getAllProducts(catalogoId?: string): Observable<ProductListResponse> {
+    if (!catalogoId) {
+      return throwError(() => new Error('É necessário fornecer um ID de catálogo'));
+    }
+    
+    return this.http.get<Product[]>(`${this.API_URL}/produtos/catalogo/${catalogoId}`)
+      .pipe(
+        map(response => ({
+          isSuccess: true,
+          data: response,
+          message: 'Produtos carregados com sucesso',
+          type: 'success'
+        })),
+        catchError(error => {
+          console.error('Error fetching products:', error);
+          const errorMessage = extractErrorMessage(error, 'Erro ao carregar produtos');
+          return throwError(() => new Error(errorMessage));
+        })
+      );
+  }
 
   /**
    * Get product by ID

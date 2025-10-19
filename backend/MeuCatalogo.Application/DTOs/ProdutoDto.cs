@@ -15,6 +15,7 @@ public class ProdutoDto
     public string? InformacoesAdicionais { get; set; }
     public EstoqueDto Estoque { get; set; }
     public ICollection<VariacaoDto> Variacoes { get; set; }
+    public ICollection<string> Imagens { get; set; } = new List<string>();
     public DateTime DataCriacao { get; set; }
     public DateTime? DataAtualizacao { get; set; }
 }
@@ -36,5 +37,6 @@ public class ProdutoUpdateDto
     public Guid CategoriaId { get; set; }
     public decimal Preco { get; set; }
     public decimal? PrecoComDesconto { get; set; }
-    public string InformacoesAdicionais { get; set; }
+    public string? InformacoesAdicionais { get; set; }
+    public EstoqueUpdateDto? Estoque { get; set; }
 }

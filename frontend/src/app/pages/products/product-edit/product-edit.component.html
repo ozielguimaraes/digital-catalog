@@ -179,7 +179,48 @@
         <!-- Estoque -->
         <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Controle de Estoque</h3>
-          <div class="grid grid-cols-1 gap-6 md:grid-cols-3" formGroupName="estoque">
+          
+          <!-- Opções de Estoque -->
+          <div class="mb-6 space-y-4">
+            <div class="flex items-center space-x-4">
+              <label class="flex items-center">
+                <input
+                  type="radio"
+                  name="stockType"
+                  [value]="'limited'"
+                  [checked]="stockType === 'limited'"
+                  (change)="onStockTypeChange('limited')"
+                  class="mr-2"
+                />
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Estoque Limitado</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  type="radio"
+                  name="stockType"
+                  [value]="'unlimited'"
+                  [checked]="stockType === 'unlimited'"
+                  (change)="onStockTypeChange('unlimited')"
+                  class="mr-2"
+                />
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Estoque Ilimitado</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  type="radio"
+                  name="stockType"
+                  [value]="'out'"
+                  [checked]="stockType === 'out'"
+                  (change)="onStockTypeChange('out')"
+                  class="mr-2"
+                />
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Produto Esgotado</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Campos de Quantidade (apenas para estoque limitado) -->
+          <div *ngIf="stockType === 'limited'" class="grid grid-cols-1 gap-6 md:grid-cols-3" formGroupName="estoque">
             <div>
               <label for="quantidade" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Quantidade Atual *
@@ -229,6 +270,26 @@
               </div>
             </div>
           </div>
+
+          <!-- Informações para estoque ilimitado -->
+          <div *ngIf="stockType === 'unlimited'" class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <p class="text-sm text-blue-700 dark:text-blue-300">
+              <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+              </svg>
+              Este produto terá estoque ilimitado. Não será necessário controlar a quantidade disponível.
+            </p>
+          </div>
+
+          <!-- Informações para produto esgotado -->
+          <div *ngIf="stockType === 'out'" class="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+            <p class="text-sm text-red-700 dark:text-red-300">
+              <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+              </svg>
+              Este produto está esgotado e não estará disponível para venda.
+            </p>
+          </div>
         </div>
 
         <!-- Image Upload -->
@@ -237,6 +298,7 @@
           <app-image-upload
             [maxFiles]="5"
             [maxFileSize]="5 * 1024 * 1024"
+            [existingImages]="(product && product.imagens) ? product.imagens : []"
             (imagesUploaded)="onImagesUploaded($event)"
           ></app-image-upload>
         </div>

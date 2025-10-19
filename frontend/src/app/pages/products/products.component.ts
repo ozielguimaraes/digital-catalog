@@ -98,9 +98,11 @@ export class ProductsComponent implements OnInit {
     this.clearMessages();
 
     const stockUpdate: EstoqueUpdateRequest = {
-      quantidade: data.stock.quantidade || 0,
-      quantidadeMinima: data.stock.quantidadeMinima || 0,
-      quantidadeMaxima: data.stock.quantidadeMaxima || null
+      quantidade: data.stock.quantidade || null,
+      quantidadeMinima: data.stock.quantidadeMinima || null,
+      quantidadeMaxima: data.stock.quantidadeMaxima || null,
+      disponivel: data.stock.disponivel ?? true,
+      ehIlimitado: data.stock.ehIlimitado ?? false
     };
 
     this.productService.updateStock(data.productId, stockUpdate).subscribe({

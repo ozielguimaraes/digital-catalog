@@ -36,12 +36,12 @@ try
     builder.Logging.AddConsole();
     builder.Logging.AddDebug();
     var environment = builder.Environment.EnvironmentName;
-    
+
     // Try to configure Serilog, but don't fail if it doesn't work
     try
     {
         var isDevelopment = environment == "Development";
- 
+
         if (isDevelopment)
         {
             string logPath = Path.Combine(AppContext.BaseDirectory, "logs");
@@ -88,7 +88,7 @@ try
             options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             options.JsonSerializerOptions.WriteIndented = true;
         });
-    
+
     builder.Services.AddRouting(options =>
     {
         options.LowercaseUrls = true;
@@ -98,7 +98,7 @@ try
     Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
     Console.WriteLine($"Content Root: {builder.Environment.ContentRootPath}");
     Console.WriteLine($"Application Name: {builder.Environment.ApplicationName}");
-    
+
     string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     if (string.IsNullOrEmpty(connectionString))
     {
@@ -107,7 +107,7 @@ try
         Log.Fatal(errorMsg);
         throw new InvalidOperationException(errorMsg);
     }
- 
+
     Console.WriteLine("✓ Connection string configured successfully.");
     Log.Information("Connection string configured successfully.");
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -125,13 +125,13 @@ try
         .AddDefaultTokenProviders();
 
     Console.WriteLine("✓ Database context configured successfully.");
-    
+
     // Validate JWT configuration
     Console.WriteLine("Validating JWT configuration...");
     string? jwtKey = builder.Configuration["JwtSettings:Key"];
     string? jwtIssuer = builder.Configuration["JwtSettings:Issuer"];
     string? jwtAudience = builder.Configuration["JwtSettings:Audience"];
- 
+
     if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
     {
         var errorMsg = "JWT settings are not properly configured.";
@@ -142,7 +142,7 @@ try
         Log.Fatal(errorMsg);
         throw new InvalidOperationException(errorMsg);
     }
- 
+
     Console.WriteLine("✓ JWT settings configured successfully.");
     Log.Information("JWT settings configured successfully.");
 
@@ -240,7 +240,7 @@ try
 
     Console.WriteLine("✓ Application built successfully.");
     Console.WriteLine("Starting database migration...");
-    
+
     using (var scope = app.Services.CreateScope())
     {
         var services = scope.ServiceProvider;
@@ -249,7 +249,7 @@ try
         try
         {
             var context = services.GetRequiredService<ApplicationDbContext>();
- 
+
             // Always run migrations in production to ensure database is up to date
             Console.WriteLine("Running database migration...");
             Log.Information("Starting database migration...");
@@ -283,24 +283,28 @@ try
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "MeuCatalogo API v1");
         c.RoutePrefix = "swagger";
     });
-    
-    // Sentry middleware should be early in the pipeline
-    app.UseSentryTracing();
-    
-    app.UseCors("AllowAngularApp");
-    app.UseMiddleware<CorrelationIdMiddleware>();
-    app.UseMiddleware<ExceptionHandlingMiddleware>();
-    app.UseMiddleware<ProblemDetailsStatusCodeMiddleware>();
 
-    // Configure static files for uploads
+    app.UseSentryTracing();
+
+    var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "Uploads");
+
+    if (!Directory.Exists(uploadsPath))
+    {
+        Directory.CreateDirectory(uploadsPath);
+    }
+
     app.UseStaticFiles(new StaticFileOptions
     {
-        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
-            Path.Combine(app.Environment.ContentRootPath, "Uploads")),
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
         RequestPath = "/uploads"
     });
 
     app.UseHttpsRedirection();
+
+    app.UseCors("AllowAngularApp");
+    app.UseMiddleware<CorrelationIdMiddleware>();
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
+    app.UseMiddleware<ProblemDetailsStatusCodeMiddleware>();
 
 
     app.UseAuthentication();
@@ -308,14 +312,14 @@ try
 
     // Add health check endpoint
     app.MapHealthChecks("/health");
- 
+
     app.MapGet("/", () => Results.Redirect("/swagger"));
     app.MapControllers();
 
     Console.WriteLine("✓ Application configured successfully.");
     Console.WriteLine("✓ Starting web server...");
     Console.WriteLine("=== MEUCATALOGO API READY ===");
-    
+
     app.Run();
 }
 catch (Exception ex)
@@ -324,16 +328,16 @@ catch (Exception ex)
     Console.WriteLine($"Application start-up failed: {ex.Message}");
     Console.WriteLine($"Exception Type: {ex.GetType().Name}");
     Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-    
+
     if (ex.InnerException != null)
     {
         Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
         Console.WriteLine($"Inner Exception Type: {ex.InnerException.GetType().Name}");
     }
-    
+
     // Capture exception in Sentry
     SentrySdk.CaptureException(ex);
-    
+
     Log.Fatal(ex, "Application start-up failed");
     throw;
 }

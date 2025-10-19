@@ -85,8 +85,8 @@
         <div class="flex items-center justify-between">
           <span class="text-sm text-gray-500 dark:text-gray-400">Estoque:</span>
           <div class="flex items-center gap-2">
-            <span class="text-sm font-medium" [class]="product.estoque.quantidade && product.estoque.quantidade > 0 ? 'text-green-600' : 'text-red-600'">
-              {{ product.estoque.quantidade || 0 }}
+            <span class="text-sm font-medium" [class]="getStockStatusClass(product.estoque)">
+              {{ getStockDisplayText(product.estoque) }}
             </span>
             <button
               (click)="onUpdateStock(product.id, product.estoque)"

@@ -9,6 +9,7 @@ export interface Product {
   informacoesAdicionais?: string;
   estoque: Estoque;
   variacoes: Variacao[];
+  imagens?: string[];
   dataCriacao: string;
   dataAtualizacao?: string;
 }
@@ -19,6 +20,8 @@ export interface Estoque {
   quantidade?: number;
   quantidadeMinima?: number;
   quantidadeMaxima?: number;
+  disponivel: boolean;
+  ehIlimitado: boolean;
   dataCriacao: string;
   dataAtualizacao?: string;
 }
@@ -64,18 +67,23 @@ export interface ProductUpdateRequest {
   preco: number;
   precoComDesconto?: number;
   informacoesAdicionais?: string;
+  estoque?: EstoqueUpdateRequest;
 }
 
 export interface EstoqueCreateRequest {
-  quantidade: number;
+  quantidade?: number;
   quantidadeMinima?: number;
   quantidadeMaxima?: number;
+  disponivel: boolean;
+  ehIlimitado: boolean;
 }
 
 export interface EstoqueUpdateRequest {
-  quantidade: number;
+  quantidade?: number;
   quantidadeMinima?: number;
   quantidadeMaxima?: number;
+  disponivel: boolean;
+  ehIlimitado: boolean;
 }
 
 export interface ProductResponse {

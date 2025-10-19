@@ -44,7 +44,7 @@ export class DropzoneComponent {
     this.isDragActive = false;
     if (event.dataTransfer && event.dataTransfer.files.length) {
       const files = Array.from(event.dataTransfer.files).filter(file =>
-        ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'].includes(file.type)
+        ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml', 'image/gif'].includes(file.type)
       );
       this.filesDropped.emit(files);
       console.log('Files dropped:', files);

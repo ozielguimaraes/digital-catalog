@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpEvent, HttpEventType, HttpProgressEvent } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { ImageUrlService } from './image-url.service';
 
 export interface ImageUploadResponse {
   success: boolean;
@@ -22,7 +23,10 @@ export interface ImageUploadProgress {
 export class ImageUploadService {
   private readonly API_URL = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private imageUrlService: ImageUrlService
+  ) {}
 
   uploadImage(productId: string, file: File): Observable<ImageUploadResponse> {
     const formData = new FormData();
@@ -65,20 +69,20 @@ export class ImageUploadService {
   }
 
   getImageUrl(fileName: string): string {
-    return `${this.API_URL}/uploads/products/${fileName}`;
+    return this.imageUrlService.getUploadImageUrl(fileName);
   }
 
   getImageUrlByPath(catalogoId: string, produtoId: string, fileName: string): string {
-    return `${this.API_URL}/uploads/catalogo/${catalogoId}/produtos/${produtoId}/${fileName}`;
+    return this.imageUrlService.getProductImageUrl(catalogoId, produtoId, fileName);
   }
 
   validateFile(file: File): { valid: boolean; error?: string } {
     // Validar tipo de arquivo
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
       return {
         valid: false,
-        error: 'Tipo de arquivo não permitido. Use JPG, PNG, GIF ou WebP.'
+        error: 'Tipo de arquivo não permitido. Use JPG, PNG, WebP, SVG ou GIF.'
       };
     }
 

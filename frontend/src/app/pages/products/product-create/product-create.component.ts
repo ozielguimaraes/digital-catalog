@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { ProductCreateRequest, Category } from '../../../core/models/product.model';
 import { ProductService } from '../../../core/services/product.service';
 import { CatalogService, Catalog } from '../../../core/services/catalog.service';
@@ -29,6 +30,7 @@ export class ProductCreateComponent implements OnInit {
   
   productForm: FormGroup;
   uploadedImages: ImageUploadData[] = [];
+  stockType: 'limited' | 'unlimited' | 'out' = 'limited';
 
   constructor(
     private productService: ProductService,
@@ -46,9 +48,11 @@ export class ProductCreateComponent implements OnInit {
       precoComDesconto: [null, [Validators.min(0.01)]],
       informacoesAdicionais: ['', [Validators.maxLength(500)]],
       estoque: this.fb.group({
-        quantidade: [0, [Validators.required, Validators.min(0)]],
-        quantidadeMinima: [0, [Validators.min(0)]],
-        quantidadeMaxima: [null, [Validators.min(0)]]
+        quantidade: [null, [Validators.min(0)]],
+        quantidadeMinima: [null, [Validators.min(0)]],
+        quantidadeMaxima: [null, [Validators.min(0)]],
+        disponivel: [true],
+        ehIlimitado: [false]
       })
     });
   }
@@ -113,12 +117,15 @@ export class ProductCreateComponent implements OnInit {
       precoComDesconto: null,
       informacoesAdicionais: '',
       estoque: {
-        quantidade: 0,
-        quantidadeMinima: 0,
-        quantidadeMaxima: null
+        quantidade: null,
+        quantidadeMinima: null,
+        quantidadeMaxima: null,
+        disponivel: true,
+        ehIlimitado: false
       }
     });
     this.uploadedImages = [];
+    this.stockType = 'limited';
     this.loadCategories();
   }
 
@@ -150,6 +157,50 @@ export class ProductCreateComponent implements OnInit {
     this.showCategoryModal = false;
   }
 
+  onStockTypeChange(type: 'limited' | 'unlimited' | 'out') {
+    this.stockType = type;
+    
+    const estoqueGroup = this.productForm.get('estoque') as FormGroup;
+    
+    switch (type) {
+      case 'limited':
+        estoqueGroup.patchValue({
+          quantidade: null,
+          quantidadeMinima: null,
+          quantidadeMaxima: null,
+          disponivel: true,
+          ehIlimitado: false
+        });
+        // Adicionar validação obrigatória para quantidade
+        estoqueGroup.get('quantidade')?.setValidators([Validators.required, Validators.min(0)]);
+        break;
+      case 'unlimited':
+        estoqueGroup.patchValue({
+          quantidade: null,
+          quantidadeMinima: null,
+          quantidadeMaxima: null,
+          disponivel: true,
+          ehIlimitado: true
+        });
+        // Remover validação obrigatória para quantidade
+        estoqueGroup.get('quantidade')?.clearValidators();
+        break;
+      case 'out':
+        estoqueGroup.patchValue({
+          quantidade: 0,
+          quantidadeMinima: null,
+          quantidadeMaxima: null,
+          disponivel: false,
+          ehIlimitado: false
+        });
+        // Remover validação obrigatória para quantidade
+        estoqueGroup.get('quantidade')?.clearValidators();
+        break;
+    }
+    
+    estoqueGroup.get('quantidade')?.updateValueAndValidity();
+  }
+
   onSaveProduct() {
     if (this.productForm.invalid || !this.selectedCatalogId) {
       this.markFormGroupTouched();
@@ -170,8 +221,10 @@ export class ProductCreateComponent implements OnInit {
       informacoesAdicionais: formValue.informacoesAdicionais || null,
       estoque: {
         quantidade: formValue.estoque.quantidade,
-        quantidadeMinima: formValue.estoque.quantidadeMinima || 0,
-        quantidadeMaxima: formValue.estoque.quantidadeMaxima || null
+        quantidadeMinima: formValue.estoque.quantidadeMinima || null,
+        quantidadeMaxima: formValue.estoque.quantidadeMaxima || null,
+        disponivel: formValue.estoque.disponivel,
+        ehIlimitado: formValue.estoque.ehIlimitado
       }
     };
 
@@ -203,36 +256,43 @@ export class ProductCreateComponent implements OnInit {
     });
   }
 
-  private uploadImages(productId: string) {
-    const uploadPromises = this.uploadedImages.map(imageData => {
-      if (imageData.file) {
-        return this.imageUploadService.uploadImage(productId, imageData.file).toPromise();
+  private async uploadImages(productId: string) {
+    try {
+      if (this.uploadedImages.length === 0) {
+        this.success = 'Produto criado com sucesso!';
+        this.loading = false;
+        this.redirectToProducts();
+        return;
       }
-      return Promise.resolve(null);
-    });
 
-    Promise.all(uploadPromises).then(results => {
+      const uploadPromises = this.uploadedImages.map(imageData => {
+        if (imageData.file) {
+          return firstValueFrom(this.imageUploadService.uploadImage(productId, imageData.file));
+        }
+        return Promise.resolve(null);
+      });
+
+      const results = await Promise.all(uploadPromises);
+      console.log('Images uploaded successfully:', results);
+      
       this.success = 'Produto criado com sucesso!';
       this.loading = false;
+      this.redirectToProducts();
       
-      // Redirect to products list after 2 seconds
-      setTimeout(() => {
-        this.router.navigate(['/dashboard/products'], { 
-          queryParams: { catalogId: this.selectedCatalogId } 
-        });
-      }, 2000);
-    }).catch(error => {
+    } catch (error) {
       console.error('Error uploading images:', error);
       this.success = 'Produto criado com sucesso, mas houve erro no upload das imagens.';
       this.loading = false;
-      
-      // Redirect to products list after 2 seconds
-      setTimeout(() => {
-        this.router.navigate(['/dashboard/products'], { 
-          queryParams: { catalogId: this.selectedCatalogId } 
-        });
-      }, 2000);
-    });
+      this.redirectToProducts();
+    }
+  }
+
+  private redirectToProducts() {
+    setTimeout(() => {
+      this.router.navigate(['/dashboard/products'], { 
+        queryParams: { catalogId: this.selectedCatalogId } 
+      });
+    }, 2000);
   }
 
   onCancel() {

@@ -5,6 +5,7 @@ using MeuCatalogo.Application.Interfaces;
 using MeuCatalogo.Application.Infrastructure.Data;
 using MeuCatalogo.Application.Infrastructure.Data.Repository;
 using MeuCatalogo.Application.Infrastructure.Mappers;
+using Microsoft.EntityFrameworkCore;
 
 namespace MeuCatalogo.Application.Services;
 
@@ -73,6 +74,19 @@ public sealed class CatalogoService : ICatalogoService
                 } : null
             }).ToList()
         });
+    }
+
+
+    public async Task<ApiResponse<Guid?>> ObterCatalogoIdAsync(Guid produtoId, string userId)
+    {
+        Guid? id = await _dbContext.Catalogos
+            .Where(x => x.UserId == userId && x.Produtos.Any(produto => produto.Id == produtoId))
+            .Select(x => x.Id)
+            .FirstOrDefaultAsync();
+
+        if (id == null)
+            return ApiResponse<Guid?>.Error(ResponseType.NotFound, "Catálogo não encontrado para o produto especificado.");
+        return ApiResponse<Guid?>.Success(id);
     }
 
     public async Task<ApiResponse<CatalogoDto>> AdicionarAsync(CatalogoCreateDto catalogoDto, string usuarioId)
