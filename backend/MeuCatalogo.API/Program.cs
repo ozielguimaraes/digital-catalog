@@ -10,6 +10,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using MeuCatalogo.API.Filters;
 using MeuCatalogo.API.Middlewares;
+using MeuCatalogo.API.Converters;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using Sentry;
@@ -77,7 +78,17 @@ try
 
     builder.Configuration.AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true);
 
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            // Configure JSON serialization to use UTC for all DateTime values
+            options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+            options.JsonSerializerOptions.Converters.Add(new UtcDateTimeConverter());
+            options.JsonSerializerOptions.Converters.Add(new UtcNullableDateTimeConverter());
+            options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+            options.JsonSerializerOptions.WriteIndented = true;
+        });
+    
     builder.Services.AddRouting(options =>
     {
         options.LowercaseUrls = true;

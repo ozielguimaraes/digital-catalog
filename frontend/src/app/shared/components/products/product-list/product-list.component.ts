@@ -4,11 +4,13 @@ import { Product } from '../../../../core/models/product.model';
 import { ProductService } from '../../../../core/services/product.service';
 import { CategoryService } from '../../../../core/services/category.service';
 import { Category } from '../../../../core/models/product.model';
+import { DateUtils } from '../../../../core/utils/date.utils';
+import { DateFormatPipe, TimeAgoPipe } from '../../../../core/pipes/date-format.pipe';
 
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DateFormatPipe, TimeAgoPipe],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.scss']
 })
@@ -105,6 +107,6 @@ export class ProductListComponent implements OnInit, OnChanges {
   }
 
   formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('pt-BR');
+    return DateUtils.formatForDisplay(dateString);
   }
 }

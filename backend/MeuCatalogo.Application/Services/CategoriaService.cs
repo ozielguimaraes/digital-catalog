@@ -95,7 +95,7 @@ public sealed class CategoriaService : ICategoriaService
 
             categoria.Nome = request.Nome;
             categoria.Descricao = request.Descricao;
-            categoria.DataAtualizacao = DateTime.Now;
+            categoria.DataAtualizacao = DateTime.UtcNow;
 
             _dbContext.Categorias.Update(categoria);
             await _dbContext.SaveChangesAsync();

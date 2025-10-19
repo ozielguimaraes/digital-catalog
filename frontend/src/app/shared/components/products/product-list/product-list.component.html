@@ -110,8 +110,8 @@
         <!-- Dates -->
         <div class="pt-2 border-t border-gray-200 dark:border-gray-700">
           <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>Criado em: {{ formatDate(product.dataCriacao) }}</span>
-            <span *ngIf="product.dataAtualizacao">Atualizado em: {{ formatDate(product.dataAtualizacao) }}</span>
+            <span>Criado em: {{ product.dataCriacao | dateFormat:'display' }}</span>
+            <span *ngIf="product.dataAtualizacao">Atualizado em: {{ product.dataAtualizacao | timeAgo }}</span>
           </div>
         </div>
       </div>
