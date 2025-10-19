@@ -41,7 +41,7 @@ export class ProductCreateComponent implements OnInit {
       nome: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
       categoriaId: ['', [Validators.required]],
       preco: [0, [Validators.required, Validators.min(0.01)]],
-      precoComDesconto: [0, [Validators.min(0.01)]],
+      precoComDesconto: [null, [Validators.min(0.01)]],
       informacoesAdicionais: ['', [Validators.maxLength(500)]],
       estoque: this.fb.group({
         quantidade: [0, [Validators.required, Validators.min(0)]],
@@ -108,7 +108,7 @@ export class ProductCreateComponent implements OnInit {
       categoriaId: '',
       nome: '',
       preco: 0,
-      precoComDesconto: 0,
+      precoComDesconto: null,
       informacoesAdicionais: '',
       estoque: {
         quantidade: 0,
