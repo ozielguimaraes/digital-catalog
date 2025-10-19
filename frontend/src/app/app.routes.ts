@@ -19,6 +19,8 @@ import { SignInComponent } from './pages/auth-pages/sign-in/sign-in.component';
 import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { CalenderComponent } from './pages/calender/calender.component';
 import { ProductsComponent } from './pages/products/products.component';
+import { ProductCreateComponent } from './pages/products/product-create/product-create.component';
+import { ProductEditComponent } from './pages/products/product-edit/product-edit.component';
 import { CatalogsComponent } from './pages/catalogs/catalogs.component';
 import { HomeComponent } from './pages/home/home.component';
 import { AuthGuard } from './core/guards/auth.guard';
@@ -132,6 +134,16 @@ export const routes: Routes = [
         path:'products',
         component:ProductsComponent,
         title:'Produtos | Catálogo Digital - Sany & Z'
+      },
+      {
+        path:'products/create',
+        component:ProductCreateComponent,
+        title:'Novo Produto | Catálogo Digital - Sany & Z'
+      },
+      {
+        path:'products/edit/:id',
+        component:ProductEditComponent,
+        title:'Editar Produto | Catálogo Digital - Sany & Z'
       },
       {
         path:'catalogs',

@@ -66,232 +66,33 @@
     </div>
   </div>
 
-    <!-- Product Form -->
-    <div *ngIf="showForm" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-            {{ isEdit ? 'Editar Produto' : 'Novo Produto' }}
-          </h2>
-          <button
-            (click)="onCancelForm()"
-            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <form [formGroup]="productForm" (ngSubmit)="onSaveProduct()" class="p-6 space-y-6">
-        <!-- Basic Information -->
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <!-- Nome -->
-          <div>
-            <label for="nome" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Nome do Produto *
-            </label>
-            <input
-              type="text"
-              id="nome"
-              formControlName="nome"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              placeholder="Digite o nome do produto"
-            />
-            <div *ngIf="getFieldError('nome')" class="mt-1 text-sm text-red-600 dark:text-red-400">
-              {{ getFieldError('nome') }}
-            </div>
-          </div>
-
-          <!-- Categoria -->
-          <div>
-            <label for="categoriaId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Categoria *
-            </label>
-            <select
-              id="categoriaId"
-              formControlName="categoriaId"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            >
-              <option value="">Selecione uma categoria</option>
-              <option *ngFor="let category of categories" [value]="category.id">
-                {{ category.nome }}
-              </option>
-            </select>
-            <div *ngIf="getFieldError('categoriaId')" class="mt-1 text-sm text-red-600 dark:text-red-400">
-              {{ getFieldError('categoriaId') }}
-            </div>
-          </div>
-
-          <!-- Preço -->
-          <div>
-            <label for="preco" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Preço *
-            </label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span class="text-gray-500 dark:text-gray-400">R$</span>
-              </div>
-              <input
-                type="number"
-                id="preco"
-                formControlName="preco"
-                step="0.01"
-                min="0.01"
-                class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                placeholder="0,00"
-              />
-            </div>
-            <div *ngIf="getFieldError('preco')" class="mt-1 text-sm text-red-600 dark:text-red-400">
-              {{ getFieldError('preco') }}
-            </div>
-          </div>
-
-          <!-- Preço com Desconto -->
-          <div>
-            <label for="precoComDesconto" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Preço com Desconto
-            </label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span class="text-gray-500 dark:text-gray-400">R$</span>
-              </div>
-              <input
-                type="number"
-                id="precoComDesconto"
-                formControlName="precoComDesconto"
-                step="0.01"
-                min="0.01"
-                class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                placeholder="0,00"
-              />
-            </div>
-            <div *ngIf="getFieldError('precoComDesconto')" class="mt-1 text-sm text-red-600 dark:text-red-400">
-              {{ getFieldError('precoComDesconto') }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Informações Adicionais -->
-        <div>
-          <label for="informacoesAdicionais" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Informações Adicionais
-          </label>
-          <textarea
-            id="informacoesAdicionais"
-            formControlName="informacoesAdicionais"
-            rows="3"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            placeholder="Descrição, características, etc..."
-          ></textarea>
-          <div *ngIf="getFieldError('informacoesAdicionais')" class="mt-1 text-sm text-red-600 dark:text-red-400">
-            {{ getFieldError('informacoesAdicionais') }}
-          </div>
-        </div>
-
-        <!-- Estoque -->
-        <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Controle de Estoque</h3>
-          <div class="grid grid-cols-1 gap-6 md:grid-cols-3" formGroupName="estoque">
-            <div>
-              <label for="quantidade" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Quantidade Atual *
-              </label>
-              <input
-                type="number"
-                id="quantidade"
-                formControlName="quantidade"
-                min="0"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                placeholder="0"
-              />
-            </div>
-            <div>
-              <label for="quantidadeMinima" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Quantidade Mínima
-              </label>
-              <input
-                type="number"
-                id="quantidadeMinima"
-                formControlName="quantidadeMinima"
-                min="0"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                placeholder="0"
-              />
-            </div>
-            <div>
-              <label for="quantidadeMaxima" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Quantidade Máxima
-              </label>
-              <input
-                type="number"
-                id="quantidadeMaxima"
-                formControlName="quantidadeMaxima"
-                min="0"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                placeholder="0"
-              />
-      </div>
-    </div>
-        </div>
-
-        <!-- Image Upload -->
-        <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Imagens do Produto</h3>
-          <app-image-upload
-            [maxFiles]="5"
-            [maxFileSize]="5 * 1024 * 1024"
-            (imagesUploaded)="onImagesUploaded($event)"
-          ></app-image-upload>
-        </div>
-
-        <!-- Form Actions -->
-        <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <button
-            type="button"
-            (click)="onCancelForm()"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            [disabled]="productForm.invalid || loading"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {{ isEdit ? 'Atualizar' : 'Criar' }} Produto
-          </button>
-        </div>
-      </form>
-  </div>
 
   <!-- Product List -->
-    <div *ngIf="!showForm && selectedCatalogId">
+  <div *ngIf="selectedCatalogId">
     <app-product-list
-        [catalogoId]="selectedCatalogId"
+      [catalogoId]="selectedCatalogId"
       (editProduct)="onEditProduct($event)"
       (deleteProduct)="onDeleteProduct($event)"
       (updateStock)="onUpdateStock($event)"
     ></app-product-list>
-    </div>
+  </div>
 
-    <!-- No Catalog Selected Message -->
-    <div *ngIf="!showForm && !selectedCatalogId && catalogs.length > 0" class="text-center py-12">
-      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-      </svg>
-      <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Selecione um catálogo</h3>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Escolha um catálogo para visualizar os produtos.</p>
-    </div>
+  <!-- No Catalog Selected Message -->
+  <div *ngIf="!selectedCatalogId && catalogs.length > 0" class="text-center py-12">
+    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+    </svg>
+    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Selecione um catálogo</h3>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Escolha um catálogo para visualizar os produtos.</p>
+  </div>
 
-    <!-- No Catalogs Message -->
-    <div *ngIf="!showForm && catalogs.length === 0 && !loading" class="text-center py-12">
-      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-      </svg>
-      <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Nenhum catálogo encontrado</h3>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Crie um catálogo primeiro para gerenciar produtos.</p>
-    </div>
+  <!-- No Catalogs Message -->
+  <div *ngIf="catalogs.length === 0 && !loading" class="text-center py-12">
+    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+    </svg>
+    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Nenhum catálogo encontrado</h3>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Crie um catálogo primeiro para gerenciar produtos.</p>
+  </div>
   </div>
 </div>

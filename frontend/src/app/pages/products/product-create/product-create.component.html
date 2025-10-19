@@ -1,0 +1,284 @@
+<div>
+  <app-page-breadcrumb pageTitle="Novo Produto" />
+  
+  <div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Novo Produto</h1>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Adicione um novo produto ao seu catálogo
+        </p>
+      </div>
+      <button
+        (click)="onCancel()"
+        class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Voltar
+      </button>
+    </div>
+
+    <!-- Catalog Selection -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+      <label for="catalogSelect" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Selecione o Catálogo *
+      </label>
+      <select
+        id="catalogSelect"
+        [(ngModel)]="selectedCatalogId"
+        (change)="onCatalogChange()"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+        [class.border-red-500]="!selectedCatalogId"
+      >
+        <option value="">Selecione um catálogo</option>
+        <option *ngFor="let catalog of catalogs" [value]="catalog.id">
+          {{ catalog.nome }} ({{ catalog.nomeCurto }})
+        </option>
+      </select>
+      <div *ngIf="!selectedCatalogId" class="mt-1 text-sm text-red-600 dark:text-red-400">
+        Selecione um catálogo para continuar
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div *ngIf="error" class="p-4 text-red-700 bg-red-100 border border-red-300 rounded-lg dark:bg-red-900/20 dark:text-red-400 dark:border-red-800">
+      <div class="flex">
+        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+        </svg>
+        {{ error }}
+      </div>
+    </div>
+
+    <div *ngIf="success" class="p-4 text-green-700 bg-green-100 border border-green-300 rounded-lg dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">
+      <div class="flex">
+        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+        </svg>
+        {{ success }}
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div *ngIf="loading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 flex items-center space-x-3">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+        <span class="text-gray-700 dark:text-gray-300">Criando produto...</span>
+      </div>
+    </div>
+
+    <!-- Product Form -->
+    <div *ngIf="selectedCatalogId" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+      <form [formGroup]="productForm" (ngSubmit)="onSaveProduct()" class="p-6 space-y-6">
+        <!-- Basic Information -->
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <!-- Nome -->
+          <div>
+            <label for="nome" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Nome do Produto *
+            </label>
+            <input
+              type="text"
+              id="nome"
+              formControlName="nome"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              placeholder="Digite o nome do produto"
+            />
+            <div *ngIf="getFieldError('nome')" class="mt-1 text-sm text-red-600 dark:text-red-400">
+              {{ getFieldError('nome') }}
+            </div>
+          </div>
+
+          <!-- Categoria -->
+          <div>
+            <label for="categoriaId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Categoria *
+            </label>
+            <select
+              id="categoriaId"
+              formControlName="categoriaId"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            >
+              <option value="">Selecione uma categoria</option>
+              <option *ngFor="let category of categories" [value]="category.id">
+                {{ category.nome }}
+              </option>
+            </select>
+            <div *ngIf="getFieldError('categoriaId')" class="mt-1 text-sm text-red-600 dark:text-red-400">
+              {{ getFieldError('categoriaId') }}
+            </div>
+          </div>
+
+          <!-- Preço -->
+          <div>
+            <label for="preco" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Preço *
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="text-gray-500 dark:text-gray-400">R$</span>
+              </div>
+              <input
+                type="number"
+                id="preco"
+                formControlName="preco"
+                step="0.01"
+                min="0.01"
+                class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                placeholder="0,00"
+              />
+            </div>
+            <div *ngIf="getFieldError('preco')" class="mt-1 text-sm text-red-600 dark:text-red-400">
+              {{ getFieldError('preco') }}
+            </div>
+          </div>
+
+          <!-- Preço com Desconto -->
+          <div>
+            <label for="precoComDesconto" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Preço com Desconto
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="text-gray-500 dark:text-gray-400">R$</span>
+              </div>
+              <input
+                type="number"
+                id="precoComDesconto"
+                formControlName="precoComDesconto"
+                step="0.01"
+                min="0.01"
+                class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                placeholder="0,00"
+              />
+            </div>
+            <div *ngIf="getFieldError('precoComDesconto')" class="mt-1 text-sm text-red-600 dark:text-red-400">
+              {{ getFieldError('precoComDesconto') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Informações Adicionais -->
+        <div>
+          <label for="informacoesAdicionais" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Informações Adicionais
+          </label>
+          <textarea
+            id="informacoesAdicionais"
+            formControlName="informacoesAdicionais"
+            rows="3"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            placeholder="Descrição, características, etc..."
+          ></textarea>
+          <div *ngIf="getFieldError('informacoesAdicionais')" class="mt-1 text-sm text-red-600 dark:text-red-400">
+            {{ getFieldError('informacoesAdicionais') }}
+          </div>
+        </div>
+
+        <!-- Estoque -->
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Controle de Estoque</h3>
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-3" formGroupName="estoque">
+            <div>
+              <label for="quantidade" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Quantidade Atual *
+              </label>
+              <input
+                type="number"
+                id="quantidade"
+                formControlName="quantidade"
+                min="0"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                placeholder="0"
+              />
+              <div *ngIf="getNestedFieldError('estoque', 'quantidade')" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                {{ getNestedFieldError('estoque', 'quantidade') }}
+              </div>
+            </div>
+            <div>
+              <label for="quantidadeMinima" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Quantidade Mínima
+              </label>
+              <input
+                type="number"
+                id="quantidadeMinima"
+                formControlName="quantidadeMinima"
+                min="0"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                placeholder="0"
+              />
+              <div *ngIf="getNestedFieldError('estoque', 'quantidadeMinima')" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                {{ getNestedFieldError('estoque', 'quantidadeMinima') }}
+              </div>
+            </div>
+            <div>
+              <label for="quantidadeMaxima" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Quantidade Máxima
+              </label>
+              <input
+                type="number"
+                id="quantidadeMaxima"
+                formControlName="quantidadeMaxima"
+                min="0"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                placeholder="0"
+              />
+              <div *ngIf="getNestedFieldError('estoque', 'quantidadeMaxima')" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                {{ getNestedFieldError('estoque', 'quantidadeMaxima') }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Image Upload -->
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Imagens do Produto</h3>
+          <app-image-upload
+            [maxFiles]="5"
+            [maxFileSize]="5 * 1024 * 1024"
+            (imagesUploaded)="onImagesUploaded($event)"
+          ></app-image-upload>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <button
+            type="button"
+            (click)="onCancel()"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="productForm.invalid || loading || !selectedCatalogId"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Criar Produto
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- No Catalog Selected Message -->
+    <div *ngIf="!selectedCatalogId && catalogs.length > 0" class="text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Selecione um catálogo</h3>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Escolha um catálogo para criar o produto.</p>
+    </div>
+
+    <!-- No Catalogs Message -->
+    <div *ngIf="catalogs.length === 0 && !loading" class="text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Nenhum catálogo encontrado</h3>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Crie um catálogo primeiro para gerenciar produtos.</p>
+    </div>
+  </div>
+</div>
