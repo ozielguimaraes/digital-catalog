@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
+import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { User, LoginRequest, RegisterRequest, AuthState, SigninResponse, RefreshTokenRequest, RefreshTokenResponse } from '../models/user.model';
 import { SentryService } from './sentry.service';
@@ -27,7 +28,7 @@ export class AuthService {
 
   public authState$ = this.authStateSubject.asObservable();
 
-  constructor(private http: HttpClient, private sentryService: SentryService) {
+  constructor(private http: HttpClient, private sentryService: SentryService, private router: Router) {
     this.initializeAuthState();
   }
 
@@ -122,16 +123,17 @@ export class AuthService {
           this.clearAuthData();
           this.sentryService.setUser({});
           this.sentryService.addBreadcrumb('User logged out successfully', 'auth', 'info');
+          this.router.navigate(['/signin']);
         }),
         catchError(error => {
           this.sentryService.captureApiError(error, '/auth/logout', 'POST');
           this.clearAuthData();
           this.sentryService.setUser({});
+          this.router.navigate(['/signin']);
           return throwError(() => error);
         })
       );
   }
-
 
   /**
    * Get current user profile
