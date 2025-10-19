@@ -4,14 +4,8 @@ import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Category } from '../models/product.model';
+import { extractErrorMessage } from '../utils/error.utils';
 
-interface ApiResponse<T> {
-  isSuccess: boolean;
-  data: T;
-  message: string;
-  type: string;
-  errors?: string[];
-}
 
 export interface CategoryRequest {
   nome: string;
@@ -43,7 +37,8 @@ export class CategoryService {
         }),
         catchError(error => {
           console.error('Error fetching categories:', error);
-          return throwError(() => error);
+          const errorMessage = extractErrorMessage(error, 'Erro ao carregar categorias');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }
@@ -59,7 +54,8 @@ export class CategoryService {
         }),
         catchError(error => {
           console.error('Error fetching category:', error);
-          return throwError(() => error);
+          const errorMessage = extractErrorMessage(error, 'Erro ao carregar categoria');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }
@@ -75,7 +71,8 @@ export class CategoryService {
         }),
         catchError(error => {
           console.error('Error creating category:', error);
-          return throwError(() => error);
+          const errorMessage = extractErrorMessage(error, 'Erro ao criar categoria');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }
@@ -84,17 +81,15 @@ export class CategoryService {
    * Update existing category
    */
   updateCategory(id: string, category: CategoryUpdateRequest): Observable<Category> {
-    return this.http.put<ApiResponse<Category>>(`${this.API_URL}/categorias/${id}`, category)
+    return this.http.put<Category>(`${this.API_URL}/categorias/${id}`, category)
       .pipe(
         map(response => {
-          if (response.isSuccess && response.data) {
-            return response.data;
-          }
-          throw new Error(response.message || 'Erro ao atualizar categoria');
+          return response;
         }),
         catchError(error => {
           console.error('Error updating category:', error);
-          return throwError(() => error);
+          const errorMessage = extractErrorMessage(error, 'Erro ao atualizar categoria');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }
@@ -116,22 +111,8 @@ export class CategoryService {
         }),
         catchError(error => {
           console.error('Error deleting category:', error);
-          
-          let message = 'Erro ao excluir categoria';
-          
-          if (error.status === 401) {
-            message = 'Não autorizado. Faça login novamente.';
-          } else if (error.status === 403) {
-            message = 'Acesso negado. Você não tem permissão para excluir esta categoria.';
-          } else if (error.status === 404) {
-            message = 'Categoria não encontrada.';
-          } else if (error.status === 400) {
-            message = error.error?.message || 'Erro de validação.';
-          } else if (error.error?.message) {
-            message = error.error.message;
-          }
-          
-          return throwError(() => new Error(message));
+          const errorMessage = extractErrorMessage(error, 'Erro ao excluir categoria');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }

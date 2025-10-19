@@ -51,7 +51,7 @@ export class CatalogsComponent implements OnInit {
       },
       error: (error) => {
         this.loading = false;
-        this.error = 'Erro ao carregar catálogos';
+        this.error = error.message || 'Erro ao carregar catálogos';
         console.error('Error loading catalogs:', error);
       }
     });
@@ -92,7 +92,7 @@ export class CatalogsComponent implements OnInit {
         },
         error: (error) => {
           this.loading = false;
-          this.error = 'Erro ao excluir catálogo';
+          this.error = error.message || 'Erro ao excluir catálogo';
           console.error('Error deleting catalog:', error);
         }
       });
@@ -124,7 +124,7 @@ export class CatalogsComponent implements OnInit {
           },
           error: (error) => {
             this.loading = false;
-            this.error = 'Erro ao atualizar catálogo';
+            this.error = error.message || 'Erro ao atualizar catálogo';
             console.error('Error updating catalog:', error);
           }
         });
@@ -143,7 +143,7 @@ export class CatalogsComponent implements OnInit {
           },
           error: (error) => {
             this.loading = false;
-            this.error = 'Erro ao criar catálogo';
+            this.error = error.message || 'Erro ao criar catálogo';
             console.error('Error creating catalog:', error);
           }
         });

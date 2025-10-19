@@ -4,7 +4,8 @@ import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { User, LoginRequest, RegisterRequest, AuthState, SigninResponse, RefreshTokenRequest, RefreshTokenResponse } from '../models/user.model';
-import { ApiResponse } from '../models/api-response.model';
+import { SentryService } from './sentry.service';
+import { extractErrorMessage } from '../utils/error.utils';
 
 @Injectable({
   providedIn: 'root'
@@ -26,7 +27,7 @@ export class AuthService {
 
   public authState$ = this.authStateSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private sentryService: SentryService) {
     this.initializeAuthState();
   }
 
@@ -60,34 +61,24 @@ export class AuthService {
    */
   login(credentials: LoginRequest): Observable<SigninResponse> {
     this.setLoading(true);
+    this.sentryService.addBreadcrumb('User attempting login', 'auth', 'info');
     
-    return this.http.post<any>(`${this.API_URL}/auth/login`, credentials)
+    return this.http.post<SigninResponse>(`${this.API_URL}/auth/login`, credentials)
       .pipe(
         map(response => {
-          // Handle both ApiResponse format and direct SigninResponse format
-          let signinResponse: SigninResponse;
-          
-          if (response.data) {
-            // ApiResponse format
-            signinResponse = {
-              token: response.data.token,
-              refreshToken: response.data.refreshToken,
-              user: response.data.user
-            };
-          } else {
-            // Direct SigninResponse format
-            signinResponse = {
-              token: response.token,
-              refreshToken: response.refreshToken,
-              user: response.user
-            };
-          }
-          
-          this.setAuthData(signinResponse);
-          return signinResponse;
+          this.setAuthData(response);
+          this.sentryService.setUser({
+            id: response.user.id,
+            email: response.user.email,
+            username: response.user.nome
+          });
+          this.sentryService.addBreadcrumb('User logged in successfully', 'auth', 'info');
+          return response;
         }),
         catchError(error => {
-          this.setError(error.error?.message || 'Falha ao efetuar login');
+          this.sentryService.captureApiError(error, '/auth/login', 'POST', { email: credentials.email });
+          const errorMessage = extractErrorMessage(error, 'Falha ao efetuar login');
+          this.setError(errorMessage);
           return throwError(() => error);
         }),
         tap(() => this.setLoading(false))
@@ -100,25 +91,16 @@ export class AuthService {
   register(userData: RegisterRequest): Observable<SigninResponse> {
     this.setLoading(true);
     
-    return this.http.post<any>(`${this.API_URL}/auth/register`, userData)
+    return this.http.post<SigninResponse>(`${this.API_URL}/auth/register`, userData)
       .pipe(
         map(response => {
-          // Handle both ApiResponse format and direct SigninResponse format
-          let signinResponse: SigninResponse;
-          
-          if (response.data) {
-            // ApiResponse format
-            signinResponse = response.data;
-          } else {
-            // Direct SigninResponse format
-            signinResponse = response;
-          }
-          
-          this.setAuthData(signinResponse);
-          return signinResponse;
+          this.setAuthData(response);
+          return response;
         }),
         catchError(error => {
-          this.setError(error.error?.message || 'Falha ao efetuar cadastro');
+          this.sentryService.captureApiError(error, '/auth/register', 'POST');
+          const errorMessage = extractErrorMessage(error, 'Falha ao efetuar cadastro');
+          this.setError(errorMessage);
           return throwError(() => error);
         }),
         tap(() => this.setLoading(false))
@@ -132,11 +114,19 @@ export class AuthService {
     const refreshToken = this.getRefreshToken();
     const body = refreshToken ? { refreshToken } : {};
     
-    return this.http.post<ApiResponse<any>>(`${this.API_URL}/auth/logout`, body)
+    this.sentryService.addBreadcrumb('User logging out', 'auth', 'info');
+    
+    return this.http.post(`${this.API_URL}/auth/logout`, body)
       .pipe(
-        tap(() => this.clearAuthData()),
-        catchError(error => {
+        tap(() => {
           this.clearAuthData();
+          this.sentryService.setUser({});
+          this.sentryService.addBreadcrumb('User logged out successfully', 'auth', 'info');
+        }),
+        catchError(error => {
+          this.sentryService.captureApiError(error, '/auth/logout', 'POST');
+          this.clearAuthData();
+          this.sentryService.setUser({});
           return throwError(() => error);
         })
       );
@@ -147,14 +137,16 @@ export class AuthService {
    * Get current user profile
    */
   getCurrentUser(): Observable<User> {
-    return this.http.get<ApiResponse<User>>(`${this.API_URL}/auth/me`)
+    return this.http.get<User>(`${this.API_URL}/auth/me`)
       .pipe(
         map(response => {
-          this.updateUserData(response.data);
-          return response.data;
+          this.updateUserData(response);
+          return response;
         }),
         catchError(error => {
-          this.setError(error.error?.message || 'Falha ao obter dados do usuário');
+          this.sentryService.captureApiError(error, '/auth/profile', 'GET');
+          const errorMessage = extractErrorMessage(error, 'Falha ao obter dados do usuário');
+          this.setError(errorMessage);
           return throwError(() => error);
         })
       );
@@ -169,22 +161,22 @@ export class AuthService {
       return throwError(() => new Error('No refresh token available'));
     }
 
-    return this.http.post<ApiResponse<RefreshTokenResponse>>(`${this.API_URL}/auth/refresh-token`, { refreshToken })
+    return this.http.post<RefreshTokenResponse>(`${this.API_URL}/auth/refresh-token`, { refreshToken })
       .pipe(
         map(response => {
           // Update stored tokens
-          localStorage.setItem(this.TOKEN_KEY, response.data.token);
-          localStorage.setItem(this.REFRESH_TOKEN_KEY, response.data.refreshToken);
+          localStorage.setItem(this.TOKEN_KEY, response.token);
+          localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
           
           // Update auth state
           const currentState = this.authStateSubject.value;
           this.authStateSubject.next({
             ...currentState,
-            token: response.data.token,
-            refreshToken: response.data.refreshToken
+            token: response.token,
+            refreshToken: response.refreshToken
           });
           
-          return response.data;
+          return response;
         }),
         catchError(error => {
           // If refresh fails, logout user

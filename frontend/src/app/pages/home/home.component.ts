@@ -78,7 +78,7 @@ export class HomeComponent implements OnInit {
         },
         error: (error: any) => {
           this.loading = false;
-          this.error = 'Erro ao carregar produtos';
+          this.error = error.message || 'Erro ao carregar produtos';
           console.error('Error loading products:', error);
         }
       });
@@ -110,7 +110,7 @@ export class HomeComponent implements OnInit {
         },
         error: (error: any) => {
           this.loading = false;
-          this.error = 'Erro ao carregar produtos';
+          this.error = error.message || 'Erro ao carregar produtos';
           console.error('Error loading products:', error);
         }
       });
@@ -137,7 +137,7 @@ export class HomeComponent implements OnInit {
           },
           error: (error: any) => {
             this.loading = false;
-            this.error = 'Erro ao buscar produtos';
+            this.error = error.message || 'Erro ao buscar produtos';
             console.error('Error searching products:', error);
           }
         });

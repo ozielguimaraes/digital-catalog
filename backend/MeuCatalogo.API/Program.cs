@@ -12,20 +12,33 @@ using MeuCatalogo.API.Filters;
 using MeuCatalogo.API.Middlewares;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
+using Sentry;
 
 try
 {
     var builder = WebApplication.CreateBuilder(args);
 
+    // Configure Sentry
+    builder.WebHost.UseSentry(o =>
+    {
+        o.Dsn = "https://d28b29c06ae140171a04078f72b872b8@o4507538405916672.ingest.us.sentry.io/4510213135925248";
+        o.Debug = builder.Environment.IsDevelopment();
+        o.TracesSampleRate = 1.0;
+        o.ProfilesSampleRate = 1.0;
+        o.SendDefaultPii = true;
+        o.AttachStacktrace = true;
+        o.MaxBreadcrumbs = 50;
+    });
+
     // Configure logging first - use built-in logging as fallback
     builder.Logging.ClearProviders();
     builder.Logging.AddConsole();
     builder.Logging.AddDebug();
+    var environment = builder.Environment.EnvironmentName;
     
     // Try to configure Serilog, but don't fail if it doesn't work
     try
     {
-        var environment = builder.Environment.EnvironmentName;
         var isDevelopment = environment == "Development";
  
         if (isDevelopment)
@@ -62,7 +75,7 @@ try
         Console.WriteLine("Continuing with built-in logging...");
     }
 
-    builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+    builder.Configuration.AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true);
 
     builder.Services.AddControllers();
     builder.Services.AddRouting(options =>
@@ -70,9 +83,6 @@ try
         options.LowercaseUrls = true;
     });
 
-    // Get logger for detailed logging
-    var logger = builder.Services.BuildServiceProvider().GetService<ILogger<Program>>();
-    
     Console.WriteLine("=== MEUCATALOGO API STARTUP ===");
     Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
     Console.WriteLine($"Content Root: {builder.Environment.ContentRootPath}");
@@ -262,6 +272,10 @@ try
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "MeuCatalogo API v1");
         c.RoutePrefix = "swagger";
     });
+    
+    // Sentry middleware should be early in the pipeline
+    app.UseSentryTracing();
+    
     app.UseCors("AllowAngularApp");
     app.UseMiddleware<CorrelationIdMiddleware>();
     app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -297,6 +311,9 @@ catch (Exception ex)
         Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
         Console.WriteLine($"Inner Exception Type: {ex.InnerException.GetType().Name}");
     }
+    
+    // Capture exception in Sentry
+    SentrySdk.CaptureException(ex);
     
     Log.Fatal(ex, "Application start-up failed");
     throw;

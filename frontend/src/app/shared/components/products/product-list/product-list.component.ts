@@ -44,13 +44,16 @@ export class ProductListComponent implements OnInit, OnChanges {
     this.loading = true;
     this.error = null;
     
+    // Load both products and categories
     this.productService.getProductsByCatalog(this.catalogoId).subscribe({
       next: (response) => {
         this.products = response.data || [];
         this.loading = false;
+        // Load categories after products are loaded
+        this.loadCategories();
       },
       error: (error) => {
-        this.error = 'Erro ao carregar produtos';
+        this.error = error.message || 'Erro ao carregar produtos';
         this.loading = false;
         this.products = []; // Ensure products is always an array
         console.error('Error loading products:', error);
@@ -83,8 +86,14 @@ export class ProductListComponent implements OnInit, OnChanges {
     this.updateStock.emit({ productId, stock });
   }
 
-  getCategoryName(categoriaId: string): string {
-    const category = this.categories.find(c => c.id === categoriaId);
+  getCategoryName(product: Product): string {
+    // First try to use the categoriaNome from the product (comes from backend)
+    if (product.categoriaNome) {
+      return product.categoriaNome;
+    }
+    
+    // Fallback to finding by ID in local categories
+    const category = this.categories.find(c => c.id === product.categoriaId);
     return category ? category.nome : 'Categoria não encontrada';
   }
 

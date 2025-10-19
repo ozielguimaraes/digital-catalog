@@ -4,6 +4,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CategoryService, CategoryRequest } from '../../../../core/services/category.service';
 import { Catalog } from '../../../../core/services/catalog.service';
+import { extractErrorMessage } from '../../../../core/utils/error.utils';
 
 export interface CategoryFormData {
   catalogoId: string;
@@ -81,19 +82,7 @@ export class CategoryFormComponent implements OnInit {
   }
 
   private handleError(error: any): void {
-    let errorMessage = 'Erro ao criar categoria';
-    
-    if (error.error?.message) {
-      errorMessage = error.error.message;
-    } else if (error.error?.errors) {
-      const firstError = Object.values(error.error.errors)[0];
-      if (Array.isArray(firstError) && firstError.length > 0) {
-        errorMessage = firstError[0] as string;
-      }
-    } else if (error.status === 409) {
-      errorMessage = 'Já existe uma categoria com este nome no catálogo selecionado';
-    }
-    
+    const errorMessage = extractErrorMessage(error, 'Erro ao criar categoria');
     this.showError(errorMessage);
   }
 

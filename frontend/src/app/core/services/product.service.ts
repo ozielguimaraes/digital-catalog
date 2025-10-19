@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { extractErrorMessage } from '../utils/error.utils';
 import { 
   Product, 
   ProductCreateRequest, 
@@ -30,11 +31,15 @@ export class ProductService {
     return this.http.get<Product[]>(`${this.API_URL}/produtos/catalogo/${catalogoId}`)
       .pipe(
         map(response => ({
-          return response;
+          isSuccess: true,
+          data: response,
+          message: 'Produtos carregados com sucesso',
+          type: 'success'
         })),
         catchError(error => {
           console.error('Error fetching products by catalog:', error);
-          return throwError(() => error);
+          const errorMessage = extractErrorMessage(error, 'Erro ao carregar produtos');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }
@@ -46,15 +51,15 @@ export class ProductService {
     return this.http.get<Product>(`${this.API_URL}/produtos/${id}`)
       .pipe(
         map(response => ({
-          isSuccess: response.isSuccess,
-          data: response.data,
-          message: response.message,
-          type: response.type,
-          errors: response.errors
+          isSuccess: true,
+          data: response,
+          message: 'Produto carregado com sucesso',
+          type: 'success'
         })),
         catchError(error => {
           console.error('Error fetching product:', error);
-          return throwError(() => error);
+          const errorMessage = extractErrorMessage(error, 'Erro ao carregar produto');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }
@@ -63,18 +68,18 @@ export class ProductService {
    * Create new product
    */
   createProduct(product: ProductCreateRequest): Observable<ProductResponse> {
-    return this.http.post<ApiResponse<Product>>(`${this.API_URL}/produtos`, product)
+    return this.http.post<Product>(`${this.API_URL}/produtos`, product)
       .pipe(
         map(response => ({
-          isSuccess: response.isSuccess,
-          data: response.data,
-          message: response.message,
-          type: response.type,
-          errors: response.errors
+          isSuccess: true,
+          data: response,
+          message: 'Produto criado com sucesso',
+          type: 'success'
         })),
         catchError(error => {
           console.error('Error creating product:', error);
-          return throwError(() => error);
+          const errorMessage = extractErrorMessage(error, 'Erro ao criar produto');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }
@@ -83,18 +88,18 @@ export class ProductService {
    * Update existing product
    */
   updateProduct(id: string, product: ProductUpdateRequest): Observable<ProductResponse> {
-    return this.http.put<ApiResponse<Product>>(`${this.API_URL}/produtos/${id}`, product)
+    return this.http.put<Product>(`${this.API_URL}/produtos/${id}`, product)
       .pipe(
         map(response => ({
-          isSuccess: response.isSuccess,
-          data: response.data,
-          message: response.message,
-          type: response.type,
-          errors: response.errors
+          isSuccess: true,
+          data: response,
+          message: 'Produto atualizado com sucesso',
+          type: 'success'
         })),
         catchError(error => {
           console.error('Error updating product:', error);
-          return throwError(() => error);
+          const errorMessage = extractErrorMessage(error, 'Erro ao atualizar produto');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }
@@ -103,15 +108,16 @@ export class ProductService {
    * Delete product
    */
   deleteProduct(id: string): Observable<{ isSuccess: boolean; message: string }> {
-    return this.http.delete<ApiResponse<boolean>>(`${this.API_URL}/produtos/${id}`)
+    return this.http.delete(`${this.API_URL}/produtos/${id}`)
       .pipe(
-        map(response => ({
-          isSuccess: response.isSuccess,
-          message: response.message
+        map(() => ({
+          isSuccess: true,
+          message: 'Produto excluído com sucesso'
         })),
         catchError(error => {
           console.error('Error deleting product:', error);
-          return throwError(() => error);
+          const errorMessage = extractErrorMessage(error, 'Erro ao excluir produto');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }
@@ -121,16 +127,17 @@ export class ProductService {
    * Update product stock
    */
   updateStock(produtoId: string, estoque: EstoqueUpdateRequest): Observable<{ isSuccess: boolean; data: Estoque; message: string }> {
-    return this.http.put<ApiResponse<Estoque>>(`${this.API_URL}/produtos/${produtoId}/estoque`, estoque)
+    return this.http.put<Estoque>(`${this.API_URL}/produtos/${produtoId}/estoque`, estoque)
       .pipe(
         map(response => ({
-          isSuccess: response.isSuccess,
-          data: response.data,
-          message: response.message
+          isSuccess: true,
+          data: response,
+          message: 'Estoque atualizado com sucesso'
         })),
         catchError(error => {
           console.error('Error updating stock:', error);
-          return throwError(() => error);
+          const errorMessage = extractErrorMessage(error, 'Erro ao atualizar estoque');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }

@@ -3,6 +3,7 @@ using System.Text.Json;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Serilog.Context;
+using Sentry;
 
 namespace MeuCatalogo.API.Middlewares;
 
@@ -37,6 +38,23 @@ public class ExceptionHandlingMiddleware
 
         using (LogContext.PushProperty("CorrelationId", correlationId))
         {
+            // Capture exception in Sentry with additional context
+            SentrySdk.ConfigureScope(scope =>
+            {
+                scope.SetTag("correlationId", correlationId);
+                scope.SetTag("path", context.Request.Path);
+                scope.SetTag("method", context.Request.Method);
+                scope.SetExtra("request", new
+                {
+                    path = context.Request.Path,
+                    method = context.Request.Method,
+                    queryString = context.Request.QueryString.ToString(),
+                    userAgent = context.Request.Headers.UserAgent.ToString(),
+                    correlationId = correlationId
+                });
+            });
+            SentrySdk.CaptureException(exception);
+
             _logger.LogError(exception, "Erro inesperado. CorrelationId: {CorrelationId}, Path: {Path}, Method: {Method}",
                 correlationId, context.Request.Path, context.Request.Method);
 

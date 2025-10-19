@@ -10,6 +10,7 @@ import { CategoryService } from '../../../../core/services/category.service';
 import { CatalogService, Catalog } from '../../../../core/services/catalog.service';
 import { ProductFormComponent, ProductFormData } from '../product-form/product-form.component';
 import { CategoryFormComponent, CategoryFormData } from '../category-form/category-form.component';
+import { extractErrorMessage } from '../../../../core/utils/error.utils';
 
 @Component({
   selector: 'app-product-list',
@@ -77,7 +78,7 @@ export class ProductListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading products:', error);
-        this.showError('Erro ao carregar produtos');
+        this.showError(error.message || 'Erro ao carregar produtos');
         this.isLoading = false;
       }
     });
@@ -95,7 +96,7 @@ export class ProductListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading catalogs:', error);
-        this.showError('Erro ao carregar catálogos');
+        this.showError(error.message || 'Erro ao carregar catálogos');
       }
     });
   }
@@ -109,7 +110,7 @@ export class ProductListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading categories:', error);
-        this.showError('Erro ao carregar categorias');
+        this.showError(error.message || 'Erro ao carregar categorias');
       }
     });
   }
@@ -183,7 +184,7 @@ export class ProductListComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error deleting product:', error);
-          this.showError('Erro ao excluir produto');
+          this.showError(error.message || 'Erro ao excluir produto');
           this.isDeleting = false;
           this.deletingProductId = null;
         }
@@ -199,7 +200,7 @@ export class ProductListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error toggling product status:', error);
-        this.showError('Erro ao alterar status do produto');
+        this.showError(error.message || 'Erro ao alterar status do produto');
       }
     });
   }

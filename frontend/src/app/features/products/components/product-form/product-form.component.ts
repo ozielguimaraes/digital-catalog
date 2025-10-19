@@ -7,6 +7,7 @@ import { ProductService } from '../../../../core/services/product.service';
 import { CategoryService } from '../../../../core/services/category.service';
 import { CatalogService, Catalog } from '../../../../core/services/catalog.service';
 import { CategoryFormComponent, CategoryFormData } from '../category-form/category-form.component';
+import { extractErrorMessage } from '../../../../core/utils/error.utils';
 
 export interface ProductFormData {
   product?: Product;
@@ -93,7 +94,7 @@ export class ProductFormComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading catalogs:', error);
-        this.showError('Erro ao carregar catálogos');
+        this.showError(error.message || 'Erro ao carregar catálogos');
         this.isLoading = false;
       }
     });
@@ -109,7 +110,7 @@ export class ProductFormComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading categories:', error);
-        this.showError('Erro ao carregar categorias');
+        this.showError(error.message || 'Erro ao carregar categorias');
       }
     });
   }
@@ -202,7 +203,7 @@ export class ProductFormComponent implements OnInit {
           },
           error: (error) => {
             console.error('Error uploading image:', error);
-            this.showError('Erro ao fazer upload da imagem');
+            this.showError(error.message || 'Erro ao fazer upload da imagem');
             this.isSubmitting = false;
           }
         });
@@ -231,7 +232,7 @@ export class ProductFormComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error saving product:', error);
-        this.showError('Erro ao salvar produto');
+        this.showError(error.message || 'Erro ao salvar produto');
         this.isSubmitting = false;
       }
     });

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { extractErrorMessage } from '../utils/error.utils';
 
 
 export interface Catalog {
@@ -53,9 +54,8 @@ export class CatalogService {
         }),
         catchError(error => {
           console.error('Error fetching catalogs:', error);
-          console.error('Error details:', error.error);
-          console.error('Error status:', error.status);
-          return throwError(() => error);
+          const errorMessage = extractErrorMessage(error, 'Erro ao carregar catálogos');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }
@@ -71,7 +71,8 @@ export class CatalogService {
         }),
         catchError(error => {
           console.error('Error fetching catalog:', error);
-          return throwError(() => error);
+          const errorMessage = extractErrorMessage(error, 'Erro ao carregar catálogo');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }
@@ -87,7 +88,8 @@ export class CatalogService {
         }),
         catchError(error => {
           console.error('Error creating catalog:', error);
-          return throwError(() => error);
+          const errorMessage = extractErrorMessage(error, 'Erro ao criar catálogo');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }
@@ -103,7 +105,8 @@ export class CatalogService {
         }),
         catchError(error => {
           console.error('Error updating catalog:', error);
-          return throwError(() => error);
+          const errorMessage = extractErrorMessage(error, 'Erro ao atualizar catálogo');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }
@@ -125,22 +128,8 @@ export class CatalogService {
         }),
         catchError(error => {
           console.error('Error deleting catalog:', error);
-          
-          let message = 'Erro ao excluir catálogo';
-          
-          if (error.status === 401) {
-            message = 'Não autorizado. Faça login novamente.';
-          } else if (error.status === 403) {
-            message = 'Acesso negado. Você não tem permissão para excluir este catálogo.';
-          } else if (error.status === 404) {
-            message = 'Catálogo não encontrado.';
-          } else if (error.status === 400) {
-            message = error.error?.message || 'Erro de validação.';
-          } else if (error.error?.message) {
-            message = error.error.message;
-          }
-          
-          return throwError(() => new Error(message));
+          const errorMessage = extractErrorMessage(error, 'Erro ao excluir catálogo');
+          return throwError(() => new Error(errorMessage));
         })
       );
   }

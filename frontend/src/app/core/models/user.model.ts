@@ -18,8 +18,8 @@ export interface SigninResponse {
 }
 
 export interface RegisterRequest {
-  firstName: string;
-  lastName: string;
+  nome: string;
+  userName: string;
   email: string;
   password: string;
 }

@@ -26,6 +26,7 @@
     "@fullcalendar/interaction": "^6.1.19",
     "@fullcalendar/timegrid": "^6.1.19",
     "@popperjs/core": "^2.11.8",
+    "@sentry/angular": "^10.20.0",
     "@tailwindcss/postcss": "^4.1.11",
     "@types/prismjs": "^1.26.5",
     "apexcharts": "^5.3.2",

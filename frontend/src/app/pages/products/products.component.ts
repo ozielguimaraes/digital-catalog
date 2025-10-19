@@ -70,7 +70,7 @@ export class ProductsComponent implements OnInit {
       },
       error: (error) => {
         this.loading = false;
-        this.error = 'Erro ao carregar catálogos';
+        this.error = error.message || 'Erro ao carregar catálogos';
         console.error('Error loading catalogs:', error);
       }
     });
