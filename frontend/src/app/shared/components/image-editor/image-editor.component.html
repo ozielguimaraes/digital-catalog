@@ -21,7 +21,7 @@
         <!-- Instructions -->
         <div class="text-sm text-gray-600 dark:text-gray-400">
           <p>• Arraste para mover a área de corte</p>
-          <p>• Use a roda do mouse para redimensionar</p>
+          <p>• Use a roda do mouse ou os botões +/- para ajustar o zoom</p>
           <p>• A área azul mostra o que será cortado</p>
         </div>
 
@@ -55,6 +55,33 @@
               style="display: none;"
             />
           </div>
+        </div>
+
+        <!-- Zoom Controls -->
+        <div class="flex justify-center items-center space-x-4 mb-4">
+          <button
+            (click)="zoomOut()"
+            class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+            title="Diminuir zoom"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+            </svg>
+          </button>
+          
+          <span class="text-sm text-gray-600 dark:text-gray-400 min-w-[60px] text-center">
+            {{ (cropData.scale * 100).toFixed(0) }}%
+          </span>
+          
+          <button
+            (click)="zoomIn()"
+            class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+            title="Aumentar zoom"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+          </button>
         </div>
 
         <!-- Controls -->

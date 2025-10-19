@@ -349,21 +349,65 @@ export class ImageEditorComponent implements OnInit, OnChanges, AfterViewInit, O
     event.stopPropagation();
     event.stopImmediatePropagation();
 
-    const delta = event.deltaY > 0 ? -0.1 : 0.1;
-    const newScale = Math.max(0.1, Math.min(3, this.cropData.scale + delta));
+    // Calculate zoom delta based on scroll speed for smoother control
+    const zoomSpeed = 0.02; // Reduced from 0.05 for even smoother zoom
+    const delta = event.deltaY > 0 ? -zoomSpeed : zoomSpeed;
+    
+    // Apply exponential scaling for more natural zoom feel
+    const currentScale = this.cropData.scale;
+    const scaleFactor = 1 + delta;
+    const newScale = Math.max(0.1, Math.min(3, currentScale * scaleFactor));
 
     const rect = this.canvasRef.nativeElement.getBoundingClientRect();
     const centerX = event.clientX - rect.left;
     const centerY = event.clientY - rect.top;
 
+    // Calculate new dimensions based on the new scale
     const newWidth = this.originalImageWidth * newScale;
     const newHeight = this.originalImageHeight * newScale;
 
+    // Update crop data
     this.cropData.scale = newScale;
     this.cropData.width = Math.min(newWidth, this.canvasWidth);
     this.cropData.height = Math.min(newHeight, this.canvasHeight);
 
-    // Keep crop centered on mouse position
+    // Keep crop centered on mouse position for better UX
+    this.cropData.x = Math.max(0, Math.min(this.canvasWidth - this.cropData.width, centerX - this.cropData.width / 2));
+    this.cropData.y = Math.max(0, Math.min(this.canvasHeight - this.cropData.height, centerY - this.cropData.height / 2));
+
+    this.redrawCanvas();
+  }
+
+  zoomIn() {
+    if (!this.imageLoaded) return;
+    
+    const zoomSpeed = 0.1;
+    const newScale = Math.min(3, this.cropData.scale + zoomSpeed);
+    this.updateZoom(newScale);
+  }
+
+  zoomOut() {
+    if (!this.imageLoaded) return;
+    
+    const zoomSpeed = 0.1;
+    const newScale = Math.max(0.1, this.cropData.scale - zoomSpeed);
+    this.updateZoom(newScale);
+  }
+
+  private updateZoom(newScale: number) {
+    const centerX = this.canvasWidth / 2;
+    const centerY = this.canvasHeight / 2;
+
+    // Calculate new dimensions based on the new scale
+    const newWidth = this.originalImageWidth * newScale;
+    const newHeight = this.originalImageHeight * newScale;
+
+    // Update crop data
+    this.cropData.scale = newScale;
+    this.cropData.width = Math.min(newWidth, this.canvasWidth);
+    this.cropData.height = Math.min(newHeight, this.canvasHeight);
+
+    // Keep crop centered
     this.cropData.x = Math.max(0, Math.min(this.canvasWidth - this.cropData.width, centerX - this.cropData.width / 2));
     this.cropData.y = Math.max(0, Math.min(this.canvasHeight - this.cropData.height, centerY - this.cropData.height / 2));
 
