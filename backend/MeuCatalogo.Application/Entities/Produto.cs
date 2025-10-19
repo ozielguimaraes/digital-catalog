@@ -16,11 +16,13 @@ public class Produto : BaseEntity
     public Estoque? Estoque { get; set; }
     public ICollection<Variacao> Variacoes { get; set; }
     public ICollection<ItemPedido> ItensPedido { get; set; }
+    public ICollection<ProdutoImagem> Imagens { get; set; }
 
     public Produto()
     {
         Variacoes = new List<Variacao>();
         ItensPedido = new List<ItemPedido>();
+        Imagens = new List<ProdutoImagem>();
     }
 
     public Produto(string nome, Guid categoriaId, Guid catalogoId, decimal preco, decimal? precoComDesconto, string informacoesAdicionais) : this()

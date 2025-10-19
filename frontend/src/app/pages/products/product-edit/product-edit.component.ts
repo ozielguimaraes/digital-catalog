@@ -6,6 +6,7 @@ import { Product, ProductUpdateRequest, Category } from '../../../core/models/pr
 import { ProductService } from '../../../core/services/product.service';
 import { CatalogService, Catalog } from '../../../core/services/catalog.service';
 import { CategoryService } from '../../../core/services/category.service';
+import { ImageUploadService, ImageUploadResponse } from '../../../core/services/image-upload.service';
 import { ImageUploadComponent, ImageUploadData } from '../../../shared/components/image-upload/image-upload.component';
 import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { CategoryFormComponent } from '../../../shared/components/category-form/category-form.component';
@@ -34,6 +35,7 @@ export class ProductEditComponent implements OnInit {
     private productService: ProductService,
     private catalogService: CatalogService,
     private categoryService: CategoryService,
+    private imageUploadService: ImageUploadService,
     private fb: FormBuilder,
     private router: Router,
     private route: ActivatedRoute
@@ -173,23 +175,61 @@ export class ProductEditComponent implements OnInit {
       // They should be handled separately if needed
     };
 
+    // First update the product
     this.productService.updateProduct(this.productId, productData).subscribe({
       next: (response) => {
-        this.success = 'Produto atualizado com sucesso!';
-        this.loading = false;
-        
-        // Redirect to products list after 2 seconds
-        setTimeout(() => {
-          this.router.navigate(['/dashboard/products'], { 
-            queryParams: { catalogId: this.product?.catalogoId } 
-          });
-        }, 2000);
+        if (this.uploadedImages.length > 0) {
+          // Upload new images after product update
+          this.uploadImages(this.productId);
+        } else {
+          this.success = 'Produto atualizado com sucesso!';
+          this.loading = false;
+          
+          // Redirect to products list after 2 seconds
+          setTimeout(() => {
+            this.router.navigate(['/dashboard/products'], { 
+              queryParams: { catalogId: this.product?.catalogoId } 
+            });
+          }, 2000);
+        }
       },
       error: (error) => {
         this.error = error.message || 'Erro ao atualizar produto';
         this.loading = false;
         console.error('Error updating product:', error);
       }
+    });
+  }
+
+  private uploadImages(productId: string) {
+    const uploadPromises = this.uploadedImages.map(imageData => {
+      if (imageData.file) {
+        return this.imageUploadService.uploadImage(productId, imageData.file).toPromise();
+      }
+      return Promise.resolve(null);
+    });
+
+    Promise.all(uploadPromises).then(results => {
+      this.success = 'Produto atualizado com sucesso!';
+      this.loading = false;
+      
+      // Redirect to products list after 2 seconds
+      setTimeout(() => {
+        this.router.navigate(['/dashboard/products'], { 
+          queryParams: { catalogId: this.product?.catalogoId } 
+        });
+      }, 2000);
+    }).catch(error => {
+      console.error('Error uploading images:', error);
+      this.success = 'Produto atualizado com sucesso, mas houve erro no upload das imagens.';
+      this.loading = false;
+      
+      // Redirect to products list after 2 seconds
+      setTimeout(() => {
+        this.router.navigate(['/dashboard/products'], { 
+          queryParams: { catalogId: this.product?.catalogoId } 
+        });
+      }, 2000);
     });
   }
 

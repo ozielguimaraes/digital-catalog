@@ -281,6 +281,14 @@ try
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseMiddleware<ProblemDetailsStatusCodeMiddleware>();
 
+    // Configure static files for uploads
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+            Path.Combine(app.Environment.ContentRootPath, "Uploads")),
+        RequestPath = "/uploads"
+    });
+
     app.UseHttpsRedirection();
 
 

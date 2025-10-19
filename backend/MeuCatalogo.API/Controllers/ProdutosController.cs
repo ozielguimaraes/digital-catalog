@@ -214,4 +214,91 @@ public class ProdutosController : BaseApiController
 
         return HandleApiResponse(response);
     }
+
+    /// <summary>
+    /// Faz upload de uma imagem para um produto
+    /// </summary>
+    /// <param name="produtoId">ID do produto</param>
+    /// <param name="file">Arquivo de imagem</param>
+    /// <returns>URL da imagem enviada</returns>
+    [HttpPost("{produtoId}/upload-image")]
+    [SwaggerOperation(
+        Summary = "Upload de imagem para produto",
+        Description = "Faz upload de uma imagem para um produto específico."
+    )]
+    [SwaggerResponse(200, "Imagem enviada com sucesso")]
+    [SwaggerResponse(400, "Arquivo inválido", typeof(ProblemDetails))]
+    [SwaggerResponse(404, "Produto não encontrado", typeof(ProblemDetails))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
+    public async Task<IActionResult> UploadImage(Guid produtoId, IFormFile file)
+    {
+        try
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            _logger.LogInformation("Upload de imagem para produto {ProdutoId} pelo usuário {UserId}", produtoId, userId);
+
+            // Validar arquivo
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new { message = "Arquivo não pode ser vazio" });
+            }
+
+            // Validar tipo de arquivo
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(extension))
+            {
+                return BadRequest(new { message = "Tipo de arquivo não permitido" });
+            }
+
+            // Validar tamanho (10MB)
+            if (file.Length > 10 * 1024 * 1024)
+            {
+                return BadRequest(new { message = "Arquivo muito grande. Tamanho máximo: 10MB" });
+            }
+
+            // Obter informações do produto para pegar o catalogoId
+            var produtoResponse = await _produtoService.ObterPorIdAsync(produtoId, userId);
+            if (!produtoResponse.IsSuccess || produtoResponse.Data == null)
+            {
+                return NotFound(new { message = "Produto não encontrado" });
+            }
+
+            var catalogoId = produtoResponse.Data.CatalogoId;
+
+            // Criar estrutura de diretórios: catalogo/{catalogoId}/produtos/{produtoId}/
+            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads", "catalogo", catalogoId.ToString(), "produtos", produtoId.ToString());
+            if (!Directory.Exists(uploadsPath))
+            {
+                Directory.CreateDirectory(uploadsPath);
+            }
+
+            // Gerar nome único para o arquivo
+            var fileName = $"{Guid.NewGuid()}{extension}";
+            var filePath = Path.Combine(uploadsPath, fileName);
+
+            // Salvar arquivo
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Gerar URL da imagem
+            var imageUrl = $"/uploads/catalogo/{catalogoId}/produtos/{produtoId}/{fileName}";
+
+            _logger.LogInformation("Imagem salva com sucesso: {FileName} em {FilePath}", fileName, filePath);
+            
+            return Ok(new { 
+                success = true, 
+                message = "Imagem enviada com sucesso",
+                imageUrl = imageUrl,
+                fileName = fileName
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao fazer upload da imagem para o produto {ProdutoId}", produtoId);
+            return StatusCode(500, new { message = "Erro interno do servidor" });
+        }
+    }
 }

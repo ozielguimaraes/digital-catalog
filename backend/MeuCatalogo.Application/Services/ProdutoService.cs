@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using MeuCatalogo.Application.Infrastructure.Data.Repository;
 using MeuCatalogo.Application.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.IO;
 
 namespace MeuCatalogo.Application.Services;
 
@@ -280,11 +281,56 @@ public sealed class ProdutoService : IProdutoService
             return ApiResponse<bool>.Error(ResponseType.Forbidden, "Você não tem permissão para excluir este produto.");
         }
 
-        _logger.LogDebug("Excluindo produto {ProdutoId}", id);
-        await _dbContext.RemoverProdutoAsync(id);
-        _logger.LogInformation("Produto {ProdutoId} excluído com sucesso", id);
+        try
+        {
+            _logger.LogDebug("Excluindo produto {ProdutoId} do banco de dados", id);
+            await _dbContext.RemoverProdutoAsync(id);
+            _logger.LogInformation("Produto {ProdutoId} excluído do banco com sucesso", id);
 
-        return ApiResponse<bool>.Success(true);
+            await RemoverImagensDoProdutoAsync(produto.CatalogoId, id);
+
+            return ApiResponse<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao excluir produto {ProdutoId}", id);
+            return ApiResponse<bool>.Error(ResponseType.Validation, "Erro interno do servidor ao excluir produto.");
+        }
+    }
+
+    private async Task RemoverImagensDoProdutoAsync(Guid catalogoId, Guid produtoId)
+    {
+        try
+        {
+            var pastaProduto = Path.Combine(Directory.GetCurrentDirectory(), "Uploads", "catalogo", catalogoId.ToString(), "produtos", produtoId.ToString());
+            
+            if (Directory.Exists(pastaProduto))
+            {
+                _logger.LogInformation("Removendo pasta de imagens do produto {ProdutoId}: {Pasta}", produtoId, pastaProduto);
+                
+                Directory.Delete(pastaProduto, true);
+                _logger.LogInformation("Pasta do produto {ProdutoId} removida com sucesso", produtoId);
+
+                var pastaCatalogo = Path.Combine(Directory.GetCurrentDirectory(), "Uploads", "catalogo", catalogoId.ToString());
+                if (Directory.Exists(pastaCatalogo))
+                {
+                    var subpastas = Directory.GetDirectories(pastaCatalogo);
+                    if (subpastas.Length == 0)
+                    {
+                        Directory.Delete(pastaCatalogo);
+                        _logger.LogInformation("Pasta do catálogo {CatalogoId} removida (estava vazia)", catalogoId);
+                    }
+                }
+            }
+            else
+            {
+                _logger.LogDebug("Pasta de imagens do produto {ProdutoId} não encontrada: {Pasta}", produtoId, pastaProduto);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao remover imagens do produto {ProdutoId}", produtoId);
+        }
     }
 
     public async Task<ApiResponse<EstoqueDto>> AtualizarEstoqueAsync(Guid produtoId, EstoqueUpdateDto estoqueDto, string userId)
