@@ -97,18 +97,36 @@
             <label for="categoriaId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Categoria *
             </label>
-            <select
-              id="categoriaId"
-              formControlName="categoriaId"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            >
-              <option value="">Selecione uma categoria</option>
-              <option *ngFor="let category of categories" [value]="category.id">
-                {{ category.nome }}
-              </option>
-            </select>
+            <div class="flex gap-2">
+              <select
+                id="categoriaId"
+                formControlName="categoriaId"
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              >
+                <option value="">Selecione uma categoria</option>
+                <option *ngFor="let category of categories" [value]="category.id">
+                  {{ category.nome }}
+                </option>
+                <option *ngIf="categories.length === 0" value="add-new" disabled>
+                  Nenhuma categoria encontrada
+                </option>
+              </select>
+              <button
+                type="button"
+                (click)="onAddNewCategory()"
+                class="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-900/30"
+                title="Adicionar nova categoria"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+              </button>
+            </div>
             <div *ngIf="getFieldError('categoriaId')" class="mt-1 text-sm text-red-600 dark:text-red-400">
               {{ getFieldError('categoriaId') }}
+            </div>
+            <div *ngIf="categories.length === 0" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Nenhuma categoria encontrada. Clique no botão + para criar uma nova.
             </div>
           </div>
 
@@ -281,4 +299,12 @@
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Crie um catálogo primeiro para gerenciar produtos.</p>
     </div>
   </div>
+
+  <!-- Category Modal -->
+  <app-category-form
+    [catalogId]="selectedCatalogId"
+    [show]="showCategoryModal"
+    (categoryCreated)="onCategoryCreated($event)"
+    (close)="onCloseCategoryModal()"
+  ></app-category-form>
 </div>

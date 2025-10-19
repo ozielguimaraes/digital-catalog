@@ -8,11 +8,12 @@ import { CatalogService, Catalog } from '../../../core/services/catalog.service'
 import { CategoryService } from '../../../core/services/category.service';
 import { ImageUploadComponent, ImageUploadData } from '../../../shared/components/image-upload/image-upload.component';
 import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { CategoryFormComponent } from '../../../shared/components/category-form/category-form.component';
 
 @Component({
   selector: 'app-product-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ImageUploadComponent, PageBreadcrumbComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ImageUploadComponent, PageBreadcrumbComponent, CategoryFormComponent],
   templateUrl: './product-create.component.html',
   styleUrls: ['./product-create.component.scss']
 })
@@ -23,6 +24,7 @@ export class ProductCreateComponent implements OnInit {
   loading = false;
   error: string | null = null;
   success: string | null = null;
+  showCategoryModal = false;
   
   productForm: FormGroup;
   uploadedImages: ImageUploadData[] = [];
@@ -108,6 +110,30 @@ export class ProductCreateComponent implements OnInit {
 
   onImagesUploaded(images: ImageUploadData[]) {
     this.uploadedImages = images;
+  }
+
+  onAddNewCategory() {
+    if (!this.selectedCatalogId) {
+      this.error = 'Selecione um catálogo primeiro';
+      return;
+    }
+    this.showCategoryModal = true;
+  }
+
+  onCategoryCreated(category: Category) {
+    // Add the new category to the list
+    this.categories.push(category);
+    
+    // Select the new category in the form
+    this.productForm.patchValue({
+      categoriaId: category.id
+    });
+    
+    this.showCategoryModal = false;
+  }
+
+  onCloseCategoryModal() {
+    this.showCategoryModal = false;
   }
 
   onSaveProduct() {

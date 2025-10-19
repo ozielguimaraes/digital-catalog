@@ -8,11 +8,12 @@ import { CatalogService, Catalog } from '../../../core/services/catalog.service'
 import { CategoryService } from '../../../core/services/category.service';
 import { ImageUploadComponent, ImageUploadData } from '../../../shared/components/image-upload/image-upload.component';
 import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { CategoryFormComponent } from '../../../shared/components/category-form/category-form.component';
 
 @Component({
   selector: 'app-product-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ImageUploadComponent, PageBreadcrumbComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ImageUploadComponent, PageBreadcrumbComponent, CategoryFormComponent],
   templateUrl: './product-edit.component.html',
   styleUrls: ['./product-edit.component.scss']
 })
@@ -23,6 +24,7 @@ export class ProductEditComponent implements OnInit {
   loading = false;
   error: string | null = null;
   success: string | null = null;
+  showCategoryModal = false;
   
   productForm: FormGroup;
   uploadedImages: ImageUploadData[] = [];
@@ -124,6 +126,30 @@ export class ProductEditComponent implements OnInit {
 
   onImagesUploaded(images: ImageUploadData[]) {
     this.uploadedImages = images;
+  }
+
+  onAddNewCategory() {
+    if (!this.product?.catalogoId) {
+      this.error = 'Produto não carregado corretamente';
+      return;
+    }
+    this.showCategoryModal = true;
+  }
+
+  onCategoryCreated(category: Category) {
+    // Add the new category to the list
+    this.categories.push(category);
+    
+    // Select the new category in the form
+    this.productForm.patchValue({
+      categoriaId: category.id
+    });
+    
+    this.showCategoryModal = false;
+  }
+
+  onCloseCategoryModal() {
+    this.showCategoryModal = false;
   }
 
   onSaveProduct() {
