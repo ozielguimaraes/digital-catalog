@@ -131,7 +131,6 @@ public sealed class ProdutoService : IProdutoService
         _logger.LogInformation("Iniciando {Metodo} para catalogoId: {CatalogoId}, usuarioId: {UsuarioId}",
             nameof(AdicionarAsync), produtoDto.CatalogoId, userId);
 
-        await using var transaction = await  _dbContext.Database.BeginTransactionAsync();
         try
         {
             var catalogo = await _dbContext.ObterCatalogoPorIdAsync(produtoDto.CatalogoId);
@@ -160,12 +159,10 @@ public sealed class ProdutoService : IProdutoService
                 InformacoesAdicionais = produtoDto.InformacoesAdicionais
             };
 
-            await _dbContext.AdicionarAsync(produto);
-            _logger.LogInformation("Produto criado com sucesso. Id: {ProdutoId}", produto.Id);
-
+            // Adicionar estoque se fornecido
             if (produtoDto.Estoque != null)
             {
-                _logger.LogDebug("Adicionando informações de estoque para o produto {ProdutoId}", produto.Id);
+                _logger.LogDebug("Adicionando informações de estoque para o produto");
                 var estoque = new Estoque
                 {
                     ProdutoId = produto.Id,
@@ -175,11 +172,11 @@ public sealed class ProdutoService : IProdutoService
                 };
 
                 produto.Estoque = estoque;
-                await _dbContext.AtualizarAsync(produto);
-                _logger.LogInformation("Estoque adicionado ao produto {ProdutoId}", produto.Id);
             }
 
-            await transaction.CommitAsync();
+            // Adicionar produto e estoque em uma única operação
+            await _dbContext.AdicionarAsync(produto);
+            _logger.LogInformation("Produto criado com sucesso. Id: {ProdutoId}", produto.Id);
 
             var dto = new ProdutoDto
             {
@@ -209,7 +206,6 @@ public sealed class ProdutoService : IProdutoService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao criar produto para o catálogo {CatalogoId}", produtoDto.CatalogoId);
-            await transaction.RollbackAsync();
             throw;
         }
     }
