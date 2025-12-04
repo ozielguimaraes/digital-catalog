@@ -23,13 +23,35 @@ public class CatalogosController : BaseApiController
     }
 
     /// <summary>
+    /// Obtém todos os catálogos públicos (sem autenticação)
+    /// </summary>
+    /// <returns>Lista de catálogos públicos</returns>
+    /// <response code="200">Lista de catálogos retornada com sucesso</response>
+    /// <response code="500">Erro interno do servidor</response>
+    [HttpGet]
+    [AllowAnonymous]
+    [SwaggerOperation(
+        Summary = "Listar catálogos públicos",
+        Description = "Retorna todos os catálogos públicos disponíveis."
+    )]
+    [SwaggerResponse(200, "Lista de catálogos retornada com sucesso", typeof(IEnumerable<CatalogoDto>))]
+    [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
+    public async Task<IActionResult> Obter()
+    {
+        _logger.LogInformation("Obtendo catálogos públicos");
+        var response = await _catalogoService.ObterTodosPublicosAsync();
+
+        return HandleApiResponse(response);
+    }
+
+    /// <summary>
     /// Obtém todos os catálogos do usuário autenticado
     /// </summary>
     /// <returns>Lista de catálogos do usuário</returns>
     /// <response code="200">Lista de catálogos retornada com sucesso</response>
     /// <response code="401">Usuário não autenticado</response>
     /// <response code="500">Erro interno do servidor</response>
-    [HttpGet]
+    [HttpGet("meus")]
     [SwaggerOperation(
         Summary = "Listar catálogos do usuário",
         Description = "Retorna todos os catálogos pertencentes ao usuário autenticado."
@@ -37,7 +59,7 @@ public class CatalogosController : BaseApiController
     [SwaggerResponse(200, "Lista de catálogos retornada com sucesso", typeof(IEnumerable<CatalogoDto>))]
     [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
     [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
-    public async Task<IActionResult> Obter()
+    public async Task<IActionResult> ObterMeus()
     {
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Obtendo catálogos para o usuário {UserId}", userId);

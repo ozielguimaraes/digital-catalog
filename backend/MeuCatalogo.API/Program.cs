@@ -181,7 +181,13 @@ try
                     "http://localhost:4200",
                     "https://localhost:4200",
                     "http://catalogo-api.sanyz.com.br",
-                    "https://catalogo-api.sanyz.com.br"
+                    "https://catalogo-api.sanyz.com.br",
+                    "http://catalogo.sanyz.com.br",
+                    "https://catalogo.sanyz.com.br",
+                    "http://www.catalogo.sanyz.com.br",
+                    "https://www.catalogo.sanyz.com.br",
+                    "https://sanyz-catalogo.web.app",
+                    "https://sanyz-catalogo.firebaseapp.com"
                 )
                 .AllowAnyMethod()
                 .AllowAnyHeader()

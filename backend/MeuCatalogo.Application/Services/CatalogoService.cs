@@ -18,6 +18,24 @@ public sealed class CatalogoService : ICatalogoService
         _dbContext = dbContext;
     }
 
+    public async Task<ApiResponse<IEnumerable<CatalogoDto>>> ObterTodosPublicosAsync()
+    {
+        var catalogos = await _dbContext.Catalogos
+            .AsNoTracking()
+            .ToListAsync();
+
+        var items = catalogos.Select(c => new CatalogoDto
+        {
+            Id = c.Id,
+            Nome = c.Nome,
+            Descricao = c.Descricao,
+            DataCriacao = c.DataCriacao,
+            DataAtualizacao = c.DataAtualizacao
+        });
+
+        return ApiResponse<IEnumerable<CatalogoDto>>.Success(items);
+    }
+
     public async Task<ApiResponse<IEnumerable<CatalogoDto>>> ObterPorUsuarioIdAsync(string usuarioId)
     {
         var catalogos = await _dbContext.ObterCatalogosPorUsuarioIdAsync(usuarioId);

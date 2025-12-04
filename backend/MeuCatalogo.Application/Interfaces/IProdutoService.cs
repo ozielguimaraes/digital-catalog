@@ -10,6 +10,7 @@ namespace MeuCatalogo.Application.Interfaces;
 public interface IProdutoService
 {
     Task<ApiResponse<IEnumerable<ProdutoDto>>> ObterPorCatalogoIdAsync(Guid catalogoId, string userId);
+    Task<ApiResponse<IEnumerable<ProdutoDto>>> ObterPorCatalogoIdPublicoAsync(Guid catalogoId);
     Task<ApiResponse<ProdutoDto?>> ObterPorIdAsync(Guid id, string userId);
     Task<ApiResponse<bool>> ExisteAsync(Guid id, string userId);
     Task<ApiResponse<ProdutoDto>> AdicionarAsync(ProdutoCreateDto produtoDto, string userId);

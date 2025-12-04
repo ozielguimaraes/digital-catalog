@@ -34,20 +34,18 @@ public class ProdutosController : BaseApiController
     /// <response code="403">Usuário não tem acesso ao catálogo</response>
     /// <response code="500">Erro interno do servidor</response>
     [HttpGet("catalogo/{catalogoId}")]
-    [SwaggerOperation(
-        Summary = "Listar produtos por catálogo",
-        Description = "Retorna todos os produtos de um catálogo específico do usuário autenticado."
-    )]
     [AllowAnonymous]
+    [SwaggerOperation(
+        Summary = "Listar produtos por catálogo (público)",
+        Description = "Retorna todos os produtos de um catálogo específico (acesso público)."
+    )]
     [SwaggerResponse(200, "Lista de produtos retornada com sucesso", typeof(IEnumerable<ProdutoDto>))]
-    [SwaggerResponse(401, "Usuário não autenticado", typeof(ProblemDetails))]
-    [SwaggerResponse(403, "Usuário não tem acesso ao catálogo", typeof(ProblemDetails))]
+    [SwaggerResponse(404, "Catálogo não encontrado", typeof(ProblemDetails))]
     [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> ObterPorCatalogo(Guid catalogoId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        _logger.LogInformation("Obtendo produtos do catálogo {CatalogoId} para o usuário {UserId}", catalogoId, userId);
-        var response = await _produtoService.ObterPorCatalogoIdAsync(catalogoId, userId);
+        _logger.LogInformation("Obtendo produtos do catálogo {CatalogoId} (acesso público)", catalogoId);
+        var response = await _produtoService.ObterPorCatalogoIdPublicoAsync(catalogoId);
         return HandleApiResponse(response);
     }
 

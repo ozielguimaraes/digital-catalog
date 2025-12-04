@@ -8,6 +8,7 @@ namespace MeuCatalogo.Application.Interfaces;
 
 public interface ICatalogoService
 {
+    Task<ApiResponse<IEnumerable<CatalogoDto>>> ObterTodosPublicosAsync();
     Task<ApiResponse<IEnumerable<CatalogoDto>>> ObterPorUsuarioIdAsync(string userId);
     Task<ApiResponse<CatalogoDto?>> ObterPorIdAsync(Guid id, string userId);
     Task<ApiResponse<Guid?>> ObterCatalogoIdAsync(Guid produtoId, string userId);
