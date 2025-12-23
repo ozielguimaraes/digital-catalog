@@ -173,6 +173,27 @@ try
     builder.Services.AddScoped<IPlanoAssinaturaService, PlanoAssinaturaService>();
     builder.Services.AddScoped<IRefreshTokenService, MeuCatalogo.API.Services.RefreshTokenService>();
 
+    // Storage configuration: use Azure when connection string is present; otherwise fallback to local filesystem
+    var blobSection = builder.Configuration.GetSection("BlobStorage");
+    var blobOptions = blobSection.Get<MeuCatalogo.Application.Infrastructure.Storage.BlobStorageOptions>() ?? new();
+    builder.Services.AddSingleton(blobOptions);
+
+    string? storageConn = builder.Configuration["AZURE_STORAGE_CONNECTION_STRING"]
+        ?? Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
+
+    if (!string.IsNullOrWhiteSpace(storageConn))
+    {
+        builder.Services.AddSingleton<MeuCatalogo.Application.Interfaces.IStorageService,
+            MeuCatalogo.Application.Infrastructure.Storage.AzureBlobStorageService>();
+        Console.WriteLine("✓ Azure Blob Storage enabled");
+    }
+    else
+    {
+        builder.Services.AddSingleton<MeuCatalogo.Application.Interfaces.IStorageService,
+            MeuCatalogo.Application.Infrastructure.Storage.LocalFileStorageService>();
+        Console.WriteLine("⚠ Azure connection string missing — using local file storage.");
+    }
+
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAngularApp", policy =>

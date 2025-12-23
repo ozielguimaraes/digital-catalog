@@ -17,11 +17,13 @@ public sealed class ProdutoService : IProdutoService
     private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" };
     private const long MaxFileSize = 10 * 1024 * 1024; // 10MB
     private const string UploadRoot = "uploads";
+    private readonly IStorageService _storage;
 
-    public ProdutoService(ApplicationDbContext dbContext, ILogger<ProdutoService> logger)
+    public ProdutoService(ApplicationDbContext dbContext, ILogger<ProdutoService> logger, IStorageService storageService)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _storage = storageService;
         _logger.LogInformation("Serviço de Produto inicializado");
     }
 
@@ -163,17 +165,18 @@ public sealed class ProdutoService : IProdutoService
         if (catalogo?.UserId != userId)
             return ApiResponse<ImageDto>.Error(ResponseType.Forbidden, "Acesso negado.");
 
-        var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), UploadRoot, "catalogo", catalogo.Id.ToString(), "produtos", produtoId.ToString());
-        Directory.CreateDirectory(uploadsPath);
+        var isPrincipal = !produto.Imagens.Any();
+        var shortName = catalogo.NomeCurto?.Trim() ?? catalogo.Id.ToString();
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        var fileName = isPrincipal ? "main" + extension : $"img-{produto.Imagens.Count + 1}-{Guid.NewGuid()}{extension}";
+        var blobPath = $"catalog/{shortName}/products/{produtoId}/{fileName}";
 
-        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-        var filePath = Path.Combine(uploadsPath, fileName);
+        await using (var stream = file.OpenReadStream())
+        {
+            var _ = await _storage.UploadAsync(blobPath, stream, file.ContentType);
+        }
 
-        await using (var stream = new FileStream(filePath, FileMode.Create))
-            await file.CopyToAsync(stream);
-
-        var imageUrl = $"/{UploadRoot}/catalogo/{catalogo.Id}/produtos/{produtoId}/{fileName}";
-        bool isPrincipal = !produto.Imagens.Any();
+        var imageUrl = _storage.GetBlobUrl(blobPath);
 
         var produtoImagem = new ProdutoImagem
         {
@@ -203,22 +206,14 @@ public sealed class ProdutoService : IProdutoService
 
     private async Task RemoverImagensDoProdutoAsync(Guid catalogoId, Guid produtoId)
     {
-        var pastaProduto = Path.Combine(Directory.GetCurrentDirectory(), UploadRoot, "catalogo", catalogoId.ToString(), "produtos", produtoId.ToString());
-
-        if (!Directory.Exists(pastaProduto))
+        var catalogo = await _dbContext.ObterCatalogoPorIdAsync(catalogoId);
+        if (catalogo == null)
             return;
 
-        Directory.Delete(pastaProduto, true);
-        _logger.LogInformation("Imagens do produto {ProdutoId} removidas com sucesso.", produtoId);
-
-        var pastaCatalogo = Path.Combine(Directory.GetCurrentDirectory(), UploadRoot, "catalogo", catalogoId.ToString());
-        if (Directory.Exists(pastaCatalogo) && Directory.GetDirectories(pastaCatalogo).Length == 0)
-        {
-            Directory.Delete(pastaCatalogo);
-            _logger.LogInformation("Pasta do catálogo {CatalogoId} removida (vazia).", catalogoId);
-        }
-
-        await Task.CompletedTask;
+        var shortName = catalogo.NomeCurto?.Trim() ?? catalogoId.ToString();
+        var prefix = $"catalog/{shortName}/products/{produtoId}/";
+        await _storage.DeletePrefixAsync(prefix);
+        _logger.LogInformation("Imagens do produto {ProdutoId} removidas do storage.", produtoId);
     }
 
     #endregion

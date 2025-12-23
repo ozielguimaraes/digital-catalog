@@ -6,6 +6,8 @@ using MeuCatalogo.Application.Infrastructure.Data;
 using MeuCatalogo.Application.Infrastructure.Data.Repository;
 using MeuCatalogo.Application.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace MeuCatalogo.Application.Services;
 
@@ -109,10 +111,15 @@ public sealed class CatalogoService : ICatalogoService
 
     public async Task<ApiResponse<CatalogoDto>> AdicionarAsync(CatalogoCreateDto catalogoDto, string usuarioId)
     {
+        var nomeCurtoNormalizado = NormalizarNomeCurto(catalogoDto.NomeCurto);
+
+        if (nomeCurtoNormalizado != catalogoDto.NomeCurto)
+            return ApiResponse<CatalogoDto>.Error(ResponseType.Validation, "O nome curto deve ser normalizado.");
+
         var catalogo = new Catalogo(
             nome: catalogoDto.Nome,
             descricao: catalogoDto.Descricao,
-            nomeCurto: catalogoDto.NomeCurto,
+            nomeCurto: nomeCurtoNormalizado,
             email: catalogoDto.Email,
             numeroWhatsapp: catalogoDto.NumeroWhatsapp,
             userId: usuarioId
@@ -168,5 +175,29 @@ public sealed class CatalogoService : ICatalogoService
         await _dbContext.DeleteCatalogoAsync(id);
 
         return ApiResponse<bool>.Success(true);
+    }
+
+    public static string NormalizarNomeCurto(string input)
+    {
+        input = input.ToLowerInvariant().Trim();
+        input = RemoveAcentos(input);
+        input = Regex.Replace(input, @"[^a-z0-9\-]", "-");
+        input = Regex.Replace(input, @"-+", "-");
+
+        return input;
+    }
+
+    private static string RemoveAcentos(string texto)
+    {
+        if (string.IsNullOrEmpty(texto)) return texto;
+        var normalized = texto.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder();
+        foreach (var ch in normalized)
+        {
+            var uc = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(ch);
+            if (uc != System.Globalization.UnicodeCategory.NonSpacingMark)
+                sb.Append(ch);
+        }
+        return sb.ToString().Normalize(NormalizationForm.FormC);
     }
 }
