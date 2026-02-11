@@ -2,14 +2,22 @@
 # Este arquivo deve ser commitado no repositório para ser detectado pelo Azure DevOps
 
 trigger:
-- main # Executa automaticamente quando houver commit na branch main
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - backend/*
 
 pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  buildConfiguration: 'Release'
-  dotNetFramework: 'net6.0'
+- group: prod_variables # Vincula o grupo de variáveis criado na Library
+- name: buildConfiguration
+  value: 'Release'
+- name: dotNetFramework
+  value: 'net6.0'
   # Variáveis de FTP devem ser configuradas na interface do Azure DevOps (Library/Variables)
   # para segurança, mas deixo os valores padrão aqui comentados como referência:
   # ftpUrl: 'ftp://catalogo.sanyz.com.br' 
