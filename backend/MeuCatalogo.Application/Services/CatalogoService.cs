@@ -6,6 +6,8 @@ using MeuCatalogo.Application.Infrastructure.Data;
 using MeuCatalogo.Application.Infrastructure.Data.Repository;
 using MeuCatalogo.Application.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace MeuCatalogo.Application.Services;
 

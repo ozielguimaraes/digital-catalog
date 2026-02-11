@@ -80,7 +80,7 @@ public sealed class ProdutoService : IProdutoService
     public async Task<ApiResponse<ProdutoDto>> AdicionarAsync(ProdutoCreateDto dto, string userId)
     {
         _logger.LogInformation("Iniciando {Metodo} para catalogoId: {CatalogoId}, usuarioId: {UsuarioId}",
-            nameof(AdicionarAsync), produtoDto.CatalogoId, userId);
+            nameof(AdicionarAsync), dto.CatalogoId, userId);
         
         var catalogo = await _dbContext.ObterCatalogoPorIdAsync(dto.CatalogoId);
         if (catalogo?.UserId != userId)
