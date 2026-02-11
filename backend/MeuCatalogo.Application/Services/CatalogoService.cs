@@ -6,8 +6,6 @@ using MeuCatalogo.Application.Infrastructure.Data;
 using MeuCatalogo.Application.Infrastructure.Data.Repository;
 using MeuCatalogo.Application.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace MeuCatalogo.Application.Services;
 
@@ -115,6 +113,19 @@ public sealed class CatalogoService : ICatalogoService
 
         if (nomeCurtoNormalizado != catalogoDto.NomeCurto)
             return ApiResponse<CatalogoDto>.Error(ResponseType.Validation, "O nome curto deve ser normalizado.");
+
+        var user = await _dbContext.Users
+            .Include(u => u.Assinaturas)
+            .ThenInclude(a => a.PlanoAssinatura)
+            .FirstOrDefaultAsync(u => u.Id == usuarioId);
+
+        if (user == null)
+            return ApiResponse<CatalogoDto>.Error(ResponseType.NotFound, "Usuário não encontrado.");
+
+        int quantidadeAtual = await _dbContext.Catalogos.CountAsync(c => c.UserId == usuarioId);
+
+        if (!user.PodeAdicionarCatalogo(quantidadeAtual))
+            return ApiResponse<CatalogoDto>.Error(ResponseType.Validation, "Limite de catálogos do seu plano atingido. Faça um upgrade para continuar.");
 
         var catalogo = new Catalogo(
             nome: catalogoDto.Nome,

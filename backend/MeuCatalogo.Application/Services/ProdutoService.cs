@@ -79,6 +79,9 @@ public sealed class ProdutoService : IProdutoService
 
     public async Task<ApiResponse<ProdutoDto>> AdicionarAsync(ProdutoCreateDto dto, string userId)
     {
+        _logger.LogInformation("Iniciando {Metodo} para catalogoId: {CatalogoId}, usuarioId: {UsuarioId}",
+            nameof(AdicionarAsync), produtoDto.CatalogoId, userId);
+        
         var catalogo = await _dbContext.ObterCatalogoPorIdAsync(dto.CatalogoId);
         if (catalogo?.UserId != userId)
             return ApiResponse<ProdutoDto>.Error(ResponseType.Forbidden, "Acesso negado.");
@@ -102,6 +105,19 @@ public sealed class ProdutoService : IProdutoService
                 Disponivel = dto.Estoque.Disponivel
             } : null
         };
+         var user = await _dbContext.Users
+            .Include(u => u.Assinaturas)
+            .ThenInclude(a => a.PlanoAssinatura)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+            return ApiResponse<ProdutoDto>.Error(ResponseType.NotFound, "Usuário não encontrado.");
+
+        int quantidadeAtual = await _dbContext.Produtos.CountAsync(p => p.Catalogo.UserId == userId);
+
+        if (!user.PodeAdicionarProduto(quantidadeAtual))
+            return ApiResponse<ProdutoDto>.Error(ResponseType.Validation, "Limite de produtos do seu plano atingido. Faça um upgrade para continuar.");
+
 
         await _dbContext.AdicionarAsync(produto);
         _logger.LogInformation("Produto criado com sucesso. Id: {ProdutoId}", produto.Id);
