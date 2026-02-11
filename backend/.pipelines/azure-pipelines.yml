@@ -54,17 +54,20 @@ steps:
     zipAfterPublish: false
     modifyOutputPath: false
 
-- task: FtpUpload@2
-  displayName: 'Upload dos Arquivos via FTP'
+- task: UsePythonVersion@0
+  displayName: 'Instalar Python 3.x para Script de Deploy'
   inputs:
-    credentialsOption: 'inputs'
-    serverUrl: '$(ftpUrl)'     # Configurar no Azure DevOps: ftp://catalogo.sanyz.com.br
-    username: '$(ftpUser)'     # Configurar no Azure DevOps: 9295_sanyz
-    password: '$(ftpPassword)' # Configurar no Azure DevOps: b3ndgzwa##suroaylqjvmxe
-    rootDirectory: '$(Build.ArtifactStagingDirectory)'
-    filePatterns: '**'
-    remoteDirectory: '$(ftpRootFolder)' # Configurar no Azure DevOps: /catalogo.sanyz.com.br/wwwroot
-    clean: false               # Define se deve limpar o diretório remoto antes (Cuidado!)
-    cleanContents: false
-    preservePaths: true
-    trustSSL: true             # Necessário se o servidor usar FTPS ou certificado auto-assinados
+    versionSpec: '3.x'
+    addToPath: true
+
+- task: PythonScript@0
+  displayName: 'Executar Deploy Seguro via FTP (com app_offline)'
+  inputs:
+    scriptSource: 'filePath'
+    scriptPath: 'backend/.pipelines/deploy-iis.py'
+  env:
+    FTP_URL: $(ftpUrl)
+    FTP_USER: $(ftpUser)
+    FTP_PASS: $(ftpPassword)
+    LOCAL_DIR: $(Build.ArtifactStagingDirectory)
+    REMOTE_DIR: '/wwwroot' # Caminho padrão IIS
