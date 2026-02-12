@@ -284,16 +284,25 @@ public sealed class PlanoAssinaturaService : IPlanoAssinaturaService
 
     private async Task<AssinaturaUsuarioDto> MapToAssinaturaDto(AssinaturaUsuario assinatura)
     {
-        var plano = await _context.PlanosAssinatura.FindAsync(assinatura.PlanoAssinaturaId);
-        var user = await _context.Users.FindAsync(assinatura.UserId);
+        var plano = assinatura.PlanoAssinatura ?? await _context.PlanosAssinatura.FindAsync(assinatura.PlanoAssinaturaId);
+        if (plano == null)
+        {
+            throw new InvalidOperationException($"Plano de assinatura com ID {assinatura.PlanoAssinaturaId} não encontrado.");
+        }
+
+        var user = assinatura.User ?? await _context.Users.FindAsync(assinatura.UserId);
+        if (user == null)
+        {
+            throw new InvalidOperationException($"Usuário com ID {assinatura.UserId} não encontrado.");
+        }
 
         return new AssinaturaUsuarioDto
         {
             Id = assinatura.Id,
             UserId = assinatura.UserId,
-            UserName = user?.UserName,
+            UserName = user.UserName ?? string.Empty,
             PlanoAssinaturaId = assinatura.PlanoAssinaturaId,
-            PlanoAssinaturaNome = plano?.Nome,
+            PlanoAssinaturaNome = plano.Nome,
             DataInicio = assinatura.DataInicio,
             DataFim = assinatura.DataFim,
             Ativa = assinatura.Ativa,
@@ -303,7 +312,7 @@ public sealed class PlanoAssinaturaService : IPlanoAssinaturaService
             RenovacaoAutomatica = assinatura.RenovacaoAutomatica,
             DataCancelamento = assinatura.DataCancelamento,
             MotivoCancelamento = assinatura.MotivoCancelamento,
-            PlanoAssinatura = plano != null ? MapToDto(plano) : null,
+            PlanoAssinatura = MapToDto(plano),
             DataCriacao = assinatura.DataCriacao,
             DataAtualizacao = assinatura.DataAtualizacao
         };
