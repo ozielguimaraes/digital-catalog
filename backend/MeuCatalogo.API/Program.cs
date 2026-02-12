@@ -205,8 +205,7 @@ try
     var blobOptions = blobSection.Get<MeuCatalogo.Application.Infrastructure.Storage.BlobStorageOptions>() ?? new();
     builder.Services.AddSingleton(blobOptions);
 
-    string? storageConn = builder.Configuration["AZURE_STORAGE_CONNECTION_STRING"]
-        ?? Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
+    string? storageConn = builder.Configuration["BlobStorage:ConnectionString"];
 
     if (!string.IsNullOrWhiteSpace(storageConn))
     {

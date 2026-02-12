@@ -16,11 +16,12 @@ public class AzureBlobStorageService : IStorageService
     {
         _accountUrl = options.AccountUrl.TrimEnd('/');
 
-        string? conn = configuration["AZURE_STORAGE_CONNECTION_STRING"]
-                        ?? Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
+        string? conn = configuration["BlobStorage:ConnectionString"] 
+                       ?? configuration["AZURE_STORAGE_CONNECTION_STRING"]
+                       ?? Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
 
         if (string.IsNullOrWhiteSpace(conn))
-            throw new InvalidOperationException("AZURE_STORAGE_CONNECTION_STRING not configured.");
+            throw new InvalidOperationException("BlobStorage:ConnectionString or AZURE_STORAGE_CONNECTION_STRING not configured.");
 
         var service = new BlobServiceClient(conn);
         _container = service.GetBlobContainerClient(options.ContainerName);
