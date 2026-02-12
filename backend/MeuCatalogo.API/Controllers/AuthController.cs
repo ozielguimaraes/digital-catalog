@@ -2,6 +2,7 @@ using MeuCatalogo.Application.DTOs;
 using MeuCatalogo.Application.DTOs.Responses;
 using MeuCatalogo.Application.Entities;
 using MeuCatalogo.Application.Interfaces;
+using MeuCatalogo.API.Infrastructure.Messages;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +24,7 @@ public class AuthController : BaseApiController
     private readonly IConfiguration _configuration;
     private readonly IPlanoAssinaturaService _planoAssinaturaService;
     private readonly IRefreshTokenService _refreshTokenService;
+    private readonly EmailSender _emailSender;
     private readonly ILogger<AuthController> _logger;
 
     public AuthController(
@@ -31,6 +33,7 @@ public class AuthController : BaseApiController
         IConfiguration configuration,
         IPlanoAssinaturaService planoAssinaturaService,
         IRefreshTokenService refreshTokenService,
+        EmailSender emailSender,
         ILogger<AuthController> logger)
     {
         _userManager = userManager;
@@ -38,6 +41,7 @@ public class AuthController : BaseApiController
         _configuration = configuration;
         _planoAssinaturaService = planoAssinaturaService;
         _refreshTokenService = refreshTokenService;
+        _emailSender = emailSender;
         _logger = logger;
     }
 
@@ -144,7 +148,7 @@ public class AuthController : BaseApiController
 
         string token = GenerateJwtToken(user);
         var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(user.Id);
-        
+
         var response = ApiResponse<SigninResponse>.Success(new SigninResponse(token, refreshToken.Token,
             new UserDto
             {
@@ -322,6 +326,88 @@ public class AuthController : BaseApiController
         });
 
         return HandleApiResponse(response);
+    }
+
+    /// <summary>
+    /// Solicita recuperação de senha e envia um código para o email cadastrado
+    /// </summary>
+    /// <param name="forgotPasswordDto">Email ou telefone do usuário</param>
+    /// <returns>Status da solicitação</returns>
+    [HttpPost("forgot-password")]
+    [SwaggerOperation(Summary = "Solicitar recuperação de senha", Description = "Envia um email com instruções para redefinir a senha.")]
+    [SwaggerResponse(200, "Email de recuperação enviado")]
+    [SwaggerResponse(400, "Usuário não encontrado")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordDto forgotPasswordDto)
+    {
+        _logger.LogInformation("Solicitação de recuperação de senha para: {Identifier}", forgotPasswordDto.Identifier);
+
+        var user = await _userManager.FindByEmailAsync(forgotPasswordDto.Identifier);
+
+        if (user == null && forgotPasswordDto.Identifier.Any(char.IsDigit))
+        {
+             user = _userManager.Users.FirstOrDefault(u => u.PhoneNumber == forgotPasswordDto.Identifier);
+        }
+
+        if (user == null)
+        {
+            return BadRequestResponse("Usuário não encontrado com este e-mail ou telefone.");
+        }
+
+        string? token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+        var message = new EmailMessage(
+            "Recuperação de Senha - Meu Catálogo",
+            $@"
+                <h2>Recuperação de Senha</h2>
+                <p>Olá {user.Nome.Split(' ')[0]},</p>
+                <p>Recebemos uma solicitação para redefinir sua senha.</p>
+
+                <div style='background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;'>
+                    <p style='margin: 0; font-weight: bold;'>Seu código de recuperação é:</p>
+                    <h1 style='margin: 10px 0; letter-spacing: 5px; color: #333;'>{token}</h1>
+                </div>
+
+                <p>Se você não solicitou isso, ignore este email.</p>
+            ",
+            user.Email
+        );
+
+        bool emailSent = await _emailSender.EnviarEmailAsync(message);
+
+        if (!emailSent)
+        {
+            return BadRequestResponse("Erro ao enviar email de recuperação. Tente novamente mais tarde.");
+        }
+
+        return HandleApiResponse(ApiResponse<string>.Success(token, "Email de recuperação enviado."));
+    }
+
+    /// <summary>
+    /// Redefine a senha do usuário
+    /// </summary>
+    /// <param name="resetPasswordDto">Dados para redefinição</param>
+    /// <returns>Status da operação</returns>
+    [HttpPost("reset-password")]
+    [SwaggerOperation(Summary = "Redefinir senha", Description = "Define uma nova senha usando o token de recuperação.")]
+    [SwaggerResponse(200, "Senha redefinida com sucesso")]
+    [SwaggerResponse(400, "Erro na redefinição")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordDto resetPasswordDto)
+    {
+        var user = await _userManager.FindByEmailAsync(resetPasswordDto.Email);
+        if (user == null)
+        {
+            return BadRequestResponse("Usuário não encontrado.");
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, resetPasswordDto.Token, resetPasswordDto.NewPassword);
+
+        if (result.Succeeded)
+        {
+            return HandleApiResponse(ApiResponse<string>.Success(null, "Senha redefinida com sucesso. Você já pode fazer login."));
+        }
+
+        var errors = result.Errors.Select(e => e.Description);
+        return BadRequestResponse($"Erro ao redefinir senha: {string.Join(", ", errors)}");
     }
 
     private string GenerateJwtToken(ApplicationUser user)

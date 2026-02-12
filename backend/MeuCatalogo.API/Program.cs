@@ -11,6 +11,7 @@ using System.Text;
 using MeuCatalogo.API.Filters;
 using MeuCatalogo.API.Middlewares;
 using MeuCatalogo.API.Converters;
+using MeuCatalogo.API.Infrastructure.Messages;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using Sentry;
@@ -124,7 +125,33 @@ try
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders();
 
+    // Configure Password Reset Token to use Short Code (EmailProvider) for better Mobile experience
+    builder.Services.Configure<IdentityOptions>(options =>
+    {
+        options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultEmailProvider;
+    });
+
     Console.WriteLine("✓ Database context configured successfully.");
+
+    // Configure Email Sender
+    var emailSettings = builder.Configuration.GetSection("EmailSettings");
+    if (emailSettings.Exists())
+    {
+        builder.Services.AddTransient<EmailSender>(sp =>
+            new EmailSender(
+                emailSettings["Username"],
+                emailSettings["Password"],
+                emailSettings["Host"],
+                int.Parse(emailSettings["Port"]),
+                bool.Parse(emailSettings["EnableSsl"] ?? "true"),
+                emailSettings["SenderName"] ?? "Meu Catálogo"
+            ));
+        Console.WriteLine("✓ EmailSender configured successfully.");
+    }
+    else
+    {
+        Console.WriteLine("⚠ EmailSettings section missing - EmailSender not configured.");
+    }
 
     // Validate JWT configuration
     Console.WriteLine("Validating JWT configuration...");
@@ -236,7 +263,7 @@ try
             Contact = new OpenApiContact
             {
                 Name = "MeuCatalogo Team",
-                Email = "contato@meucatalogo.com"
+                Email = "hi@ozielguimaraes.dev"
             }
         });
         c.DocumentFilter<LowercaseDocumentFilter>();

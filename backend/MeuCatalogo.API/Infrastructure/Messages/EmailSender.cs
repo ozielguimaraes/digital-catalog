@@ -11,23 +11,25 @@ public class EmailSender
     private readonly string _host;
     private readonly int _porta;
     private readonly bool _enableSsl;
+    private readonly string _displayName;
 
-    public EmailSender(string remetente, string senha, string host, int porta, bool enableSsl = true)
+    public EmailSender(string remetente, string senha, string host, int porta, bool enableSsl = true, string displayName = "Aplicativo")
     {
         _remetente = remetente;
         _senha = senha;
         _host = host;
         _porta = porta;
         _enableSsl = enableSsl;
+        _displayName = displayName;
     }
 
-    public async Task<bool> EnviarEmailAsync(EmailMessage message, string displayName = "Aplicativo")
+    public async Task<bool> EnviarEmailAsync(EmailMessage message)
     {
         try
         {
             var mailMessage = new MailMessage
             {
-                From = new MailAddress(_remetente, displayName),
+                From = new MailAddress(_remetente, _displayName),
                 Priority = MailPriority.Normal,
                 IsBodyHtml = true,
                 Subject = message.Assunto,
@@ -45,14 +47,12 @@ public class EmailSender
             foreach (var attachment in message.Attachments)
                 mailMessage.Attachments.Add(new Attachment(attachment));
 
-            using var smtp = new SmtpClient
-            {
-                Host = _host,
-                Port = _porta,
-                EnableSsl = _enableSsl,
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                Credentials = new NetworkCredential(_remetente, _senha)
-            };
+            using var smtp = new SmtpClient();
+            smtp.Host = _host;
+            smtp.Port = _porta;
+            smtp.EnableSsl = _enableSsl;
+            smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+            smtp.Credentials = new NetworkCredential(_remetente, _senha);
 
             await smtp.SendMailAsync(mailMessage);
             return true;
