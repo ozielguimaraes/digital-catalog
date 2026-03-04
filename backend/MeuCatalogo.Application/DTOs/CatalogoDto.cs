@@ -8,6 +8,8 @@ public sealed class CatalogoDto
     public string NomeCurto { get; set; }
     public string NumeroWhatsapp { get; set; }
     public string Email { get; set; }
+    public string? LogoUrl { get; set; }
+    public string? BannerUrl { get; set; }
     public DateTime DataCriacao { get; set; }
     public DateTime? DataAtualizacao { get; set; }
     public ICollection<ProdutoDto>? Produtos { get; set; }

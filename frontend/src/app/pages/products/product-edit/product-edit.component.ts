@@ -25,6 +25,7 @@ export class ProductEditComponent implements OnInit {
   categories: Category[] = [];
   product: Product | null = null;
   loading = false;
+  uploadStatus: string = '';
   error: string | null = null;
   success: string | null = null;
   showCategoryModal = false;
@@ -120,11 +121,20 @@ export class ProductEditComponent implements OnInit {
 
     // Handle existing images
     if (product.imagens && product.imagens.length > 0) {
-      this.uploadedImages = product.imagens.map(url => ({
-        file: null as any, // Existing images don't have files
-        preview: this.imageUrlService.getImageUrl(url),
-        isEdited: false
-      }));
+      this.uploadedImages = product.imagens.map(img => {
+        let imageUrl = '';
+        if (typeof img === 'string') {
+          imageUrl = img;
+        } else if (img && typeof img === 'object') {
+          imageUrl = (img as any).url || '';
+        }
+        
+        return {
+          file: null as any, // Existing images don't have files
+          preview: this.imageUrlService.getImageUrl(imageUrl),
+          isEdited: false
+        };
+      });
     } else {
       this.uploadedImages = [];
     }
@@ -235,6 +245,7 @@ export class ProductEditComponent implements OnInit {
     }
 
     this.loading = true;
+    this.uploadStatus = 'Salvando dados do produto...';
     this.error = null;
     this.success = null;
 
@@ -263,6 +274,7 @@ export class ProductEditComponent implements OnInit {
         } else {
           this.success = 'Produto atualizado com sucesso!';
           this.loading = false;
+          this.uploadStatus = '';
           
           // Redirect to products list after 2 seconds
           setTimeout(() => {
@@ -288,15 +300,28 @@ export class ProductEditComponent implements OnInit {
       if (newImages.length === 0) {
         this.success = 'Produto atualizado com sucesso!';
         this.loading = false;
+        this.uploadStatus = '';
         this.redirectToProducts();
         return;
       }
 
-      const uploadPromises = newImages.map(imageData => {
+      const totalImages = newImages.length;
+      let uploadedCount = 0;
+      this.uploadStatus = `Enviando imagens (0/${totalImages})...`;
+
+      const uploadPromises = newImages.map(async (imageData, index) => {
         if (imageData.file) {
-          return firstValueFrom(this.imageUploadService.uploadImage(productId, imageData.file));
+          try {
+            const result = await firstValueFrom(this.imageUploadService.uploadImage(productId, imageData.file));
+            uploadedCount++;
+            this.uploadStatus = `Enviando imagens (${uploadedCount}/${totalImages})...`;
+            return result;
+          } catch (err) {
+            console.error(`Error uploading image ${index + 1}:`, err);
+            throw err;
+          }
         }
-        return Promise.resolve(null);
+        return null;
       });
 
       const results = await Promise.all(uploadPromises);
@@ -304,12 +329,14 @@ export class ProductEditComponent implements OnInit {
       
       this.success = 'Produto atualizado com sucesso!';
       this.loading = false;
+      this.uploadStatus = '';
       this.redirectToProducts();
       
     } catch (error) {
       console.error('Error uploading images:', error);
       this.success = 'Produto atualizado com sucesso, mas houve erro no upload das imagens.';
       this.loading = false;
+      this.uploadStatus = '';
       this.redirectToProducts();
     }
   }
@@ -376,5 +403,17 @@ export class ProductEditComponent implements OnInit {
 
   getImageUrl(imageUrl: string): string {
     return this.imageUrlService.getImageUrl(imageUrl);
+  }
+
+  getProductImageUrls(): string[] {
+    if (!this.product || !this.product.imagens) {
+      return [];
+    }
+    return this.product.imagens.map((img: any) => {
+      if (typeof img === 'string') {
+        return this.imageUrlService.getImageUrl(img);
+      }
+      return this.imageUrlService.getImageUrl(img.url);
+    });
   }
 }

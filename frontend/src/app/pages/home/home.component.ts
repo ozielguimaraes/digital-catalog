@@ -200,7 +200,16 @@ export class HomeComponent implements OnInit {
     // Return a placeholder image since Product model doesn't have images yet
     if (product.imagens && product.imagens.length > 0) {
       // Use the first image (principal image)
-      const imageUrl = product.imagens[0];
+      const firstImage: any = product.imagens[0];
+      let imageUrl = '';
+
+      // Handle both string (legacy) and object (new) formats
+      if (typeof firstImage === 'string') {
+        imageUrl = firstImage;
+      } else if (firstImage && typeof firstImage === 'object') {
+        imageUrl = (firstImage as any).url || '';
+      }
+
       return this.imageUrlService.getImageUrl(imageUrl);
     }
     return 'assets/images/placeholder-product.jpg';

@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://localhost:7001/api',
+  apiUrl: 'http://catalogo-api.sanyz.com.br/api',
   appName: 'Digital Catalog',
   version: '1.0.0',
   sentry: {

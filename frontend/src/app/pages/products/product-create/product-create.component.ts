@@ -24,6 +24,7 @@ export class ProductCreateComponent implements OnInit {
   categories: Category[] = [];
   selectedCatalogId: string = '';
   loading = false;
+  uploadStatus: string = '';
   error: string | null = null;
   success: string | null = null;
   showCategoryModal = false;
@@ -208,6 +209,7 @@ export class ProductCreateComponent implements OnInit {
     }
 
     this.loading = true;
+    this.uploadStatus = 'Salvando dados do produto...';
     this.error = null;
     this.success = null;
 
@@ -239,6 +241,7 @@ export class ProductCreateComponent implements OnInit {
         } else {
           this.success = 'Produto criado com sucesso!';
           this.loading = false;
+          this.uploadStatus = '';
           
           // Redirect to products list after 2 seconds
           setTimeout(() => {
@@ -261,15 +264,29 @@ export class ProductCreateComponent implements OnInit {
       if (this.uploadedImages.length === 0) {
         this.success = 'Produto criado com sucesso!';
         this.loading = false;
+        this.uploadStatus = '';
         this.redirectToProducts();
         return;
       }
 
-      const uploadPromises = this.uploadedImages.map(imageData => {
+      const totalImages = this.uploadedImages.length;
+      let uploadedCount = 0;
+      this.uploadStatus = `Enviando imagens (0/${totalImages})...`;
+
+      const uploadPromises = this.uploadedImages.map(async (imageData, index) => {
         if (imageData.file) {
-          return firstValueFrom(this.imageUploadService.uploadImage(productId, imageData.file));
+          try {
+            const result = await firstValueFrom(this.imageUploadService.uploadImage(productId, imageData.file));
+            uploadedCount++;
+            this.uploadStatus = `Enviando imagens (${uploadedCount}/${totalImages})...`;
+            return result;
+          } catch (err) {
+            console.error(`Error uploading image ${index + 1}:`, err);
+            // Don't stop other uploads if one fails, but track the error if needed
+            throw err; 
+          }
         }
-        return Promise.resolve(null);
+        return null;
       });
 
       const results = await Promise.all(uploadPromises);
@@ -277,12 +294,14 @@ export class ProductCreateComponent implements OnInit {
       
       this.success = 'Produto criado com sucesso!';
       this.loading = false;
+      this.uploadStatus = '';
       this.redirectToProducts();
       
     } catch (error) {
       console.error('Error uploading images:', error);
-      this.success = 'Produto criado com sucesso, mas houve erro no upload das imagens.';
+      this.success = 'Produto criado com sucesso, mas houve erro no upload de algumas imagens.';
       this.loading = false;
+      this.uploadStatus = '';
       this.redirectToProducts();
     }
   }

@@ -127,7 +127,7 @@ public sealed class ProdutoService : IProdutoService
 
     public async Task<ApiResponse<ProdutoDto>> AtualizarAsync(Guid id, ProdutoUpdateDto dto, string userId)
     {
-        var produto = await _dbContext.ObterProdutoPorIdAsync(id)
+        var produto = await _dbContext.ObterProdutoComDetalhesAsync(id)
             ?? throw new KeyNotFoundException("Produto não encontrado.");
 
         var catalogo = await _dbContext.ObterCatalogoPorIdAsync(produto.CatalogoId);
@@ -139,6 +139,33 @@ public sealed class ProdutoService : IProdutoService
         produto.Preco = dto.Preco;
         produto.PrecoComDesconto = dto.PrecoComDesconto;
         produto.InformacoesAdicionais = dto.InformacoesAdicionais;
+
+        if (dto.Estoque != null)
+        {
+            if (produto.Estoque == null)
+            {
+                produto.Estoque = new Estoque
+                {
+                    ProdutoId = id,
+                    Quantidade = dto.Estoque.Quantidade,
+                    QuantidadeMinima = dto.Estoque.QuantidadeMinima,
+                    QuantidadeMaxima = dto.Estoque.QuantidadeMaxima,
+                    Disponivel = dto.Estoque.Disponivel
+                };
+            }
+            else
+            {
+                produto.Estoque.Quantidade = dto.Estoque.Quantidade;
+                produto.Estoque.QuantidadeMinima = dto.Estoque.QuantidadeMinima;
+                produto.Estoque.QuantidadeMaxima = dto.Estoque.QuantidadeMaxima;
+                produto.Estoque.Disponivel = dto.Estoque.Disponivel;
+            }
+
+            if (dto.Estoque.EhIlimitado)
+            {
+                produto.Estoque.Quantidade = null;
+            }
+        }
 
         await _dbContext.AtualizarProdutoAsync(produto);
         return ApiResponse<ProdutoDto>.Success(MapProdutoToDto(produto));
@@ -280,31 +307,51 @@ public sealed class ProdutoService : IProdutoService
     #endregion
 
 
-    private static ProdutoDto MapProdutoToDto(Produto p) => new()
+    private ProdutoDto MapProdutoToDto(Produto p)
     {
-        Id = p.Id,
-        Nome = p.Nome,
-        CategoriaId = p.CategoriaId,
-        CategoriaNome = p.Categoria?.Nome ?? "Categoria não encontrada",
-        CatalogoId = p.CatalogoId,
-        Preco = p.Preco,
-        PrecoComDesconto = p.PrecoComDesconto,
-        InformacoesAdicionais = p.InformacoesAdicionais,
-        DataCriacao = p.DataCriacao,
-        DataAtualizacao = p.DataAtualizacao,
-        Estoque = p.Estoque != null ? new EstoqueDto
+        var dto = new ProdutoDto
         {
-            Id = p.Estoque.Id,
-            ProdutoId = p.Estoque.ProdutoId,
-            Quantidade = p.Estoque.Quantidade,
-            QuantidadeMinima = p.Estoque.QuantidadeMinima,
-            QuantidadeMaxima = p.Estoque.QuantidadeMaxima,
-            Disponivel = p.Estoque.Disponivel,
-            EhIlimitado = p.Estoque.EhIlimitado(),
-            DataCriacao = p.Estoque.DataCriacao,
-            DataAtualizacao = p.Estoque.DataAtualizacao
-        } : null,
-        Imagens = p.Imagens?.Select(i => i.Url).ToList() ?? new()
-    };
+            Id = p.Id,
+            Nome = p.Nome,
+            CategoriaId = p.CategoriaId,
+            CategoriaNome = p.Categoria?.Nome ?? "Categoria não encontrada",
+            CatalogoId = p.CatalogoId,
+            Preco = p.Preco,
+            PrecoComDesconto = p.PrecoComDesconto,
+            InformacoesAdicionais = p.InformacoesAdicionais,
+            DataCriacao = p.DataCriacao,
+            DataAtualizacao = p.DataAtualizacao,
+            Estoque = p.Estoque != null ? new EstoqueDto
+            {
+                Id = p.Estoque.Id,
+                ProdutoId = p.Estoque.ProdutoId,
+                Quantidade = p.Estoque.Quantidade,
+                QuantidadeMinima = p.Estoque.QuantidadeMinima,
+                QuantidadeMaxima = p.Estoque.QuantidadeMaxima,
+                Disponivel = p.Estoque.Disponivel,
+                EhIlimitado = p.Estoque.EhIlimitado(),
+                DataCriacao = p.Estoque.DataCriacao,
+                DataAtualizacao = p.Estoque.DataAtualizacao
+            } : null,
+            Imagens = p.Imagens?.Select(img => new ProdutoImagemDto
+            {
+                Id = img.Id,
+                Url = _storage.GetPresignedUrlFromPublicUrl(img.Url, TimeSpan.FromMinutes(60)),
+                IsPrincipal = img.IsPrincipal,
+                Ordem = img.Ordem
+            }).OrderBy(i => i.Ordem).ToList() ?? new List<ProdutoImagemDto>(),
+            Variacoes = p.Variacoes?.Select(v => new VariacaoDto
+            {
+                Id = v.Id,
+                ProdutoId = v.ProdutoId,
+                TipoVariacaoId = v.TipoVariacaoId,
+                TipoNome = v.TipoVariacao?.Nome ?? "N/A",
+                OpcaoVariacaoId = v.OpcaoVariacaoId,
+                Valor = v.OpcaoVariacao?.Valor ?? "N/A",
+                DataCriacao = v.DataCriacao
+            }).ToList() ?? new List<VariacaoDto>()
+        };
+        return dto;
+    }
 
 }

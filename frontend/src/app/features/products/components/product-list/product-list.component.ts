@@ -8,6 +8,7 @@ import { Product, Category } from '../../../../core/models/product.model';
 import { ProductService } from '../../../../core/services/product.service';
 import { CategoryService } from '../../../../core/services/category.service';
 import { CatalogService, Catalog } from '../../../../core/services/catalog.service';
+import { ImageUrlService } from '../../../../core/services/image-url.service';
 import { ProductFormComponent, ProductFormData } from '../product-form/product-form.component';
 import { CategoryFormComponent, CategoryFormData } from '../category-form/category-form.component';
 import { extractErrorMessage } from '../../../../core/utils/error.utils';
@@ -21,7 +22,7 @@ export class ProductListComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  displayedColumns: string[] = ['nome', 'categoria', 'preco', 'quantidade', 'ativo', 'acoes'];
+  displayedColumns: string[] = ['imagem', 'nome', 'categoria', 'preco', 'quantidade', 'ativo', 'acoes'];
   dataSource = new MatTableDataSource<Product>();
   
   products: Product[] = [];
@@ -48,6 +49,7 @@ export class ProductListComponent implements OnInit {
     private productService: ProductService,
     private categoryService: CategoryService,
     private catalogService: CatalogService,
+    private imageUrlService: ImageUrlService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {}
@@ -264,6 +266,27 @@ export class ProductListComponent implements OnInit {
       style: 'currency',
       currency: 'BRL'
     }).format(price);
+  }
+
+  getProductImage(product: Product): string {
+    if (product.imagens && product.imagens.length > 0) {
+      // Tenta encontrar a imagem principal
+      const imagens: any[] = product.imagens;
+      let imageUrl = '';
+      
+      // Verifica se é array de strings (legado) ou objetos
+      if (typeof imagens[0] === 'string') {
+        imageUrl = imagens[0];
+      } else {
+        // Array de objetos
+        const principal = imagens.find((img: any) => img.isPrincipal);
+        const imageObj = principal || imagens[0];
+        imageUrl = imageObj.url || '';
+      }
+      
+      return this.imageUrlService.getImageUrl(imageUrl);
+    }
+    return 'assets/images/placeholder-product.png';
   }
 
   private showSuccess(message: string): void {

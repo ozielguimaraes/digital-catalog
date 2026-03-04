@@ -32,6 +32,11 @@ public class LocalFileStorageService : IStorageService
     public string GetBlobUrl(string blobPath)
         => $"/uploads/{NormalizePath(blobPath)}".Replace("\\", "/");
 
+    public string GetPresignedUrlFromPublicUrl(string publicUrl, TimeSpan expiration)
+    {
+        return publicUrl;
+    }
+
     private static string NormalizePath(string p)
         => p.TrimStart('/', '\\');
 }

@@ -14,10 +14,12 @@ namespace MeuCatalogo.Application.Services;
 public sealed class CatalogoService : ICatalogoService
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly IStorageService _storage;
 
-    public CatalogoService(ApplicationDbContext dbContext)
+    public CatalogoService(ApplicationDbContext dbContext, IStorageService storage)
     {
         _dbContext = dbContext;
+        _storage = storage;
     }
 
     public async Task<ApiResponse<IEnumerable<CatalogoDto>>> ObterTodosPublicosAsync()
@@ -91,7 +93,24 @@ public sealed class CatalogoService : ICatalogoService
                     QuantidadeMaxima = p.Estoque.QuantidadeMaxima,
                     DataCriacao = p.Estoque.DataCriacao,
                     DataAtualizacao = p.Estoque.DataAtualizacao
-                } : null
+                } : null,
+                Imagens = p.Imagens?.Select(img => new ProdutoImagemDto
+                {
+                    Id = img.Id,
+                    Url = _storage.GetPresignedUrlFromPublicUrl(img.Url, TimeSpan.FromMinutes(60)),
+                    IsPrincipal = img.IsPrincipal,
+                    Ordem = img.Ordem
+                }).OrderBy(i => i.Ordem).ToList() ?? new List<ProdutoImagemDto>(),
+                Variacoes = p.Variacoes?.Select(v => new VariacaoDto
+                {
+                    Id = v.Id,
+                    ProdutoId = v.ProdutoId,
+                    TipoVariacaoId = v.TipoVariacaoId,
+                    TipoNome = v.TipoVariacao?.Nome ?? "N/A",
+                    OpcaoVariacaoId = v.OpcaoVariacaoId,
+                    Valor = v.OpcaoVariacao?.Valor ?? "N/A",
+                    DataCriacao = v.DataCriacao
+                }).ToList() ?? new List<VariacaoDto>()
             }).ToList()
         });
     }
@@ -140,7 +159,7 @@ public sealed class CatalogoService : ICatalogoService
 
         await _dbContext.AddCatalogoAsync(catalogo);
 
-        return ApiResponse<CatalogoDto>.Success(catalogo.MapToDto());
+        return ApiResponse<CatalogoDto>.Success(catalogo.MapToDto(_storage));
     }
 
     public async Task<ApiResponse<CatalogoDto>> AtualizarAsync(Guid id, CatalogoUpdateDto catalogoDto, string usuarioId)

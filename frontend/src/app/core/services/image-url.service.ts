@@ -31,21 +31,31 @@ export class ImageUrlService {
    * @returns Complete image URL
    */
   getImageUrl(imagePath: string, useCurrentOrigin: boolean = false): string {
-    // If the URL already includes the full path, use it as is
-    if (imagePath.startsWith('http') || imagePath.startsWith('//')) {
-      return imagePath;
+    if (!imagePath || typeof imagePath !== 'string') {
+      // console.warn('ImageUrlService: Invalid imagePath received', imagePath);
+      return 'assets/images/placeholder-product.png'; // Fallback image
     }
 
-    // If the path already starts with /uploads, use it as is
-    if (imagePath.startsWith('/uploads')) {
+    try {
+      // If the URL already includes the full path (e.g. Azure Blob Storage), use it as is
+      if (imagePath.startsWith('http') || imagePath.startsWith('//')) {
+        return imagePath;
+      }
+
+      // If the path starts with /uploads, assume it's a local file served by the backend
+      if (imagePath.startsWith('/uploads')) {
+        const baseUrl = useCurrentOrigin ? this.getCurrentOrigin() : this.getBaseUrl();
+        return `${baseUrl}${imagePath}`;
+      }
+
+      // If the path doesn't start with / or http, assume it's relative to base URL
+      const normalizedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
       const baseUrl = useCurrentOrigin ? this.getCurrentOrigin() : this.getBaseUrl();
-      return `${baseUrl}${imagePath}`;
+      return `${baseUrl}${normalizedPath}`;
+    } catch (error) {
+      console.error('ImageUrlService: Error processing image URL', error, imagePath);
+      return 'assets/images/placeholder-product.png';
     }
-
-    // If the path doesn't start with /, add it
-    const normalizedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-    const baseUrl = useCurrentOrigin ? this.getCurrentOrigin() : this.getBaseUrl();
-    return `${baseUrl}${normalizedPath}`;
   }
 
   /**

@@ -77,7 +77,16 @@ export class CartModalComponent implements OnInit, OnDestroy {
 
   getProductImage(item: CartItem): string {
     if (item.produto.imagens && item.produto.imagens.length > 0) {
-      return this.imageUrlService.getImageUrl(item.produto.imagens[0]);
+      const firstImage: any = item.produto.imagens[0];
+      let imageUrl = '';
+
+      if (typeof firstImage === 'string') {
+        imageUrl = firstImage;
+      } else if (firstImage && typeof firstImage === 'object') {
+        imageUrl = (firstImage as any).url || '';
+      }
+
+      return this.imageUrlService.getImageUrl(imageUrl);
     }
     return 'assets/images/placeholder-product.jpg';
   }

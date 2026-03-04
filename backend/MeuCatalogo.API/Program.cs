@@ -224,18 +224,14 @@ try
     {
         options.AddPolicy("AllowAngularApp", policy =>
         {
-            policy.WithOrigins(
-                    "http://localhost:4200",
-                    "https://localhost:4200",
-                    "http://catalogo-api.sanyz.com.br",
-                    "https://catalogo-api.sanyz.com.br",
-                    "http://catalogo.sanyz.com.br",
-                    "https://catalogo.sanyz.com.br",
-                    "http://www.catalogo.sanyz.com.br",
-                    "https://www.catalogo.sanyz.com.br",
-                    "https://sanyz-catalogo.web.app",
-                    "https://sanyz-catalogo.firebaseapp.com"
-                )
+            var allowedOrigins = builder.Configuration.GetSection("AllowedCorsOrigins").Get<string[]>() ?? new[]
+            {
+                "http://localhost:4200",
+                "https://localhost:4200"
+            };
+
+            policy.WithOrigins(allowedOrigins)
+                .SetIsOriginAllowed(origin => true) // Allow any origin in development/production if needed (use with caution)
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();

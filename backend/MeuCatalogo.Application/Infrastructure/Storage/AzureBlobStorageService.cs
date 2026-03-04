@@ -16,16 +16,14 @@ public class AzureBlobStorageService : IStorageService
     {
         _accountUrl = options.AccountUrl.TrimEnd('/');
 
-        string? conn = configuration["BlobStorage:ConnectionString"] 
-                       ?? configuration["AZURE_STORAGE_CONNECTION_STRING"]
-                       ?? Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
+        string? conn = configuration["BlobStorage:ConnectionString"];
 
         if (string.IsNullOrWhiteSpace(conn))
-            throw new InvalidOperationException("BlobStorage:ConnectionString or AZURE_STORAGE_CONNECTION_STRING not configured.");
+            throw new InvalidOperationException("BlobStorage:ConnectionString not configured.");
 
         var service = new BlobServiceClient(conn);
         _container = service.GetBlobContainerClient(options.ContainerName);
-        _container.CreateIfNotExists(PublicAccessType.Blob);
+        _container.CreateIfNotExists(PublicAccessType.None);
     }
 
     public async Task<string> UploadAsync(string blobPath, Stream content, string contentType, CancellationToken ct = default)
@@ -50,7 +48,23 @@ public class AzureBlobStorageService : IStorageService
     public string GetBlobUrl(string blobPath)
         => $"{_accountUrl}/{_container.Name}/{blobPath}";
 
-    public string? GetReadSasUrl(string blobPath, TimeSpan ttl)
+    public string GetPresignedUrlFromPublicUrl(string publicUrl, TimeSpan expiration)
+    {
+        // Extract blob path from public URL
+        // Format: AccountUrl/ContainerName/BlobPath
+        var prefix = $"{_accountUrl}/{_container.Name}/";
+        
+        if (!publicUrl.StartsWith(prefix))
+        {
+            // If URL doesn't match our storage account, return as is (maybe external image)
+            return publicUrl;
+        }
+
+        var blobPath = publicUrl.Substring(prefix.Length);
+        return GetReadSasUrl(blobPath, expiration) ?? publicUrl;
+    }
+
+    private string? GetReadSasUrl(string blobPath, TimeSpan ttl)
     {
         var blob = _container.GetBlobClient(blobPath);
         if (blob.CanGenerateSasUri)

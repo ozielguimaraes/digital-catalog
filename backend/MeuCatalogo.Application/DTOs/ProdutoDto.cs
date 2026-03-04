@@ -3,6 +3,14 @@ using System.Collections.Generic;
 
 namespace MeuCatalogo.Application.DTOs;
 
+public class ProdutoImagemDto
+{
+    public Guid Id { get; set; }
+    public string Url { get; set; }
+    public bool IsPrincipal { get; set; }
+    public int Ordem { get; set; }
+}
+
 public class ProdutoDto
 {
     public Guid Id { get; set; }
@@ -15,7 +23,7 @@ public class ProdutoDto
     public string? InformacoesAdicionais { get; set; }
     public EstoqueDto Estoque { get; set; }
     public ICollection<VariacaoDto> Variacoes { get; set; }
-    public ICollection<string> Imagens { get; set; } = new List<string>();
+    public ICollection<ProdutoImagemDto> Imagens { get; set; } = new List<ProdutoImagemDto>();
     public DateTime DataCriacao { get; set; }
     public DateTime? DataAtualizacao { get; set; }
 }

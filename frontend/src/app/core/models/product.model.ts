@@ -9,9 +9,16 @@ export interface Product {
   informacoesAdicionais?: string;
   estoque: Estoque;
   variacoes: Variacao[];
-  imagens?: string[];
+  imagens?: ProdutoImagem[];
   dataCriacao: string;
   dataAtualizacao?: string;
+}
+
+export interface ProdutoImagem {
+  id: string;
+  url: string;
+  isPrincipal: boolean;
+  ordem: number;
 }
 
 export interface Estoque {
@@ -28,18 +35,17 @@ export interface Estoque {
 
 export interface Variacao {
   id: string;
-  nome: string;
-  opcaoVariacao: OpcaoVariacao;
   produtoId: string;
+  tipoVariacaoId: string;
+  tipoNome: string;
+  opcaoVariacaoId: string;
+  valor: string;
   dataCriacao: string;
-  dataAtualizacao?: string;
 }
 
 export interface OpcaoVariacao {
   id: string;
-  nome: string;
   valor: string;
-  precoAdicional?: number;
 }
 
 export interface Category {
