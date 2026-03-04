@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -132,6 +133,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
     {
         try
         {
+            Debug.Assert(_taskCarregaCategorias != null, nameof(_taskCarregaCategorias) + " != null");
             var categoriasResponse = await _taskCarregaCategorias;
 
             if (categoriasResponse.RetornouComErro)

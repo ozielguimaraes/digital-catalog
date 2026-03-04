@@ -10,7 +10,6 @@
     xmlns:components="clr-namespace:MeuCatalogo.Components"
     x:DataType="viewmodel:EstoqueBottomSheetViewModel"
     BackgroundColor="{StaticResource White}"
-    IgnoreSafeArea="True"
     States="Peek"
     CurrentState="Peek"
     HasHandle="True"
@@ -20,10 +19,6 @@
     <bottomsheet:BottomSheet.Content>
         <bottomsheet:BottomSheetContent>
             <Grid RowDefinitions="Auto,Auto,Auto,Auto" Padding="16,0" BackgroundColor="red">
-                <Grid.Behaviors>
-                    <bottomsheet:BottomSheetPeekBehavior />
-                </Grid.Behaviors>
-
                 <Label BackgroundColor="Aqua"
                     Text="{Binding Titulo}"
                     HorizontalOptions="Center">

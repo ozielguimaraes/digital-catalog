@@ -9,7 +9,6 @@
     xmlns:models="clr-namespace:MeuCatalogo.Features.Produto.Models"
     x:DataType="viewmodel:CategoriaBottomSheetViewModel"
     BackgroundColor="{StaticResource White}"
-    IgnoreSafeArea="True"
     States="Peek,Medium"
     CurrentState="Medium"
     HasHandle="True"
@@ -19,10 +18,6 @@
     <bottomsheet:BottomSheet.Content>
         <bottomsheet:BottomSheetContent>
             <Grid RowDefinitions="Auto,Auto,*" Padding="16,0">
-                <Grid.Behaviors>
-                    <bottomsheet:BottomSheetPeekBehavior />
-                </Grid.Behaviors>
-
                 <Label
                     Text="{Binding Titulo}"
                     FontSize="20"
