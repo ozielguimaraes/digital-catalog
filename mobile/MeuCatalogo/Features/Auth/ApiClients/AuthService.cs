@@ -33,7 +33,8 @@ public class AuthService(ILogger<AuthService> logger, IAuthApi authApi) : BaseAp
         catch (ApiException apiEx)
         {
             logger.LogWarning(apiEx, "Erro da API ao cadastrar usuário.");
-            return ApiResponse<UserResponse>.Error("Erro ao efetuar cadastro", GetProblemDetails(apiEx));
+            var errorMessage = ObterMensagemErroApi(apiEx);
+            return ApiResponse<UserResponse>.Error(errorMessage, GetProblemDetails(apiEx));
         }
         catch (Exception ex)
         {
@@ -62,7 +63,8 @@ public class AuthService(ILogger<AuthService> logger, IAuthApi authApi) : BaseAp
         catch (ApiException apiEx)
         {
             logger.LogWarning(apiEx, "Erro da API ao efetuar login para o e-mail: {Email}", request.Email);
-            return ApiResponse<SigninResponse>.Error("Erro ao efetuar login", GetProblemDetails(apiEx));
+            var errorMessage = ObterMensagemErroApi(apiEx);
+            return ApiResponse<SigninResponse>.Error(errorMessage, GetProblemDetails(apiEx));
         }
         catch (Exception ex)
         {

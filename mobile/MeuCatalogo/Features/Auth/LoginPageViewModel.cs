@@ -25,7 +25,7 @@ public sealed partial class LoginPageViewModel : BasePageViewModel
         _fingerprint = fingerprint;
 #if  DEBUG
         Email = "microzapple@gmail.com";
-        Password = "Asdf1234";
+        Password = "Asdf@1234";
 #endif
     }
 
@@ -62,7 +62,13 @@ public sealed partial class LoginPageViewModel : BasePageViewModel
 
             if (signinResponse.RetornouComErro)
             {
-                await Toast.Make(signinResponse.MensagemDeErro!, ToastDuration.Long).Show();
+                string? errorMessage = signinResponse.MensagemDeErro ?? "Erro ao efetuar login";
+                if (signinResponse.ProblemDetails != null && !string.IsNullOrEmpty(signinResponse.ProblemDetails.Detail))
+                {
+                    errorMessage = signinResponse.ProblemDetails.Detail;
+                }
+
+                await Toast.Make(errorMessage, ToastDuration.Long).Show();
                 return;
             }
 
