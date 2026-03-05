@@ -49,6 +49,18 @@
       <LinkModeDiagnosticOutput>true</LinkModeDiagnosticOutput>
     </PropertyGroup>
 
+    <!-- ************************************************ -->
+    <!-- iOS specific configurations -->
+    <!-- ************************************************ -->
+
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-ios'))">
+
+      <!-- Reduce debug app size and speed up by linking SDK assemblies only -->
+      <MtouchLink>SdkOnly</MtouchLink>
+      <!-- Use platform globalization (needed for pt-BR) -->
+      <InvariantGlobalization>false</InvariantGlobalization>
+    </PropertyGroup>
+
     <ItemGroup>
       <LinkerDescriptor Include="linker.xml" />
     </ItemGroup>
