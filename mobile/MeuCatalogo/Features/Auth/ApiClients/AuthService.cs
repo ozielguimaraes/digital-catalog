@@ -10,13 +10,13 @@ public class AuthService(ILogger<AuthService> logger, IAuthApi authApi) : BaseAp
 {
     public async Task<bool> IsAuthenticatedAsync()
     {
-        string? token = await SecureStorage.GetAsync(TokenKey);
-        return !string.IsNullOrEmpty(token);
+        string? token = Preferences.Get(TokenKey, string.Empty);
+        return await Task.FromResult(!string.IsNullOrEmpty(token));
     }
 
     public bool IsAuthenticated()
     {
-        string? token = SecureStorage.GetAsync(TokenKey).Result;
+        string? token = Preferences.Get(TokenKey, string.Empty);
         return !string.IsNullOrEmpty(token);
     }
 

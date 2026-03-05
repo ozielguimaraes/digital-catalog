@@ -19,9 +19,8 @@
                 <RoundRectangle CornerRadius="0,0,100,100"/>
             </Border.StrokeShape>
             <Image Source="logo.png"
-                   Grid.Row="0"
-                   Grid.Column="0"
                    HorizontalOptions="Center"
+                   VerticalOptions="Center"
                    Aspect="AspectFit"/>
         </Border>
 

@@ -10,17 +10,16 @@
     xmlns:components="clr-namespace:MeuCatalogo.Components"
     x:DataType="viewmodel:EstoqueBottomSheetViewModel"
     BackgroundColor="{StaticResource White}"
-    States="Peek"
-    CurrentState="Peek"
+    States="Peek,Medium"
+    CurrentState="Medium"
     HasHandle="True"
     IsModal="True"
     IsCancelable="True"
     IsDraggable="True">
     <bottomsheet:BottomSheet.Content>
         <bottomsheet:BottomSheetContent>
-            <Grid RowDefinitions="Auto,Auto,Auto,Auto" Padding="16,0" BackgroundColor="red">
-                <Label BackgroundColor="Aqua"
-                    Text="{Binding Titulo}"
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto" Padding="16,0">
+                <Label Text="{Binding Titulo}"
                     HorizontalOptions="Center">
                     <Label.Margin>
                         <Thickness Top="16" />

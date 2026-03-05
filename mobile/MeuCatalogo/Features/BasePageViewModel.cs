@@ -14,7 +14,7 @@ public abstract partial class BasePageViewModel : ObservableObject
 
     partial void SetupTitle();
 
-    public static List<string> ObterErros<T>(ApiResponse<T> response)
+    protected static List<string> ObterErros<T>(ApiResponse<T> response)
     {
         if (response.ProblemDetails is null)
             return response.MensagemDeErro is null ? [ "Houve um erro inesperado, favor entrar em contato com o suporte." ] : [response.MensagemDeErro];

@@ -122,7 +122,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao entrar na tela de adicionar produto");
+            _logger.LogError(ex, "Erro ao processar retorno da navegação");
         }
     }
     #endregion
@@ -202,7 +202,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         {
             var parametros = new BottomSheetNavigationParameters();
 
-            await _bottomSheetNavigationService.NavigateToAsync<EstoqueBottomSheet>(
+            await _bottomSheetNavigationService.NavigateToAsync<EstoqueBottomSheetViewModel>(
                 BottomSheetKeys.Estoque, parametros);
         }
         catch (Exception ex)
