@@ -8,12 +8,13 @@ using MeuCatalogo.Features.Estoque;
 using MeuCatalogo.Features.Produto.Models;
 using MeuCatalogo.Features.Produto.Requests;
 using MeuCatalogo.Features.Settings.Services;
+using MeuCatalogo.Features.Produto.Responses;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.BottomSheet.Navigation;
 
 namespace MeuCatalogo.Features.Produto;
 
-public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, INavigationAware
+public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, INavigationAware, IQueryAttributable
 {
     private readonly ILogger<ProdutoAdicionarPageViewModel> _logger;
     private readonly IProdutoService _produtoService;
@@ -57,6 +58,40 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
 
     [ObservableProperty] private int? _estoque;
     [ObservableProperty] private string? _estoqueErrorMessage;
+
+    [ObservableProperty] private string _titulo = "Novo produto";
+
+    [ObservableProperty] private ProdutoResponse? _produto;
+
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        if (query.TryGetValue("Produto", out var produtoObj) && produtoObj is ProdutoResponse produto)
+        {
+            Produto = produto;
+            Nome = produto.Nome;
+            PrecoString = produto.Preco.ToString("N2");
+            PrecoComDescontoString = produto.PrecoComDesconto?.ToString("N2") ?? string.Empty;
+            InformacoesAdicionais = produto.InformacoesAdicionais;
+            Categoria = new CategoriaModel(produto.CategoriaNome, string.Empty, produto.CatalogoId) { Id = produto.CategoriaId };
+            Preco = produto.Preco;
+            _precoComDesconto = produto.PrecoComDesconto;
+            Estoque = produto.Estoque?.Quantidade;
+            Titulo = "Editar produto";
+        }
+        else
+        {
+            Produto = null;
+            Nome = string.Empty;
+            PrecoString = string.Empty;
+            PrecoComDescontoString = string.Empty;
+            InformacoesAdicionais = string.Empty;
+            Categoria = null;
+            Preco = 0;
+            _precoComDesconto = null;
+            Estoque = null;
+            Titulo = "Novo produto";
+        }
+    }
 
     #region Conversão Preços
     partial void OnNomeChanged(string value) => ValidateNome();
@@ -249,10 +284,19 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
 
             if (!ValidateAll()) return;
 
-            var request = new ProdutoCreateRequest(Nome, Categoria!.Id, catalogoId: _settingsService.CatalogoFavorito!.Id, Preco,
-                _precoComDesconto, null);
+            ApiResponse<ProdutoResponse> response;
 
-            var response = await _produtoService.CreateAsync(request);
+            if (Produto is null)
+            {
+                var request = new ProdutoCreateRequest(Nome, Categoria!.Id, catalogoId: _settingsService.CatalogoFavorito!.Id, Preco, _precoComDesconto, null);
+                response = await _produtoService.CreateAsync(request);
+            }
+            else
+            {
+                var request = new ProdutoUpdateRequest(Nome, Categoria!.Id, Preco, _precoComDesconto, InformacoesAdicionais);
+                response = await _produtoService.UpdateAsync(Produto.Id, request);
+            }
+
             if (response.RetornouComErro)
             {
                 string mensagemErro = string.Join("\n", ObterErros(response));

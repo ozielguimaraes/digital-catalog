@@ -46,9 +46,9 @@ public partial class CategoriaBottomSheetViewModel(
            return;
 
         var requestModel = new CategoriaModel(
-            nome: NovaCategoria.Trim(),
+            nome: NovaCategoria!.Trim(),
             descricao: string.Empty,
-            catalogoId: settingsService.CatalogoFavorito!.Id
+            catalogoId: settingsService.CatalogoFavorito?.Id ?? Guid.Empty
         );
         var responseModel = await categoriaService.AdicionarAsync(requestModel);
         if (responseModel.RetornouComErro)

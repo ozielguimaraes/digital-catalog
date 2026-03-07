@@ -8,7 +8,7 @@
              xmlns:converters="clr-namespace:MeuCatalogo.Converters"
              x:Class="MeuCatalogo.Features.Produto.ProdutoAdicionarPage"
              x:DataType="viewmodel:ProdutoAdicionarPageViewModel"
-             Title="Novo produto">
+             Title="{Binding Titulo}">
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:NullToDefaultTextConverter x:Key="NullToDefaultTextConverter" />

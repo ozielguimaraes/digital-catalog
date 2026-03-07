@@ -64,4 +64,14 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
     {
         await Shell.Current.GoToAsync($"{nameof(ProdutoAdicionarPage)}", true);
     }
+
+    [RelayCommand]
+    private async Task Editar(ProdutoResponse produto)
+    {
+        var navigationParameter = new Dictionary<string, object>
+        {
+            { "Produto", produto }
+        };
+        await Shell.Current.GoToAsync($"{nameof(ProdutoAdicionarPage)}", true, navigationParameter);
+    }
 }
