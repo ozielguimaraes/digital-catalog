@@ -51,7 +51,7 @@ public partial class App
 
             if (Handler is not null)
             {
-          //      await _navigationService.InitializeAsync();
+                // await _navigationService.InitializeAsync();
             }
         }
         catch (Exception ex)

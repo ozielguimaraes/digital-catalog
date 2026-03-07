@@ -73,11 +73,48 @@ public class AuthService(ILogger<AuthService> logger, IAuthApi authApi) : BaseAp
         }
     }
 
+    public async Task<bool> RefreshTokenAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var refreshToken = Preferences.Get(RefreshTokenKey, string.Empty);
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                logger.LogWarning("Refresh token não encontrado.");
+                return false;
+            }
+
+            var request = new RefreshTokenRequest { RefreshToken = refreshToken };
+            var response = await authApi.RefreshTokenAsync(request, cancellationToken);
+
+            if (response != null && !string.IsNullOrEmpty(response.Token))
+            {
+                Preferences.Set(TokenKey, response.Token);
+                if (!string.IsNullOrEmpty(response.RefreshToken))
+                {
+                    Preferences.Set(RefreshTokenKey, response.RefreshToken);
+                }
+                return true;
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Erro ao atualizar token.");
+            return false;
+        }
+    }
+
     private static async Task SetUserInfo(SigninResponse response)
     {
         string json = JsonSerializer.Serialize(response.User);
         Preferences.Set(UserInfoKey, json);
         Preferences.Set(TokenKey, response.Token);
+        if (!string.IsNullOrEmpty(response.RefreshToken))
+        {
+            Preferences.Set(RefreshTokenKey, response.RefreshToken);
+        }
 
         await Task.CompletedTask;
     }

@@ -1,8 +1,7 @@
 namespace MeuCatalogo.Features.Auth.Responses;
 
-public class SigninResponse
+public class RefreshTokenResponse
 {
     public string Token { get; set; }
     public string RefreshToken { get; set; }
-    public UserResponse User { get; set; }
 }

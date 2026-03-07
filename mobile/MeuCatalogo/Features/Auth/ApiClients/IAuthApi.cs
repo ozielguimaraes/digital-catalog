@@ -14,6 +14,9 @@ public interface IAuthApi
     [Post("/auth/login")]
     Task<SigninResponse> SigninAsync([Body] SigninRequest request, CancellationToken ct = default);
 
+    [Post("/auth/refresh-token")]
+    Task<RefreshTokenResponse> RefreshTokenAsync([Body] RefreshTokenRequest request, CancellationToken ct = default);
+
     [Get("/auth/me")]
     Task<UserResponse> GetCurrentUserAsync([Header("Authorization")] string bearerToken, CancellationToken ct = default);
 }

@@ -41,23 +41,28 @@ public static class ServiceCollectionExtension
             {
                 c.BaseAddress = new Uri(baseUrl);
             })
+            .AddHttpMessageHandler<AuthenticationHandler>()
+            .AddHttpMessageHandler<LoggingHttpClientHandler>()
             .AddPolicyHandler(retryPolicy);
 
         builder.Services
             .AddRefitClient<ICatalogoApi>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseUrl))
+            .AddHttpMessageHandler<AuthenticationHandler>()
             .AddHttpMessageHandler<LoggingHttpClientHandler>()
             .AddPolicyHandler(retryPolicy);
 
         builder.Services
             .AddRefitClient<ICategoriaApi>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseUrl))
+            .AddHttpMessageHandler<AuthenticationHandler>()
             .AddHttpMessageHandler<LoggingHttpClientHandler>()
             .AddPolicyHandler(retryPolicy);
 
         builder.Services
             .AddRefitClient<IProdutoApi>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseUrl))
+            .AddHttpMessageHandler<AuthenticationHandler>()
             .AddHttpMessageHandler<LoggingHttpClientHandler>()
             .AddPolicyHandler(retryPolicy);
 
@@ -67,6 +72,7 @@ public static class ServiceCollectionExtension
     public static MauiAppBuilder AddApplicationServices(this MauiAppBuilder builder)
     {
         builder.Services.AddTransient<LoggingHttpClientHandler>();
+        builder.Services.AddTransient<AuthenticationHandler>();
         builder.Services.AddSingleton<ISettingsService, SettingsService>();
         builder.Services.AddSingleton<INavigationService, NavigationService>();
         builder.Services.AddTransient<IAuthService, AuthService>();

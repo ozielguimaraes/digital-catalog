@@ -11,7 +11,8 @@ public abstract class BaseApiService
         PropertyNameCaseInsensitive = true
     };
 
-    protected const string TokenKey = "auth_token";
+    public const string TokenKey = "auth_token";
+    public const string RefreshTokenKey = "auth_refresh_token";
     public const string UserInfoKey = "user_info_key";
 
     protected static string ObterMensagemErroApi(ApiException apiEx)

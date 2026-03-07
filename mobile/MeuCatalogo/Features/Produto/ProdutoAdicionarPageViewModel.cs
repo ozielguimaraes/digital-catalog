@@ -249,7 +249,8 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
 
             if (!ValidateAll()) return;
 
-            var request = new ProdutoCreateRequest(Nome, Categoria!.Id, catalogoId: _settingsService.CatalogoFavorito!.Id, Preco, _precoComDesconto, null);
+            var request = new ProdutoCreateRequest(Nome, Categoria!.Id, catalogoId: _settingsService.CatalogoFavorito!.Id, Preco,
+                _precoComDesconto, null);
 
             var response = await _produtoService.CreateAsync(request);
             if (response.RetornouComErro)
@@ -265,6 +266,10 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao salvar produto");
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
     #endregion
