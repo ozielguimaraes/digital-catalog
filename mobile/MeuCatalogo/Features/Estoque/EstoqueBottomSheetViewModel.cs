@@ -6,6 +6,8 @@ namespace MeuCatalogo.Features.Estoque;
 
 public sealed partial class EstoqueBottomSheetViewModel(IBottomSheetNavigationService bottomSheetNavigationService) : BasePageViewModel, INavigationAware
 {
+    private bool _hasTypedQuantity = false;
+
     [ObservableProperty] private string _titulo = "Estoque";
     [ObservableProperty] private bool _disponivelEmEstoque = true;
     [ObservableProperty] private bool _estoqueIlimitado = true;
@@ -14,7 +16,18 @@ public sealed partial class EstoqueBottomSheetViewModel(IBottomSheetNavigationSe
 
     partial void OnDisponivelEmEstoqueChanged(bool value)
     {
-        Console.WriteLine($"DisponivelEmEstoque alterado para {value}");
+        ValidateEstoque();
+    }
+
+    partial void OnEstoqueIlimitadoChanged(bool value)
+    {
+        ValidateEstoque();
+    }
+
+    partial void OnQuantidadeEmEstoqueChanged(int? value)
+    {
+        _hasTypedQuantity = true;
+        ValidateEstoque();
     }
 
     public void OnNavigatedFrom(IBottomSheetNavigationParameters parameters)
@@ -24,17 +37,47 @@ public sealed partial class EstoqueBottomSheetViewModel(IBottomSheetNavigationSe
 
     public void OnNavigatedTo(IBottomSheetNavigationParameters parameters)
     {
-
+        _hasTypedQuantity = false;
+        QuantidadeEmEstoqueErrorMessage = string.Empty;
     }
 
-    [RelayCommand]
-    private async Task Salvar()
+    private void ValidateEstoque()
     {
-        await bottomSheetNavigationService.GoBackAsync(new BottomSheetNavigationParameters
+        bool isInvalid = DisponivelEmEstoque && !EstoqueIlimitado && (!QuantidadeEmEstoque.HasValue || QuantidadeEmEstoque <= 0);
+
+        if (isInvalid && _hasTypedQuantity)
+        {
+            QuantidadeEmEstoqueErrorMessage = "Informe uma quantidade válida maior que zero.";
+        }
+        else
+        {
+            QuantidadeEmEstoqueErrorMessage = string.Empty;
+        }
+        SalveCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool CanSalve()
+    {
+        if (!DisponivelEmEstoque) return true;
+        if (EstoqueIlimitado) return true;
+
+        return QuantidadeEmEstoque is > 0;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSalve))]
+    private async Task SalveAsync()
+    {
+        var parameters = new BottomSheetNavigationParameters
         {
             { BottomSheetParameters.DisponivelEmEstoqueSelecionado, DisponivelEmEstoque },
-            { BottomSheetParameters.EstoqueIlimitadoSelecionado, EstoqueIlimitado },
-            { BottomSheetParameters.QuantidadeEmEstoqueSelecionada, QuantidadeEmEstoque }
-        });
+            { BottomSheetParameters.EstoqueIlimitadoSelecionado, EstoqueIlimitado }
+        };
+
+        if (QuantidadeEmEstoque.HasValue)
+        {
+            parameters.Add(BottomSheetParameters.QuantidadeEmEstoqueSelecionada, QuantidadeEmEstoque.Value);
+        }
+
+        await bottomSheetNavigationService.GoBackAsync(parameters);
     }
 }

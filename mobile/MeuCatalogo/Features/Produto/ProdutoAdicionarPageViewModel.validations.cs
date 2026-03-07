@@ -33,9 +33,6 @@ public sealed partial class ProdutoAdicionarPageViewModel
 
     private bool ValidatePrecoComDesconto()
     {
-        var asds = PrecoString;
-        var ghj = PrecoComDescontoString;
-
         if (_precoComDesconto is null)
         {
             PrecoComDescontoErrorMessage = string.Empty;

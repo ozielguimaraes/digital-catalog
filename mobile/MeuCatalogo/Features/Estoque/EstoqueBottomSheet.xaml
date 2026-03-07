@@ -65,7 +65,7 @@
                 <Button
                     Grid.Row="3"
                     Text="Salvar"
-                    Command="{Binding SalvarCommand}"
+                    Command="{Binding SalveCommand}"
                     HorizontalOptions="Fill">
                     <Button.Margin>
                         <Thickness Top="16" Bottom="16" />

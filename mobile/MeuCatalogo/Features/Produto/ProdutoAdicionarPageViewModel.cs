@@ -72,6 +72,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
             Preco = preco;
         }
         ValidatePreco();
+        ValidatePrecoComDesconto();
     }
 
     partial void OnPrecoComDescontoStringChanged(string value)
@@ -115,9 +116,32 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
                 Categoria = categoria;
                 CategoriaErrorMessage = string.Empty;
             }
+
+            if (!parameters.TryGetValue(BottomSheetParameters.DisponivelEmEstoqueSelecionado, out object? disponivelObj) ||
+                disponivelObj is not bool disponivel)
+            {
+                return;
+            }
+
+            if (!disponivel)
+            {
+                Estoque = 0;
+            }
             else
             {
-                CategoriaErrorMessage = "Categoria é obrigatória";
+                if (parameters.TryGetValue(BottomSheetParameters.EstoqueIlimitadoSelecionado, out object? ilimitadoObj) && ilimitadoObj is true)
+                {
+                    Estoque = null;
+                }
+                else if (parameters.TryGetValue(BottomSheetParameters.QuantidadeEmEstoqueSelecionada, out object? qtdObj))
+                {
+                    Estoque = qtdObj switch
+                    {
+                        int quantidade => quantidade,
+                        string qtdStr when int.TryParse(qtdStr, out int qtdInt) => qtdInt,
+                        _ => Estoque
+                    };
+                }
             }
         }
         catch (Exception ex)
