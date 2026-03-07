@@ -7,63 +7,69 @@
              xmlns:responses="clr-namespace:MeuCatalogo.Features.Produto.Responses"
              x:DataType="produto:ProdutoListaPageViewModel">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="30,0" Spacing="25">
-            <Button
-                Text="Adicionar Novo"
-                IsVisible="{Binding Produtos, Converter={toolkit:IsListNotNullOrEmptyConverter}}"
-                SemanticProperties.Hint="Navega para tela de adicionar novo produto"
-                HorizontalOptions="Fill"
-                Command="{Binding AdicionarCommand}" />
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding CarregarDadosCommand}" />
+    </ContentPage.Behaviors>
+
+    <RefreshView Command="{Binding CarregarDadosCommand}" IsRefreshing="{Binding IsRefreshing}">
+        <ScrollView>
+            <VerticalStackLayout Padding="30,0" Spacing="25">
+                <Button
+                    Text="Adicionar Novo"
+                    IsVisible="{Binding Produtos, Converter={toolkit:IsListNotNullOrEmptyConverter}}"
+                    SemanticProperties.Hint="Navega para tela de adicionar novo produto"
+                    HorizontalOptions="Fill"
+                    Command="{Binding AdicionarCommand}" />
                 <Grid RowDefinitions="Auto,Auto">
                     <VerticalStackLayout IsVisible="{Binding Produtos, Converter={toolkit:IsListNullOrEmptyConverter}}">
-                    <Image
-                        Source="ic_x_mark_circle_thin.png"
-                        HeightRequest="85"
-                        Margin="0,32,0,0"
-                        Aspect="AspectFit">
-                        <Image.Behaviors>
-                            <toolkit:IconTintColorBehavior TintColor="{StaticResource Primary}" />
-                        </Image.Behaviors>
-                    </Image>
+                        <Image
+                            Source="ic_x_mark_circle_thin.png"
+                            HeightRequest="85"
+                            Margin="0,32,0,0"
+                            Aspect="AspectFit">
+                            <Image.Behaviors>
+                                <toolkit:IconTintColorBehavior TintColor="{StaticResource Primary}" />
+                            </Image.Behaviors>
+                        </Image>
 
-                    <Label
-                        Text="Nenhum adicionado ainda!"
-                        Style="{StaticResource Headline}"
-                        SemanticProperties.HeadingLevel="Level1" />
+                        <Label
+                            Text="Nenhum adicionado ainda!"
+                            Style="{StaticResource Headline}"
+                            SemanticProperties.HeadingLevel="Level1" />
 
-                    <Label
-                        Text="Clique no botão abaixo para adicionar"
-                        Style="{StaticResource SubHeadline}"
-                        SemanticProperties.HeadingLevel="Level2" />
+                        <Label
+                            Text="Clique no botão abaixo para adicionar"
+                            Style="{StaticResource SubHeadline}"
+                            SemanticProperties.HeadingLevel="Level2" />
 
-                    <Button
-                        Margin="0,16,0,0"
-                        Text="Adicionar Novo"
-                        SemanticProperties.Hint="Navega para tela de adicionar novo catálogo"
-                        HorizontalOptions="Fill"
-                        Command="{Binding AdicionarCommand}"/>
-                </VerticalStackLayout>
-                <CollectionView Grid.Row="1"
-                    ItemsSource="{Binding Produtos}"
-                    Margin="0,20,0,0"
-                    SelectionMode="None">
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="responses:ProdutoResponse">
-                            <Border Padding="10" Margin="0,5" BackgroundColor="{StaticResource Gray200}">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
-                                <VerticalStackLayout>
-                                    <Label Text="{Binding Nome}" FontAttributes="Bold" FontSize="Medium"/>
-                                    <Label Text="{Binding Email}" FontSize="Small" TextColor="Gray"/>
-                                    <Label Text="{Binding NumeroWhatsapp}" FontSize="Small" TextColor="Gray"/>
-                                </VerticalStackLayout>
-                            </Border>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-            </Grid>
-        </VerticalStackLayout>
-    </ScrollView>
+                        <Button
+                            Margin="0,16,0,0"
+                            Text="Adicionar Novo"
+                            SemanticProperties.Hint="Navega para tela de adicionar novo catálogo"
+                            HorizontalOptions="Fill"
+                            Command="{Binding AdicionarCommand}" />
+                    </VerticalStackLayout>
+                    <CollectionView Grid.Row="1"
+                                    ItemsSource="{Binding Produtos}"
+                                    Margin="0,20,0,0"
+                                    SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="responses:ProdutoResponse">
+                                <Border Padding="10" Margin="0,5" BackgroundColor="{StaticResource Gray200}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="8" />
+                                    </Border.StrokeShape>
+                                    <VerticalStackLayout>
+                                        <Label Text="{Binding Nome}" FontAttributes="Bold" FontSize="Medium" />
+                                        <!-- <Label Text="{Binding Email}" FontSize="Small" TextColor="Gray"/> -->
+                                        <!-- <Label Text="{Binding NumeroWhatsapp}" FontSize="Small" TextColor="Gray"/> -->
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Grid>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
 </ContentPage>

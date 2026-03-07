@@ -21,15 +21,14 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
         _settingsService = settingsService;
     }
 
-    [ObservableProperty] private ObservableCollection<ProdutoResponse> _produtos;
+    [ObservableProperty] private ObservableCollection<ProdutoResponse> _produtos = [];
+    [ObservableProperty] private bool _isRefreshing;
 
     [RelayCommand]
-    public async Task CarregarDados()
+    private async Task CarregarDados()
     {
         try
         {
-            if (IsBusy) return;
-
             IsBusy = true;
             var catalogo = _settingsService.CatalogoFavorito;
 
@@ -56,6 +55,7 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
         finally
         {
             IsBusy = false;
+            IsRefreshing = false;
         }
     }
 
