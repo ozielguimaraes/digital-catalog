@@ -102,4 +102,25 @@ public sealed class ProdutoService(ILogger<ProdutoService> logger, IProdutoApi p
             return ApiResponse<Guid>.Error("Erro inesperado.");
         }
     }
+
+    public async Task<ApiResponse<ProdutoImagemResponse>> UploadImageAsync(Guid produtoId, FileResult file, CancellationToken ct = default)
+    {
+        try
+        {
+            using var stream = await file.OpenReadAsync();
+            var streamPart = new StreamPart(stream, file.FileName, file.ContentType);
+            var result = await produtoApi.UploadImageAsync(produtoId, streamPart, await ObterBearerTokenAsync(), ct);
+            return ApiResponse<ProdutoImagemResponse>.Success(result);
+        }
+        catch (ApiException apiEx)
+        {
+            logger.LogWarning(apiEx, "Erro ao enviar imagem.");
+            return ApiResponse<ProdutoImagemResponse>.Error("Erro ao enviar imagem", GetProblemDetails(apiEx));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Erro inesperado ao enviar imagem.");
+            return ApiResponse<ProdutoImagemResponse>.Error("Erro inesperado.");
+        }
+    }
 }

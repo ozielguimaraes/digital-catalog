@@ -39,10 +39,11 @@ public interface IProdutoApi
         [Header("Authorization")] string bearerToken,
         CancellationToken ct = default);
 
-    // [Put("/produtos/{id}/estoque")]
-    // Task<EstoqueResponse> AtualizarEstoqueAsync(
-    //     Guid id,
-    //     [Body] EstoqueUpdateRequest request,
-    //     [Header("Authorization")] string bearerToken,
-    //     CancellationToken ct = default);
+    [Multipart]
+    [Post("/produtos/{produtoId}/upload-image")]
+    Task<ProdutoImagemResponse> UploadImageAsync(
+        Guid produtoId,
+        [AliasAs("file")] StreamPart file,
+        [Header("Authorization")] string bearerToken,
+        CancellationToken ct = default);
 }

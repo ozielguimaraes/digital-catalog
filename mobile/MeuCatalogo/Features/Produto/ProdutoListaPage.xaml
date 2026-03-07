@@ -13,7 +13,7 @@
 
     <RefreshView Command="{Binding CarregarDadosCommand}" IsRefreshing="{Binding IsRefreshing}">
         <ScrollView>
-            <VerticalStackLayout Padding="30,0" Spacing="25">
+            <VerticalStackLayout Padding="16,0" Spacing="25">
                 <Button
                     Text="Adicionar Novo"
                     IsVisible="{Binding Produtos, Converter={toolkit:IsListNotNullOrEmptyConverter}}"
@@ -43,7 +43,7 @@
                             SemanticProperties.HeadingLevel="Level2" />
 
                         <Button
-                            Margin="0,16,0,0"
+                            Margin="32,16,32,0"
                             Text="Adicionar Novo"
                             SemanticProperties.Hint="Navega para tela de adicionar novo catálogo"
                             HorizontalOptions="Fill"
@@ -55,60 +55,71 @@
                                     SelectionMode="None">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="responses:ProdutoResponse">
-                                <Border Padding="10" Margin="0,5" BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray500}}" StrokeShape="RoundRectangle 8">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type produto:ProdutoListaPageViewModel}}, Path=EditarCommand}" CommandParameter="{Binding .}" />
-                                    </Border.GestureRecognizers>
-                                    
-                                    <Grid ColumnDefinitions="80,*" ColumnSpacing="12">
-                                        <!-- Imagem do Produto -->
-                                        <Border Grid.Column="0" StrokeShape="RoundRectangle 8" WidthRequest="80" HeightRequest="80" BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray600}}"
-                                                IsVisible="{Binding Imagens, Converter={toolkit:IsListNotNullOrEmptyConverter}}">
-                                            <Image Aspect="AspectFill" WidthRequest="80" HeightRequest="80">
-                                                <Image.Source>
-                                                    <UriImageSource Uri="{Binding Imagens[0].Url}" CacheValidity="1.00:00:00" />
-                                                </Image.Source>
-                                            </Image>
-                                        </Border>
+                                <SwipeView>
+                                    <SwipeView.RightItems>
+                                        <SwipeItems>
+                                            <SwipeItem Text="Deletar"
+                                                       BackgroundColor="Red"
+                                                       IconImageSource="ic_trash_can_outlined.svg"
+                                                       Command="{Binding Source={RelativeSource AncestorType={x:Type produto:ProdutoListaPageViewModel}}, Path=DeletarCommand}"
+                                                       CommandParameter="{Binding .}" />
+                                        </SwipeItems>
+                                    </SwipeView.RightItems>
+                                    <Border Padding="10" Margin="0,5" BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray500}}" StrokeShape="RoundRectangle 8">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type produto:ProdutoListaPageViewModel}}, Path=EditarCommand}" CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
 
-                                        <!-- Imagem Placeholder -->
-                                        <Border Grid.Column="0" StrokeShape="RoundRectangle 8" WidthRequest="80" HeightRequest="80" 
-                                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                                                IsVisible="{Binding Imagens, Converter={toolkit:IsListNullOrEmptyConverter}}">
-                                            <Image Source="ic_x_mark_circle_thin.png" Aspect="Center" WidthRequest="40" HeightRequest="40">
-                                                <Image.Behaviors>
-                                                    <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray300}}" />
-                                                </Image.Behaviors>
-                                            </Image>
-                                        </Border>
+                                        <Grid ColumnDefinitions="80,*" ColumnSpacing="12">
+                                            <!-- Imagem do Produto -->
+                                            <Border Grid.Column="0" StrokeShape="RoundRectangle 8" WidthRequest="80" HeightRequest="80" BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray600}}"
+                                                    IsVisible="{Binding Imagens, Converter={toolkit:IsListNotNullOrEmptyConverter}}">
+                                                <Image Aspect="AspectFill" WidthRequest="80" HeightRequest="80">
+                                                    <Image.Source>
+                                                        <UriImageSource Uri="{Binding Imagens[0].Url}" CacheValidity="1.00:00:00" />
+                                                    </Image.Source>
+                                                </Image>
+                                            </Border>
 
-                                        <!-- Detalhes do Produto -->
-                                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="4">
-                                            <Label Text="{Binding Nome}" 
-                                                   FontAttributes="Bold" 
-                                                   FontSize="16" 
-                                                   LineBreakMode="TailTruncation" 
-                                                   TextColor="{AppThemeBinding Light=Black, Dark=White}" />
-                                            
-                                            <HorizontalStackLayout Spacing="8">
-                                                <Label Text="{Binding Preco, StringFormat='{0:C}'}" 
-                                                       FontSize="14" 
-                                                       TextColor="{StaticResource Primary}" 
-                                                       FontAttributes="Bold"/>
-                                                
-                                                <Label Text="{Binding PrecoComDesconto, StringFormat='{0:C}'}" 
-                                                       FontSize="12" 
-                                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" 
-                                                       TextDecorations="Strikethrough"
-                                                       IsVisible="{Binding PrecoComDesconto, Converter={toolkit:IsNotNullConverter}}"/>
-                                            </HorizontalStackLayout>
+                                            <!-- Imagem Placeholder -->
+                                            <Border Grid.Column="0" StrokeShape="RoundRectangle 8" WidthRequest="80" HeightRequest="80"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                                    IsVisible="{Binding Imagens, Converter={toolkit:IsListNullOrEmptyConverter}}">
+                                                <Image Source="ic_x_mark_circle_thin.png" Aspect="Center" WidthRequest="40" HeightRequest="40">
+                                                    <Image.Behaviors>
+                                                        <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray300}}" />
+                                                    </Image.Behaviors>
+                                                </Image>
+                                            </Border>
 
-                                            <Label Text="{Binding CategoriaNome}" 
-                                                   FontSize="12" 
-                                                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
-                                        </VerticalStackLayout>
-                                    </Grid>
-                                </Border>
+                                            <!-- Detalhes do Produto -->
+                                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="4">
+                                                <Label Text="{Binding Nome}"
+                                                       FontAttributes="Bold"
+                                                       FontSize="16"
+                                                       LineBreakMode="TailTruncation"
+                                                       TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+
+                                                <HorizontalStackLayout Spacing="8">
+                                                    <Label Text="{Binding Preco, StringFormat='{0:C}'}"
+                                                           FontSize="14"
+                                                           TextColor="{StaticResource Primary}"
+                                                           FontAttributes="Bold"/>
+
+                                                    <Label Text="{Binding PrecoComDesconto, StringFormat='{0:C}'}"
+                                                           FontSize="12"
+                                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                                                           TextDecorations="Strikethrough"
+                                                           IsVisible="{Binding PrecoComDesconto, Converter={toolkit:IsNotNullConverter}}"/>
+                                                </HorizontalStackLayout>
+
+                                                <Label Text="{Binding CategoriaNome}"
+                                                       FontSize="12"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </Border>
+                                </SwipeView>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>

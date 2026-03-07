@@ -74,4 +74,36 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
         };
         await Shell.Current.GoToAsync($"{nameof(ProdutoAdicionarPage)}", true, navigationParameter);
     }
+
+    [RelayCommand]
+    private async Task Deletar(ProdutoResponse produto)
+    {
+        bool confirm = await Application.Current.MainPage.DisplayAlert("Confirmação", $"Deseja realmente excluir o produto '{produto.Nome}'?", "Sim", "Não");
+        if (!confirm) return;
+
+        try
+        {
+            IsBusy = true;
+            var response = await _produtoService.DeleteAsync(produto.Id);
+
+            if (response.RetornouComSucesso)
+            {
+                Produtos.Remove(produto);
+                await Application.Current.MainPage.DisplayAlert("Sucesso", "Produto removido com sucesso.", "OK");
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("Erro", response.ProblemDetails?.Detail ?? "Erro ao remover produto.", "OK");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao remover produto");
+            await Application.Current.MainPage.DisplayAlert("Erro", "Ocorreu um erro inesperado ao remover o produto.", "OK");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
 }

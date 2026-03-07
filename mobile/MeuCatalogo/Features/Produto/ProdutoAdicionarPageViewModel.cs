@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MeuCatalogo.Features.Catalogo;
@@ -61,6 +62,8 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
 
     [ObservableProperty] private string _titulo = "Novo produto";
 
+    [ObservableProperty] private ObservableCollection<ProdutoImagemResponse> _imagens = [];
+
     [ObservableProperty] private ProdutoResponse? _produto;
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -76,6 +79,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
             Preco = produto.Preco;
             _precoComDesconto = produto.PrecoComDesconto;
             Estoque = produto.Estoque?.Quantidade;
+            Imagens = new ObservableCollection<ProdutoImagemResponse>(produto.Imagens);
             Titulo = "Editar produto";
         }
         else
@@ -89,6 +93,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
             Preco = 0;
             _precoComDesconto = null;
             Estoque = null;
+            Imagens = [];
             Titulo = "Novo produto";
         }
     }
@@ -274,6 +279,74 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
 
     #region Produto
     [RelayCommand]
+    private async Task AdicionarImagem()
+    {
+        if (Produto == null)
+        {
+            await Application.Current.MainPage.DisplayAlert("Aviso", "Salve o produto antes de adicionar imagens.", "OK");
+            return;
+        }
+
+        try
+        {
+            string action = await Application.Current.MainPage.DisplayActionSheet("Adicionar Imagem", "Cancelar", null, "Tirar Foto", "Galeria de Fotos", "Arquivos");
+
+            if (action == "Cancelar" || string.IsNullOrEmpty(action))
+                return;
+
+            FileResult? result = null;
+
+            if (action == "Tirar Foto")
+            {
+                if (MediaPicker.Default.IsCaptureSupported)
+                {
+                    result = await MediaPicker.Default.CapturePhotoAsync();
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert("Erro", "Câmera não suportada neste dispositivo.", "OK");
+                    return;
+                }
+            }
+            else if (action == "Galeria de Fotos")
+            {
+                 result = await MediaPicker.Default.PickPhotoAsync();
+            }
+            else if (action == "Arquivos")
+            {
+                result = await FilePicker.Default.PickAsync(new PickOptions
+                {
+                    PickerTitle = "Selecione uma imagem",
+                    FileTypes = FilePickerFileType.Images
+                });
+            }
+
+            if (result != null)
+            {
+                IsBusy = true;
+                var response = await _produtoService.UploadImageAsync(Produto.Id, result);
+
+                if (response.RetornouComSucesso && response.Dados != null)
+                {
+                    Imagens.Add(response.Dados);
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert("Erro", response.ProblemDetails?.Title ?? "Erro ao enviar imagem", "OK");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao selecionar imagem");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
     private async Task Salvar()
     {
         try
@@ -304,8 +377,18 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
                 return;
             }
 
-            CancelarCarregamentoCategorias();
-            await Shell.Current.GoToAsync($"//{nameof(ProdutoListaPage)}");
+            if (Produto is null && response.Dados != null)
+            {
+                // Produto criado com sucesso, atualiza o estado para edição
+                Produto = response.Dados;
+                Titulo = "Editar produto";
+                await Application.Current.MainPage.DisplayAlert("Sucesso", "Produto criado com sucesso! Agora você pode adicionar imagens.", "OK");
+            }
+            else
+            {
+                CancelarCarregamentoCategorias();
+                await Shell.Current.GoToAsync($"//{nameof(ProdutoListaPage)}");
+            }
         }
         catch (Exception ex)
         {
