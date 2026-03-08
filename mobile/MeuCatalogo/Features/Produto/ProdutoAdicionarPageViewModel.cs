@@ -11,6 +11,7 @@ using MeuCatalogo.Features.Produto.Requests;
 using MeuCatalogo.Features.Settings.Services;
 using MeuCatalogo.Features.Produto.Responses;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.ApplicationModel;
 using Plugin.Maui.BottomSheet.Navigation;
 
 namespace MeuCatalogo.Features.Produto;
@@ -296,29 +297,27 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
 
             FileResult? result = null;
 
-            if (action == "Tirar Foto")
+            switch (action)
             {
-                if (MediaPicker.Default.IsCaptureSupported)
-                {
+                case "Tirar Foto" when MediaPicker.Default.IsCaptureSupported:
+                    if (!await GarantirPermissaoCameraAsync())
+                        return;
+
                     result = await MediaPicker.Default.CapturePhotoAsync();
-                }
-                else
-                {
+                    break;
+                case "Tirar Foto":
                     await Application.Current.MainPage.DisplayAlert("Erro", "Câmera não suportada neste dispositivo.", "OK");
                     return;
-                }
-            }
-            else if (action == "Galeria de Fotos")
-            {
-                 result = await MediaPicker.Default.PickPhotoAsync();
-            }
-            else if (action == "Arquivos")
-            {
-                result = await FilePicker.Default.PickAsync(new PickOptions
-                {
-                    PickerTitle = "Selecione uma imagem",
-                    FileTypes = FilePickerFileType.Images
-                });
+                case "Galeria de Fotos":
+                    result = await MediaPicker.Default.PickPhotoAsync();
+                    break;
+                case "Arquivos":
+                    result = await FilePicker.Default.PickAsync(new PickOptions
+                    {
+                        PickerTitle = "Selecione uma imagem",
+                        FileTypes = FilePickerFileType.Images
+                    });
+                    break;
             }
 
             if (result != null)
@@ -326,7 +325,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
                 IsBusy = true;
                 var response = await _produtoService.UploadImageAsync(Produto.Id, result);
 
-                if (response.RetornouComSucesso && response.Dados != null)
+                if (response is { RetornouComSucesso: true, Dados: not null })
                 {
                     Imagens.Add(response.Dados);
                 }
@@ -339,6 +338,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao selecionar imagem");
+            await Application.Current.MainPage.DisplayAlert("Erro", "Não foi possível abrir câmera/galeria. Verifique permissões do app.", "OK");
         }
         finally
         {
@@ -398,6 +398,23 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         {
             IsBusy = false;
         }
+    }
+
+    private static async Task<bool> GarantirPermissaoCameraAsync()
+    {
+        var status = await Permissions.CheckStatusAsync<Permissions.Camera>();
+        if (status == PermissionStatus.Granted)
+            return true;
+
+        status = await Permissions.RequestAsync<Permissions.Camera>();
+        if (status == PermissionStatus.Granted)
+            return true;
+
+        await Application.Current.MainPage.DisplayAlert(
+            "Permissão necessária",
+            "Para tirar foto, permita acesso à câmera nas configurações do app.",
+            "OK");
+        return false;
     }
     #endregion
 }

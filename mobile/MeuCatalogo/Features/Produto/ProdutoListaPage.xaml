@@ -3,12 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="MeuCatalogo.Features.Produto.ProdutoListaPage"
+             x:Name="ProdutoListaPageRoot"
              xmlns:produto="clr-namespace:MeuCatalogo.Features.Produto"
              xmlns:responses="clr-namespace:MeuCatalogo.Features.Produto.Responses"
              x:DataType="produto:ProdutoListaPageViewModel">
 
     <ContentPage.Behaviors>
-        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding CarregarDadosCommand}" />
+        <toolkit:EventToCommandBehavior
+            BindingContext="{Binding Source={x:Reference ProdutoListaPageRoot}, Path=BindingContext}"
+            EventName="Appearing"
+            Command="{Binding CarregarDadosCommand}" />
     </ContentPage.Behaviors>
 
     <RefreshView Command="{Binding CarregarDadosCommand}" IsRefreshing="{Binding IsRefreshing}">
@@ -58,11 +62,26 @@
                                 <SwipeView>
                                     <SwipeView.RightItems>
                                         <SwipeItems>
-                                            <SwipeItem Text="Deletar"
-                                                       BackgroundColor="Red"
-                                                       IconImageSource="ic_trash_can_outlined.svg"
-                                                       Command="{Binding Source={RelativeSource AncestorType={x:Type produto:ProdutoListaPageViewModel}}, Path=DeletarCommand}"
-                                                       CommandParameter="{Binding .}" />
+                                            <SwipeItemView Command="{Binding Source={RelativeSource AncestorType={x:Type produto:ProdutoListaPageViewModel}}, Path=DeletarCommand}"
+                                                           CommandParameter="{Binding .}"
+                                                           BackgroundColor="#FF3B30">
+                                                <VerticalStackLayout Spacing="0" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="80">
+                                                    <Image Source="ic_trash_can_outlined.png" 
+                                                           HeightRequest="24" 
+                                                           WidthRequest="24" 
+                                                           HorizontalOptions="Center"
+                                                           Margin="0,0,0,4">
+                                                        <Image.Behaviors>
+                                                            <toolkit:IconTintColorBehavior TintColor="White" />
+                                                        </Image.Behaviors>
+                                                    </Image>
+                                                    <Label Text="Deletar" 
+                                                           TextColor="White" 
+                                                           HorizontalOptions="Center" 
+                                                           FontSize="12"
+                                                           FontAttributes="Bold"/>
+                                                </VerticalStackLayout>
+                                            </SwipeItemView>
                                         </SwipeItems>
                                     </SwipeView.RightItems>
                                     <Border Padding="10" Margin="0,5" BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray500}}" StrokeShape="RoundRectangle 8">
