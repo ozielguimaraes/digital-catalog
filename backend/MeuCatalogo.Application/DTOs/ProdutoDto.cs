@@ -7,8 +7,16 @@ public class ProdutoImagemDto
 {
     public Guid Id { get; set; }
     public string Url { get; set; }
+    public ImageLinksDto Images { get; set; } = new();
     public bool IsPrincipal { get; set; }
     public int Ordem { get; set; }
+}
+
+public class ImageLinksDto
+{
+    public string Thumbnail { get; set; } = string.Empty;
+    public string Medium { get; set; } = string.Empty;
+    public string Full { get; set; } = string.Empty;
 }
 
 public class ProdutoDto

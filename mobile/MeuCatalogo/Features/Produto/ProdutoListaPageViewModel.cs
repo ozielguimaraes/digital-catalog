@@ -45,6 +45,23 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
                 await Application.Current.MainPage.DisplayAlert(response.ProblemDetails!.Title, response.ProblemDetails!.Detail, "OK");
                 return;
             }
+
+            if (response.Dados != null)
+            {
+                foreach (var produto in response.Dados)
+                {
+                    foreach (var imagem in produto.Imagens)
+                    {
+                        if (string.IsNullOrWhiteSpace(imagem.Images.Thumbnail))
+                            imagem.Images.Thumbnail = imagem.Url;
+                        if (string.IsNullOrWhiteSpace(imagem.Images.Medium))
+                            imagem.Images.Medium = imagem.Url;
+                        if (string.IsNullOrWhiteSpace(imagem.Images.Full))
+                            imagem.Images.Full = imagem.Url;
+                    }
+                }
+            }
+
             Produtos.Clear();
             Produtos = new ObservableCollection<ProdutoResponse>(response.Dados!);
         }

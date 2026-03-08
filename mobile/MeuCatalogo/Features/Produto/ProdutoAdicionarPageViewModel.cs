@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -335,6 +336,11 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
                 }
             }
         }
+        catch (FeatureNotSupportedException ex)
+        {
+            _logger.LogError(ex, "Erro ao selecionar imagem");
+            await Application.Current.MainPage.DisplayAlert("Erro", "A câmera não está disponível neste dispositivo ou configuração.", "OK");
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao selecionar imagem");
@@ -415,6 +421,41 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
             "Para tirar foto, permita acesso à câmera nas configurações do app.",
             "OK");
         return false;
+    }
+
+    [RelayCommand]
+    private async Task RemoverImagem(ProdutoImagemResponse imagem)
+    {
+        if (imagem == null || Imagens.Count == 0)
+            return;
+
+        bool confirmar = await Application.Current.MainPage.DisplayAlert(
+            "Remover imagem",
+            "Deseja remover esta imagem da lista?",
+            "Remover",
+            "Cancelar");
+
+        if (!confirmar)
+            return;
+
+        var lista = Imagens.ToList();
+        var imagemNaLista = lista.FirstOrDefault(i => i.Id == imagem.Id) ?? imagem;
+
+        if (!lista.Remove(imagemNaLista))
+            return;
+
+        if (imagemNaLista.IsPrincipal && lista.Count > 0)
+        {
+            for (int i = 0; i < lista.Count; i++)
+            {
+                lista[i].IsPrincipal = i == 0;
+            }
+        }
+
+        Imagens = new ObservableCollection<ProdutoImagemResponse>(lista);
+
+        if (Produto != null)
+            Produto.Imagens = lista;
     }
     #endregion
 }

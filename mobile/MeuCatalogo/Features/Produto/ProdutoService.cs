@@ -1,6 +1,7 @@
 using MeuCatalogo.Features.Produto.ApiClients;
 using MeuCatalogo.Features.Produto.Requests;
 using MeuCatalogo.Features.Produto.Responses;
+using MeuCatalogo.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Refit;
 
@@ -13,6 +14,10 @@ public sealed class ProdutoService(ILogger<ProdutoService> logger, IProdutoApi p
         try
         {
             var produtos = await produtoApi.ObterPorCatalogoIdAsync(catalogoId, await ObterBearerTokenAsync(), ct);
+            foreach (var produto in produtos)
+            {
+                NormalizarUrlsImagens(produto);
+            }
             return ApiResponse<ICollection<ProdutoResponse>>.Success(produtos);
         }
         catch (ApiException apiEx)
@@ -32,6 +37,7 @@ public sealed class ProdutoService(ILogger<ProdutoService> logger, IProdutoApi p
         try
         {
             var produto = await produtoApi.ObterPorIdAsync(id, await ObterBearerTokenAsync(), ct);
+            NormalizarUrlsImagens(produto);
             return ApiResponse<ProdutoResponse>.Success(produto);
         }
         catch (ApiException apiEx)
@@ -51,6 +57,7 @@ public sealed class ProdutoService(ILogger<ProdutoService> logger, IProdutoApi p
         try
         {
             var produto = await produtoApi.AdicionarAsync(request, await ObterBearerTokenAsync(), ct);
+            NormalizarUrlsImagens(produto);
             return ApiResponse<ProdutoResponse>.Success(produto);
         }
         catch (ApiException apiEx)
@@ -70,6 +77,7 @@ public sealed class ProdutoService(ILogger<ProdutoService> logger, IProdutoApi p
         try
         {
             var produto = await produtoApi.AtualizarAsync(id, request, await ObterBearerTokenAsync(), ct);
+            NormalizarUrlsImagens(produto);
             return ApiResponse<ProdutoResponse>.Success(produto);
         }
         catch (ApiException apiEx)
@@ -110,6 +118,10 @@ public sealed class ProdutoService(ILogger<ProdutoService> logger, IProdutoApi p
             using var stream = await file.OpenReadAsync();
             var streamPart = new StreamPart(stream, file.FileName, file.ContentType);
             var result = await produtoApi.UploadImageAsync(produtoId, streamPart, await ObterBearerTokenAsync(), ct);
+            result.Url = ObterUrlDisponivel(result);
+            result.Images.Thumbnail = NormalizarUrlImagem(result.Images.Thumbnail);
+            result.Images.Medium = NormalizarUrlImagem(result.Images.Medium);
+            result.Images.Full = NormalizarUrlImagem(result.Images.Full);
             return ApiResponse<ProdutoImagemResponse>.Success(result);
         }
         catch (ApiException apiEx)
@@ -122,5 +134,48 @@ public sealed class ProdutoService(ILogger<ProdutoService> logger, IProdutoApi p
             logger.LogError(ex, "Erro inesperado ao enviar imagem.");
             return ApiResponse<ProdutoImagemResponse>.Error("Erro inesperado.");
         }
+    }
+
+    private static void NormalizarUrlsImagens(ProdutoResponse? produto)
+    {
+        if (produto?.Imagens == null || produto.Imagens.Count == 0)
+            return;
+
+        foreach (var imagem in produto.Imagens)
+        {
+            imagem.Images.Thumbnail = NormalizarUrlImagem(imagem.Images.Thumbnail);
+            imagem.Images.Medium = NormalizarUrlImagem(imagem.Images.Medium);
+            imagem.Images.Full = NormalizarUrlImagem(imagem.Images.Full);
+            imagem.Url = ObterUrlDisponivel(imagem);
+        }
+    }
+
+    private static string ObterUrlDisponivel(ProdutoImagemResponse imagem)
+    {
+        if (!string.IsNullOrWhiteSpace(imagem.Images.Full))
+            return imagem.Images.Full;
+        if (!string.IsNullOrWhiteSpace(imagem.Url))
+            return NormalizarUrlImagem(imagem.Url);
+        if (!string.IsNullOrWhiteSpace(imagem.Images.Medium))
+            return imagem.Images.Medium;
+        if (!string.IsNullOrWhiteSpace(imagem.Images.Thumbnail))
+            return imagem.Images.Thumbnail;
+        return string.Empty;
+    }
+
+    private static string NormalizarUrlImagem(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return string.Empty;
+
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uriAbsoluta))
+            return uriAbsoluta.ToString();
+
+        if (!Uri.TryCreate(ApiConstants.BaseUrl, UriKind.Absolute, out var apiBaseUri))
+            return url;
+
+        var origemApi = apiBaseUri.GetLeftPart(UriPartial.Authority).TrimEnd('/');
+        var caminho = url.StartsWith('/') ? url : $"/{url}";
+        return $"{origemApi}{caminho}";
     }
 }

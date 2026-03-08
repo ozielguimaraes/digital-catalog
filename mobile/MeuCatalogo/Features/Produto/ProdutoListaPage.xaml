@@ -95,7 +95,7 @@
                                                     IsVisible="{Binding Imagens, Converter={toolkit:IsListNotNullOrEmptyConverter}}">
                                                 <Image Aspect="AspectFill" WidthRequest="80" HeightRequest="80">
                                                     <Image.Source>
-                                                        <UriImageSource Uri="{Binding Imagens[0].Url}" CacheValidity="1.00:00:00" />
+                                                        <UriImageSource Uri="{Binding Imagens[0].Images.Thumbnail}" CacheValidity="1.00:00:00" />
                                                     </Image.Source>
                                                 </Image>
                                             </Border>

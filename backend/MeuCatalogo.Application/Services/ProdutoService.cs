@@ -246,6 +246,12 @@ public sealed class ProdutoService : IProdutoService
         return ApiResponse<ImageDto>.Success(new ImageDto
         {
             Url = imageUrl,
+            Images = new ImageLinksDto
+            {
+                Thumbnail = imageUrl,
+                Medium = imageUrl,
+                Full = imageUrl
+            },
             FileName = fileName,
             Size = file.Length,
             ContentType = file.ContentType,
@@ -341,12 +347,22 @@ public sealed class ProdutoService : IProdutoService
                 DataCriacao = p.Estoque.DataCriacao,
                 DataAtualizacao = p.Estoque.DataAtualizacao
             } : null,
-            Imagens = p.Imagens?.Select(img => new ProdutoImagemDto
+            Imagens = p.Imagens?.Select(img =>
             {
-                Id = img.Id,
-                Url = _storage.GetPresignedUrlFromPublicUrl(img.Url, TimeSpan.FromMinutes(60)),
-                IsPrincipal = img.IsPrincipal,
-                Ordem = img.Ordem
+                var imageUrl = _storage.GetPresignedUrlFromPublicUrl(img.Url, TimeSpan.FromMinutes(60));
+                return new ProdutoImagemDto
+                {
+                    Id = img.Id,
+                    Url = imageUrl,
+                    Images = new ImageLinksDto
+                    {
+                        Thumbnail = imageUrl,
+                        Medium = imageUrl,
+                        Full = imageUrl
+                    },
+                    IsPrincipal = img.IsPrincipal,
+                    Ordem = img.Ordem
+                };
             }).OrderBy(i => i.Ordem).ToList() ?? new List<ProdutoImagemDto>(),
             Variacoes = p.Variacoes?.Select(v => new VariacaoDto
             {
