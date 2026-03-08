@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Swashbuckle.AspNetCore.Annotations;
+using MeuCatalogo.Application.DTOs.Responses;
 
 namespace MeuCatalogo.API.Controllers;
 
@@ -46,6 +47,7 @@ public class ProdutosController : BaseApiController
     {
         _logger.LogInformation("Obtendo produtos do catálogo {CatalogoId} (acesso público)", catalogoId);
         var response = await _produtoService.ObterPorCatalogoIdPublicoAsync(catalogoId);
+        EnriquecerImagens(response);
         return HandleApiResponse(response);
     }
 
@@ -74,6 +76,7 @@ public class ProdutosController : BaseApiController
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Obtendo produto {ProdutoId} para o usuário {UserId}", id, userId);
         var response = await _produtoService.ObterPorIdAsync(id, userId);
+        EnriquecerImagemNullable(response);
 
         return HandleApiResponse(response);
     }
@@ -109,6 +112,7 @@ public class ProdutosController : BaseApiController
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Adicionando novo produto para o usuário {UserId}", userId);
         var response = await _produtoService.AdicionarAsync(produtoDto, userId);
+        EnriquecerImagem(response);
         return HandleApiResponse(response);
     }
 
@@ -146,6 +150,7 @@ public class ProdutosController : BaseApiController
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Atualizando produto {ProdutoId} para o usuário {UserId}", id, userId);
         var produto = await _produtoService.AtualizarAsync(id, produtoDto, userId);
+        EnriquecerImagem(produto);
 
         return HandleApiResponse(produto);
     }
@@ -250,6 +255,82 @@ public class ProdutosController : BaseApiController
         }
 
         var response = await _produtoService.UploadImagemAsync(produtoId, file, userId);
+        EnriquecerImagemUpload(response);
         return HandleApiResponse(response);
+    }
+
+    private void EnriquecerImagens(ApiResponse<IEnumerable<ProdutoDto>> response)
+    {
+        if (!response.IsSuccess || response.Data == null)
+            return;
+
+        foreach (var produto in response.Data)
+        {
+            EnriquecerProduto(produto);
+        }
+    }
+
+    private void EnriquecerImagemNullable(ApiResponse<ProdutoDto?> response)
+    {
+        if (!response.IsSuccess || response.Data == null)
+            return;
+
+        EnriquecerProduto(response.Data);
+    }
+
+    private void EnriquecerImagem(ApiResponse<ProdutoDto> response)
+    {
+        if (!response.IsSuccess || response.Data == null)
+            return;
+
+        EnriquecerProduto(response.Data);
+    }
+
+    private void EnriquecerImagemUpload(ApiResponse<ImageDto> response)
+    {
+        if (!response.IsSuccess || response.Data == null)
+            return;
+
+        var absoluteUrl = ObterUrlAbsoluta(response.Data.Url);
+        response.Data.Url = absoluteUrl;
+        response.Data.Images = CriarLinksImagem(absoluteUrl);
+    }
+
+    private void EnriquecerProduto(ProdutoDto produto)
+    {
+        foreach (var imagem in produto.Imagens)
+        {
+            var absoluteUrl = ObterUrlAbsoluta(imagem.Url);
+            imagem.Url = absoluteUrl;
+            imagem.Images = CriarLinksImagem(absoluteUrl);
+        }
+    }
+
+    private string ObterUrlAbsoluta(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return string.Empty;
+
+        if (Uri.TryCreate(url, UriKind.Absolute, out var absoluteUri))
+            return absoluteUri.ToString();
+
+        var host = $"{Request.Scheme}://{Request.Host}";
+        if (!string.IsNullOrWhiteSpace(Request.PathBase))
+        {
+            host += Request.PathBase.ToString();
+        }
+
+        var path = url.StartsWith('/') ? url : $"/{url}";
+        return $"{host}{path}";
+    }
+
+    private static ImageLinksDto CriarLinksImagem(string absoluteUrl)
+    {
+        return new ImageLinksDto
+        {
+            Thumbnail = absoluteUrl,
+            Medium = absoluteUrl,
+            Full = absoluteUrl
+        };
     }
 }
