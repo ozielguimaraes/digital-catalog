@@ -15,8 +15,11 @@ namespace MeuCatalogo.API.Services;
 
 public class RefreshTokenService : IRefreshTokenService
 {
+    private static readonly JwtSecurityTokenHandler TokenHandler = new();
     private readonly ApplicationDbContext _context;
-    private readonly IConfiguration _configuration;
+    private readonly SymmetricSecurityKey _jwtSigningKey;
+    private readonly string _jwtIssuer;
+    private readonly string _jwtAudience;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<RefreshTokenService> _logger;
 
@@ -27,32 +30,44 @@ public class RefreshTokenService : IRefreshTokenService
         ILogger<RefreshTokenService> logger)
     {
         _context = context;
-        _configuration = configuration;
+        _jwtSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:Key"]!));
+        _jwtIssuer = configuration["JwtSettings:Issuer"]!;
+        _jwtAudience = configuration["JwtSettings:Audience"]!;
         _userManager = userManager;
         _logger = logger;
     }
 
     public async Task<RefreshToken> GenerateRefreshTokenAsync(string userId)
     {
+        var existingToken = await _context.RefreshTokens
+            .AsNoTracking()
+            .Where(rt => rt.UserId == userId && !rt.IsRevoked && rt.ExpiresAt > DateTime.UtcNow)
+            .OrderByDescending(rt => rt.ExpiresAt)
+            .FirstOrDefaultAsync();
+
+        if (existingToken != null)
+        {
+            return existingToken;
+        }
+
         var refreshToken = new RefreshToken
         {
             Token = GenerateRandomToken(),
             UserId = userId,
-            ExpiresAt = DateTime.UtcNow.AddDays(30), // Refresh token válido por 30 dias
+            ExpiresAt = DateTime.UtcNow.AddDays(30),
             IsRevoked = false
         };
 
         _context.RefreshTokens.Add(refreshToken);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Refresh token gerado para usuário {UserId}", userId);
+        _logger.LogDebug("Refresh token gerado para usuário {UserId}", userId);
         return refreshToken;
     }
 
     public async Task<RefreshToken?> GetRefreshTokenAsync(string token)
     {
         return await _context.RefreshTokens
-            .Include(rt => rt.User)
             .FirstOrDefaultAsync(rt => rt.Token == token);
     }
 
@@ -64,7 +79,7 @@ public class RefreshTokenService : IRefreshTokenService
             refreshToken.IsRevoked = true;
             refreshToken.RevokedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
-            _logger.LogInformation("Refresh token revogado: {Token}", token);
+            _logger.LogDebug("Refresh token revogado");
         }
     }
 
@@ -81,7 +96,7 @@ public class RefreshTokenService : IRefreshTokenService
         }
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Todos os refresh tokens revogados para usuário {UserId}", userId);
+        _logger.LogDebug("Todos os refresh tokens revogados para usuário {UserId}", userId);
     }
 
     public async Task<bool> IsRefreshTokenValidAsync(RefreshToken refreshToken)
@@ -149,16 +164,15 @@ public class RefreshTokenService : IRefreshTokenService
             new Claim(ClaimTypes.Email, user.Email)
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]!));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var creds = new SigningCredentials(_jwtSigningKey, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            _configuration["JwtSettings:Issuer"],
-            _configuration["JwtSettings:Audience"],
+            _jwtIssuer,
+            _jwtAudience,
             claims,
-            expires: DateTime.UtcNow.AddMinutes(15), // Access token válido por 15 minutos
+            expires: DateTime.UtcNow.AddMinutes(15),
             signingCredentials: creds);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return TokenHandler.WriteToken(token);
     }
 }

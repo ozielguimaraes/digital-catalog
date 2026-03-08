@@ -7,6 +7,7 @@ using MeuCatalogo.Application.Infrastructure.Data.Repository;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace MeuCatalogo.Application.Services;
 
@@ -18,12 +19,14 @@ public sealed class ProdutoService : IProdutoService
     private const long MaxFileSize = 10 * 1024 * 1024; // 10MB
     private const string UploadRoot = "uploads";
     private readonly IStorageService _storage;
+    private readonly IMemoryCache _cache;
 
-    public ProdutoService(ApplicationDbContext dbContext, ILogger<ProdutoService> logger, IStorageService storageService)
+    public ProdutoService(ApplicationDbContext dbContext, ILogger<ProdutoService> logger, IStorageService storageService, IMemoryCache cache)
     {
         _dbContext = dbContext;
         _logger = logger;
         _storage = storageService;
+        _cache = cache;
         _logger.LogInformation("Serviço de Produto inicializado");
     }
 
@@ -31,13 +34,18 @@ public sealed class ProdutoService : IProdutoService
 
     public async Task<ApiResponse<IEnumerable<ProdutoDto>>> ObterPorCatalogoIdPublicoAsync(Guid catalogoId)
     {
+        var cacheKey = $"produtos:catalogo:{catalogoId}";
+        if (_cache.TryGetValue(cacheKey, out List<ProdutoDto>? cachedProdutos) && cachedProdutos != null)
+            return ApiResponse<IEnumerable<ProdutoDto>>.Success(cachedProdutos);
+
         var catalogo = await _dbContext.ObterCatalogoPorIdAsync(catalogoId);
         if (catalogo == null)
             return ApiResponse<IEnumerable<ProdutoDto>>.Error(ResponseType.NotFound, "Catálogo não encontrado.");
 
         var produtos = await _dbContext.GetProdutosByCatalogoIdAsync(catalogoId);
 
-        var resultado = produtos.Select(MapProdutoToDto);
+        var resultado = produtos.Select(MapProdutoToDto).ToList();
+        _cache.Set(cacheKey, resultado, TimeSpan.FromSeconds(20));
         return ApiResponse<IEnumerable<ProdutoDto>>.Success(resultado);
     }
 

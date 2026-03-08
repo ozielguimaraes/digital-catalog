@@ -13,6 +13,8 @@ public static class ProdutoRepositoryExtensions
     public static async Task<IList<Produto>> GetProdutosByCatalogoIdAsync(this ApplicationDbContext context, Guid catalogoId)
     {
         return await context.Produtos
+            .AsNoTracking()
+            .AsSplitQuery()
             .Include(p => p.Categoria)
             .Include(p => p.Estoque)
             .Include(p => p.Imagens)
@@ -23,6 +25,8 @@ public static class ProdutoRepositoryExtensions
     public static async Task<Produto?> ObterProdutoComDetalhesAsync(this ApplicationDbContext context, Guid id)
     {
         return await context.Produtos
+            .AsNoTracking()
+            .AsSplitQuery()
             .Include(p => p.Categoria)
             .Include(p => p.Estoque)
             .Include(p => p.Variacoes)

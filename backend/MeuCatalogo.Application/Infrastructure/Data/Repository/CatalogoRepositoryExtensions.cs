@@ -16,6 +16,8 @@ public static class CatalogoRepositoryExtensions
     public static async Task<Catalogo?> ObterCatalogoComProdutoAsync(this ApplicationDbContext context, Guid id)
     {
         return await context.Catalogos
+            .AsNoTracking()
+            .AsSplitQuery()
             .Include(c => c.Produtos)
             .ThenInclude(p => p.Categoria)
             .Include(c => c.Produtos)

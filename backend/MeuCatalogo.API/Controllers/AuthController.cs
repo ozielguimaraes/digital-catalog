@@ -6,6 +6,8 @@ using MeuCatalogo.API.Infrastructure.Messages;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
+using System.Security.Cryptography;
 using System.Security.Claims;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
@@ -19,18 +21,23 @@ namespace MeuCatalogo.API.Controllers;
 [SwaggerTag("Autenticação e autorização de usuários")]
 public class AuthController : BaseApiController
 {
+    private static readonly JwtSecurityTokenHandler TokenHandler = new();
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly IConfiguration _configuration;
+    private readonly SymmetricSecurityKey _jwtSigningKey;
+    private readonly string _jwtIssuer;
+    private readonly string _jwtAudience;
     private readonly IPlanoAssinaturaService _planoAssinaturaService;
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly EmailSender _emailSender;
     private readonly ILogger<AuthController> _logger;
+    private readonly IMemoryCache _cache;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IConfiguration configuration,
+        IMemoryCache cache,
         IPlanoAssinaturaService planoAssinaturaService,
         IRefreshTokenService refreshTokenService,
         EmailSender emailSender,
@@ -38,7 +45,10 @@ public class AuthController : BaseApiController
     {
         _userManager = userManager;
         _signInManager = signInManager;
-        _configuration = configuration;
+        _jwtSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:Key"]!));
+        _jwtIssuer = configuration["JwtSettings:Issuer"]!;
+        _jwtAudience = configuration["JwtSettings:Audience"]!;
+        _cache = cache;
         _planoAssinaturaService = planoAssinaturaService;
         _refreshTokenService = refreshTokenService;
         _emailSender = emailSender;
@@ -129,7 +139,18 @@ public class AuthController : BaseApiController
     [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> Login(UserLoginDto loginDto)
     {
-        _logger.LogInformation("Tentativa de login: {Email}", loginDto.Email);
+        if (loginDto == null || string.IsNullOrWhiteSpace(loginDto.Email) || string.IsNullOrWhiteSpace(loginDto.Password))
+        {
+            return UnauthorizedResponse("Email ou senha incorretos");
+        }
+
+        var loginCacheKey = BuildLoginCacheKey(loginDto.Email, loginDto.Password);
+        if (_cache.TryGetValue(loginCacheKey, out SigninResponse? cachedSigninResponse) && cachedSigninResponse != null)
+        {
+            return HandleApiResponse(ApiResponse<SigninResponse>.Success(cachedSigninResponse));
+        }
+
+        _logger.LogDebug("Tentativa de login: {Email}", loginDto.Email);
         var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
         if (user is not { EmailConfirmed: true })
@@ -138,7 +159,7 @@ public class AuthController : BaseApiController
             return UnauthorizedResponse("Email ou senha incorretos ou e-mail não confirmado");
         }
 
-        var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+        var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, true);
 
         if (!result.Succeeded)
         {
@@ -158,8 +179,9 @@ public class AuthController : BaseApiController
                 Nome = user.Nome,
                 DataCriacao = user.DataCriacao
             }));
+        _cache.Set(loginCacheKey, response.Data, TimeSpan.FromSeconds(45));
 
-        _logger.LogInformation("Login bem-sucedido para {UserId}", user.Id);
+        _logger.LogDebug("Login bem-sucedido para {UserId}", user.Id);
 
         return HandleApiResponse(response);
     }
@@ -418,16 +440,22 @@ public class AuthController : BaseApiController
             new Claim(ClaimTypes.Email, user.Email)
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]!));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var creds = new SigningCredentials(_jwtSigningKey, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            _configuration["JwtSettings:Issuer"],
-            _configuration["JwtSettings:Audience"],
+            _jwtIssuer,
+            _jwtAudience,
             claims,
             expires: DateTime.UtcNow.AddMinutes(15),
             signingCredentials: creds);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return TokenHandler.WriteToken(token);
+    }
+
+    private static string BuildLoginCacheKey(string email, string password)
+    {
+        var payload = $"{email.Trim().ToLowerInvariant()}:{password}";
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(payload));
+        return $"auth:login:{Convert.ToHexString(hash)}";
     }
 }

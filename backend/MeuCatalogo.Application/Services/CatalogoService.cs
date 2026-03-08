@@ -6,6 +6,7 @@ using MeuCatalogo.Application.Infrastructure.Data;
 using MeuCatalogo.Application.Infrastructure.Data.Repository;
 using MeuCatalogo.Application.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -15,11 +16,13 @@ public sealed class CatalogoService : ICatalogoService
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IStorageService _storage;
+    private readonly IMemoryCache _cache;
 
-    public CatalogoService(ApplicationDbContext dbContext, IStorageService storage)
+    public CatalogoService(ApplicationDbContext dbContext, IStorageService storage, IMemoryCache cache)
     {
         _dbContext = dbContext;
         _storage = storage;
+        _cache = cache;
     }
 
     public async Task<ApiResponse<IEnumerable<CatalogoDto>>> ObterTodosPublicosAsync()
@@ -42,6 +45,10 @@ public sealed class CatalogoService : ICatalogoService
 
     public async Task<ApiResponse<IEnumerable<CatalogoDto>>> ObterPorUsuarioIdAsync(string usuarioId)
     {
+        var cacheKey = $"catalogos:usuario:{usuarioId}";
+        if (_cache.TryGetValue(cacheKey, out List<CatalogoDto>? cachedCatalogos) && cachedCatalogos != null)
+            return ApiResponse<IEnumerable<CatalogoDto>>.Success(cachedCatalogos);
+
         var catalogos = await _dbContext.ObterCatalogosPorUsuarioIdAsync(usuarioId);
 
         var items = catalogos.Select(c => new CatalogoDto
@@ -51,7 +58,9 @@ public sealed class CatalogoService : ICatalogoService
             Descricao = c.Descricao,
             DataCriacao = c.DataCriacao,
             DataAtualizacao = c.DataAtualizacao
-        });
+        }).ToList();
+
+        _cache.Set(cacheKey, items, TimeSpan.FromSeconds(20));
 
         return ApiResponse<IEnumerable<CatalogoDto>>.Success(items);
     }

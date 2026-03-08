@@ -9,6 +9,7 @@ using MeuCatalogo.Application.Entities;
 using MeuCatalogo.Application.Interfaces;
 using MeuCatalogo.Application.Infrastructure.Data;
 using MeuCatalogo.Application.Infrastructure.Data.Repository;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Application.Services;
@@ -17,11 +18,13 @@ public sealed class CategoriaService : ICategoriaService
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<CategoriaService> _logger;
+    private readonly IMemoryCache _cache;
 
-    public CategoriaService(ApplicationDbContext dbContext, ILogger<CategoriaService> logger)
+    public CategoriaService(ApplicationDbContext dbContext, ILogger<CategoriaService> logger, IMemoryCache cache)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<ApiResponse<CategoriaResponse>> AdicionarAsync(string usuarioId, CategoriaRequest request)
@@ -68,9 +71,14 @@ public sealed class CategoriaService : ICategoriaService
     {
         try
         {
+            var cacheKey = $"categorias:catalogo:{catalogoId}";
+            if (_cache.TryGetValue(cacheKey, out List<CategoriaResponse>? cachedCategorias) && cachedCategorias != null)
+                return ApiResponse<IList<CategoriaResponse>>.Success(cachedCategorias);
+
             _logger.LogInformation($"Obter categorias do catálogo: {catalogoId}");
             var categorias = await _dbContext.ObterCategoriasPorCatalogoIdAsync(catalogoId);
             var response = categorias.Select(MapToResponse).ToList();
+            _cache.Set(cacheKey, response, TimeSpan.FromSeconds(20));
 
             return ApiResponse<IList<CategoriaResponse>>.Success(response);
         }
