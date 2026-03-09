@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Categoria;
 using MeuCatalogo.Features.Estoque;
+using MeuCatalogo.Features.Produto.Local;
 using MeuCatalogo.Features.Produto.Models;
 using MeuCatalogo.Features.Produto.Requests;
 using MeuCatalogo.Features.Settings.Services;
@@ -65,6 +66,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
     [ObservableProperty] private string _titulo = "Novo produto";
 
     [ObservableProperty] private ObservableCollection<ProdutoImagemResponse> _imagens = [];
+    [ObservableProperty] private bool _isProcessandoImagem;
 
     [ObservableProperty] private ProdutoResponse? _produto;
 
@@ -283,12 +285,6 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
     [RelayCommand]
     private async Task AdicionarImagem()
     {
-        if (Produto == null)
-        {
-            await Application.Current.MainPage.DisplayAlert("Aviso", "Salve o produto antes de adicionar imagens.", "OK");
-            return;
-        }
-
         try
         {
             string action = await Application.Current.MainPage.DisplayActionSheet("Adicionar Imagem", "Cancelar", null, "Tirar Foto", "Galeria de Fotos", "Arquivos");
@@ -297,6 +293,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
                 return;
 
             FileResult? result = null;
+            IsProcessandoImagem = true;
 
             switch (action)
             {
@@ -323,17 +320,8 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
 
             if (result != null)
             {
-                IsBusy = true;
-                var response = await _produtoService.UploadImageAsync(Produto.Id, result);
-
-                if (response is { RetornouComSucesso: true, Dados: not null })
-                {
-                    Imagens.Add(response.Dados);
-                }
-                else
-                {
-                    await Application.Current.MainPage.DisplayAlert("Erro", response.ProblemDetails?.Title ?? "Erro ao enviar imagem", "OK");
-                }
+                var imagemLocal = await CriarImagemLocalAsync(result);
+                Imagens.Add(imagemLocal);
             }
         }
         catch (FeatureNotSupportedException ex)
@@ -349,6 +337,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         finally
         {
             IsBusy = false;
+            IsProcessandoImagem = false;
         }
     }
 
@@ -383,18 +372,19 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
                 return;
             }
 
-            if (Produto is null && response.Dados != null)
+            if (response.Dados != null)
             {
-                // Produto criado com sucesso, atualiza o estado para edição
                 Produto = response.Dados;
-                Titulo = "Editar produto";
-                await Application.Current.MainPage.DisplayAlert("Sucesso", "Produto criado com sucesso! Agora você pode adicionar imagens.", "OK");
+
+                if (Imagens.Count > 0)
+                    await SincronizarImagensPendentesAsync(Produto.Id);
+
+                if (Imagens.Any(i => i.SyncStatus != LocalSyncStatus.Synced))
+                    await Application.Current.MainPage.DisplayAlert("Sincronização pendente", "Produto salvo localmente. Algumas imagens serão sincronizadas com a API em seguida.", "OK");
             }
-            else
-            {
-                CancelarCarregamentoCategorias();
-                await Shell.Current.GoToAsync($"//{nameof(ProdutoListaPage)}");
-            }
+
+            CancelarCarregamentoCategorias();
+            await Shell.Current.GoToAsync($"//{nameof(ProdutoListaPage)}");
         }
         catch (Exception ex)
         {
@@ -421,6 +411,66 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
             "Para tirar foto, permita acesso à câmera nas configurações do app.",
             "OK");
         return false;
+    }
+
+    private async Task<ProdutoImagemResponse> CriarImagemLocalAsync(FileResult file)
+    {
+        var extension = Path.GetExtension(file.FileName);
+        if (string.IsNullOrWhiteSpace(extension))
+            extension = ".jpg";
+
+        var nomeArquivo = $"{Guid.NewGuid():N}{extension}";
+        var caminhoLocal = Path.Combine(FileSystem.AppDataDirectory, nomeArquivo);
+
+        await using (var origem = await file.OpenReadAsync())
+        await using (var destino = File.Create(caminhoLocal))
+        {
+            await origem.CopyToAsync(destino);
+        }
+
+        return new ProdutoImagemResponse
+        {
+            Id = Guid.NewGuid(),
+            Url = caminhoLocal,
+            Images = new ProdutoImagemLinksResponse
+            {
+                Thumbnail = caminhoLocal,
+                Medium = caminhoLocal,
+                Full = caminhoLocal
+            },
+            IsPrincipal = Imagens.Count == 0,
+            Ordem = Imagens.Count + 1,
+            SyncStatus = LocalSyncStatus.PendingCreate
+        };
+    }
+
+    private async Task SincronizarImagensPendentesAsync(Guid produtoId)
+    {
+        var atualizadas = Imagens.ToList();
+
+        for (int i = 0; i < atualizadas.Count; i++)
+        {
+            var imagem = atualizadas[i];
+            if (imagem.SyncStatus == LocalSyncStatus.Synced)
+                continue;
+
+            if (string.IsNullOrWhiteSpace(imagem.Url) || !File.Exists(imagem.Url))
+                continue;
+
+            var fileResult = new FileResult(imagem.Url);
+            var uploadResponse = await _produtoService.UploadImageAsync(produtoId, fileResult);
+
+            if (uploadResponse is { RetornouComSucesso: true, Dados: not null })
+            {
+                uploadResponse.Dados.IsPrincipal = imagem.IsPrincipal;
+                uploadResponse.Dados.Ordem = imagem.Ordem;
+                atualizadas[i] = uploadResponse.Dados;
+            }
+        }
+
+        Imagens = new ObservableCollection<ProdutoImagemResponse>(atualizadas);
+        if (Produto != null)
+            Produto.Imagens = atualizadas;
     }
 
     [RelayCommand]

@@ -20,14 +20,22 @@
     <ScrollView>
         <VerticalStackLayout Margin="16,0" Spacing="16">
             <!-- Seção de Imagens -->
-            <Grid ColumnDefinitions="*,Auto" Margin="0,16,0,0">
+            <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,16,0,0">
                 <Label Text="Imagens" FontAttributes="Bold" VerticalOptions="Center" />
                 <Button Grid.Column="1"
                         Text="Adicionar"
                         FontSize="Small"
                         HeightRequest="36"
                         Padding="12,0"
+                        IsEnabled="{Binding IsProcessandoImagem, Converter={toolkit:InvertedBoolConverter}}"
                         Command="{Binding AdicionarImagemCommand}" />
+                <ActivityIndicator Grid.Column="2"
+                                   IsRunning="{Binding IsProcessandoImagem}"
+                                   IsVisible="{Binding IsProcessandoImagem}"
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="End"
+                                   Margin="8,0,0,0"
+                                   Color="{StaticResource Primary}" />
             </Grid>
 
             <CollectionView ItemsSource="{Binding Imagens}"
@@ -44,21 +52,28 @@
                                 BackgroundColor="{StaticResource Gray100}">
                             <Grid>
                                 <Image Aspect="AspectFill" Source="{Binding Images.Medium}" />
-                                <ImageButton BackgroundColor="#FF3B30"
-                                             Source="ic_trash_can_outlined.png"
-                                             WidthRequest="8"
-                                             HeightRequest="8"
-                                             Padding="8"
-                                             CornerRadius="10"
-                                             HorizontalOptions="End"
-                                             VerticalOptions="Start"
-                                             Margin="4"
-                                             Command="{Binding Source={x:Reference ProdutoAdicionarPageRoot}, Path=BindingContext.RemoverImagemCommand}"
-                                             CommandParameter="{Binding .}">
-                                    <ImageButton.Behaviors>
-                                        <toolkit:IconTintColorBehavior TintColor="{StaticResource White}" />
-                                    </ImageButton.Behaviors>
-                                </ImageButton>
+                                <Border WidthRequest="24"
+                                        HeightRequest="24"
+                                        HorizontalOptions="End"
+                                        VerticalOptions="Start"
+                                        Margin="4"
+                                        Padding="4"
+                                        BackgroundColor="Red"
+                                        Stroke="Transparent">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="4" />
+                                    </Border.StrokeShape>
+                                    <Image Source="ic_trash_can_outlined.png">
+                                        <Image.GestureRecognizers>
+                                            <TapGestureRecognizer
+                                                Command="{Binding Source={x:Reference ProdutoAdicionarPageRoot}, Path=BindingContext.RemoverImagemCommand}"
+                                                CommandParameter="{Binding .}" />
+                                        </Image.GestureRecognizers>
+                                        <Image.Behaviors>
+                                            <toolkit:IconTintColorBehavior TintColor="{StaticResource White}" />
+                                        </Image.Behaviors>
+                                    </Image>
+                                </Border>
                                 <Label Text="Principal"
                                        IsVisible="{Binding IsPrincipal}"
                                        BackgroundColor="{StaticResource Primary}"
@@ -85,7 +100,7 @@
                                     ErrorMessage="{Binding NomeErrorMessage}"
                                     HasError="{Binding NomeErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
         <components:NumericEntry Title="Preço"
-                                 Text="{Binding Preco}"
+                                 Text="{Binding PrecoString}"
                                  ErrorMessage="{Binding PrecoErrorMessage}"
                                  HasError="{Binding PrecoErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
 
@@ -143,6 +158,7 @@
 
         <Button Text="Salvar"
                 Margin="0,24, 0,0"
+                IsEnabled="{Binding IsProcessandoImagem, Converter={toolkit:InvertedBoolConverter}}"
                 Command="{Binding SalvarCommand}"></Button>
     </VerticalStackLayout>
     </ScrollView>

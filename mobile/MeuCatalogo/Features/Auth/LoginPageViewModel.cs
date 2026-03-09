@@ -51,7 +51,7 @@ public sealed partial class LoginPageViewModel : BasePageViewModel
                 var messages = validator.Notifications.Select(x => x.Message);
                 var sb = new StringBuilder();
 
-                foreach (var message in messages)
+                foreach (string message in messages)
                     sb.Append($"{message}\n");
 
                 await Application.Current.MainPage.DisplayAlert("Atenção", sb.ToString(), "OK");

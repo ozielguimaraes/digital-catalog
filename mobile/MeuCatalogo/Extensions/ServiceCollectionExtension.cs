@@ -1,6 +1,7 @@
 using System;
 using MeuCatalogo.Features.Auth;
 using MeuCatalogo.Features.Auth.ApiClients;
+using MeuCatalogo.Features.Auth.Local;
 using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Catalogo.ApiClients;
 using MeuCatalogo.Features.Categoria;
@@ -76,6 +77,7 @@ public static class ServiceCollectionExtension
         builder.Services.AddTransient<AuthenticationHandler>();
         builder.Services.AddSingleton<ISettingsService, SettingsService>();
         builder.Services.AddSingleton<INavigationService, NavigationService>();
+        builder.Services.AddSingleton<IAuthLocalRepository, AuthLocalRepository>();
         builder.Services.AddSingleton<IProdutoLocalRepository, ProdutoLocalRepository>();
         builder.Services.AddTransient<IAuthService, AuthService>();
         builder.Services.AddTransient<ICatalogoService, CatalogoService>();
