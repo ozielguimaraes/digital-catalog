@@ -8,6 +8,7 @@ using MeuCatalogo.Features.Categoria.ApiClients;
 using MeuCatalogo.Features.Estoque;
 using MeuCatalogo.Features.Produto;
 using MeuCatalogo.Features.Produto.ApiClients;
+using MeuCatalogo.Features.Produto.Local;
 using MeuCatalogo.Features.Settings.Services;
 using MeuCatalogo.Infrastructure;
 using Plugin.Maui.BottomSheet.Hosting;
@@ -75,6 +76,7 @@ public static class ServiceCollectionExtension
         builder.Services.AddTransient<AuthenticationHandler>();
         builder.Services.AddSingleton<ISettingsService, SettingsService>();
         builder.Services.AddSingleton<INavigationService, NavigationService>();
+        builder.Services.AddSingleton<IProdutoLocalRepository, ProdutoLocalRepository>();
         builder.Services.AddTransient<IAuthService, AuthService>();
         builder.Services.AddTransient<ICatalogoService, CatalogoService>();
         builder.Services.AddTransient<ICategoriaService, CategoriaService>();

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using MeuCatalogo.Features.Auth.Local;
 using MeuCatalogo.Features.Auth.Requests;
 using MeuCatalogo.Features.Auth.Responses;
 using Microsoft.Extensions.Logging;
@@ -6,7 +7,10 @@ using Refit;
 
 namespace MeuCatalogo.Features.Auth.ApiClients;
 
-public class AuthService(ILogger<AuthService> logger, IAuthApi authApi) : BaseApiService, IAuthService
+public class AuthService(
+    ILogger<AuthService> logger,
+    IAuthApi authApi,
+    IAuthLocalRepository authLocalRepository) : BaseApiService, IAuthService
 {
     public async Task<bool> IsAuthenticatedAsync()
     {
@@ -52,7 +56,7 @@ public class AuthService(ILogger<AuthService> logger, IAuthApi authApi) : BaseAp
 
             if (!string.IsNullOrWhiteSpace(response.Token))
             {
-                await SetUserInfo(response);
+                await SetUserInfo(response, cancellationToken);
                 logger.LogInformation("Login bem-sucedido para o e-mail: {Email}", response.User.Email);
                 return ApiResponse<SigninResponse>.Success(response);
             }
@@ -106,7 +110,7 @@ public class AuthService(ILogger<AuthService> logger, IAuthApi authApi) : BaseAp
         }
     }
 
-    private static async Task SetUserInfo(SigninResponse response)
+    private async Task SetUserInfo(SigninResponse response, CancellationToken cancellationToken)
     {
         string json = JsonSerializer.Serialize(response.User);
         Preferences.Set(UserInfoKey, json);
@@ -116,6 +120,6 @@ public class AuthService(ILogger<AuthService> logger, IAuthApi authApi) : BaseAp
             Preferences.Set(RefreshTokenKey, response.RefreshToken);
         }
 
-        await Task.CompletedTask;
+        await authLocalRepository.SaveUserSessionAsync(response.User, cancellationToken);
     }
 }

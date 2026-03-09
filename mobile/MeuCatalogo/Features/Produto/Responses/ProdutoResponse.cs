@@ -1,4 +1,5 @@
 using MeuCatalogo.Features.Produto.Models;
+using MeuCatalogo.Features.Produto.Local;
 
 namespace MeuCatalogo.Features.Produto.Responses;
 
@@ -14,6 +15,7 @@ public class ProdutoResponse
     public Guid CatalogoId { get; set; }
     public EstoqueResponse? Estoque { get; set; }
     public List<ProdutoImagemResponse> Imagens { get; set; } = [];
+    public LocalSyncStatus SyncStatus { get; set; } = LocalSyncStatus.Synced;
 }
 
 public class EstoqueResponse
@@ -34,6 +36,7 @@ public class ProdutoImagemResponse
     public ProdutoImagemLinksResponse Images { get; set; } = new();
     public bool IsPrincipal { get; set; }
     public int Ordem { get; set; }
+    public LocalSyncStatus SyncStatus { get; set; } = LocalSyncStatus.Synced;
 }
 
 public class ProdutoImagemLinksResponse

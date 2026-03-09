@@ -23,7 +23,7 @@
         <ApplicationTitle>Meu Catálogo</ApplicationTitle>
 
         <!-- App Identifier -->
-        <ApplicationId>br.com.sanyz.meucatalogo</ApplicationId>
+        <ApplicationId>br.com.bottonup.app</ApplicationId>
 
         <!-- Versions -->
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -54,6 +54,8 @@
     <!-- ************************************************ -->
 
     <PropertyGroup Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-ios'))">
+      <CodesignKey>Apple Distribution: ALEXANDRE AUGUSTO SILVA FERREIRA TECNOLOGIA DA INFORMACAO LTDA (N3W43AFTPC)</CodesignKey>
+      <CodesignProvision>BottonUp_Prod_AdHoc</CodesignProvision>
 
       <!-- Reduce debug app size and speed up by linking SDK assemblies only -->
       <MtouchLink>SdkOnly</MtouchLink>
@@ -99,6 +101,7 @@
         <PackageReference Include="Polly.Extensions.Http" Version="3.0.0" />
         <PackageReference Include="Refit" Version="10.0.1" />
         <PackageReference Include="Refit.HttpClientFactory" Version="10.0.1" />
+        <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
 <!--        <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.5" />-->
     </ItemGroup>
 
@@ -114,4 +117,11 @@
       <Folder Include="Features\Produto\Validators\" />
     </ItemGroup>
 
+<!--    <Target Name="PreBuild" BeforeTargets="PreBuildEvent">-->
+<!--      <Exec Command="if [ -d &quot;$PROJECT_DIR/bin&quot; ]; then rm -rf &quot;$PROJECT_DIR/bin&quot;; fi&#xA;if [ -d &quot;$PROJECT_DIR/obj&quot; ]; then rm -rf &quot;$PROJECT_DIR/obj&quot;; fi" />-->
+<!--    </Target>-->
+<!--    <Target Name="PreBuildClean" BeforeTargets="PreBuildEvent">-->
+<!--      <RemoveDir Directories="$(BaseIntermediateOutputPath)" />-->
+<!--      <RemoveDir Directories="$(OutputPath)" />-->
+<!--    </Target>-->
 </Project>
