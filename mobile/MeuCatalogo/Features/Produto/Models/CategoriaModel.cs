@@ -1,6 +1,8 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace MeuCatalogo.Features.Produto.Models;
 
-public class CategoriaModel
+public partial class CategoriaModel : ObservableObject
 {
     public CategoriaModel() { }
 
@@ -12,7 +14,11 @@ public class CategoriaModel
     }
 
     public Guid Id { get; set; }
-    public string Nome { get; set; } = string.Empty;
+    
+    [ObservableProperty] private string _nome = string.Empty;
+    
     public string? Descricao { get; set; }
     public Guid CatalogoId { get; set; }
+
+    [ObservableProperty] private bool _isSelected;
 }

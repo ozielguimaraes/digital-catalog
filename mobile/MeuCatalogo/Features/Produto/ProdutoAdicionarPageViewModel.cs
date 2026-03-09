@@ -72,7 +72,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        if (query.TryGetValue("Produto", out var produtoObj) && produtoObj is ProdutoResponse produto)
+        if (query.TryGetValue("Produto", out object? produtoObj) && produtoObj is ProdutoResponse produto)
         {
             Produto = produto;
             Nome = produto.Nome;
@@ -81,7 +81,6 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
             InformacoesAdicionais = produto.InformacoesAdicionais;
             Categoria = new CategoriaModel(produto.CategoriaNome, string.Empty, produto.CatalogoId) { Id = produto.CategoriaId };
             Preco = produto.Preco;
-            _precoComDesconto = produto.PrecoComDesconto;
             Estoque = produto.Estoque?.Quantidade;
             Imagens = new ObservableCollection<ProdutoImagemResponse>(produto.Imagens);
             Titulo = "Editar produto";

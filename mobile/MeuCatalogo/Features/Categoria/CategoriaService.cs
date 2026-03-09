@@ -67,4 +67,24 @@ public sealed class CategoriaService(ILogger<CategoriaService> logger, ICategori
             return ApiResponse<CategoriaModel>.Error("Não foi possível salvar a categoria no momento. Tente novamente em instantes.");
         }
     }
+
+    public async Task<ApiResponse<CategoriaModel>> AtualizarAsync(Guid id, CategoriaModel model, CancellationToken ct = default)
+    {
+        try
+        {
+            var categoria = await categoriaApi.AtualizarAsync(id, model, await ObterBearerTokenAsync(), ct);
+
+            return ApiResponse<CategoriaModel>.Success(categoria);
+        }
+        catch (ApiException apiEx)
+        {
+            logger.LogWarning(apiEx, "Erro ao atualizar a categoria {nome}.", model.Nome);
+            return ApiResponse<CategoriaModel>.Error("Erro ao atualizar a categoria", GetProblemDetails(apiEx));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Falha ao atualizar a categoria {nome}.", model.Nome);
+            return ApiResponse<CategoriaModel>.Error("Não foi possível atualizar a categoria no momento. Tente novamente em instantes.");
+        }
+    }
 }

@@ -22,4 +22,11 @@ public interface ICategoriaApi
         [Body] CategoriaModel categoria,
         [Header("Authorization")] string bearerToken,
         CancellationToken ct = default);
+
+    [Put("/categorias/{id}")]
+    Task<CategoriaModel> AtualizarAsync(
+        Guid id,
+        [Body] CategoriaModel categoria,
+        [Header("Authorization")] string bearerToken,
+        CancellationToken ct = default);
 }

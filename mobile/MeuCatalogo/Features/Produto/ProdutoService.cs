@@ -172,6 +172,41 @@ public sealed class ProdutoService(
     {
         try
         {
+            if (Connectivity.NetworkAccess != NetworkAccess.Internet)
+            {
+                // Local-first: copy file, create pending record
+                string fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                string localPath = Path.Combine(FileSystem.AppDataDirectory, fileName);
+                
+                using (var sourceStream = await file.OpenReadAsync())
+                using (var destStream = File.Create(localPath))
+                {
+                    await sourceStream.CopyToAsync(destStream);
+                }
+
+                // Check if it's the first image
+                var produto = await produtoLocalRepository.GetProdutoByIdAsync(produtoId, ct);
+                bool isPrincipal = produto?.Imagens == null || !produto.Imagens.Any();
+
+                var imagem = new ProdutoImagemResponse
+                {
+                    Id = Guid.NewGuid(),
+                    Url = localPath,
+                    Images = new ProdutoImagemLinksResponse 
+                    { 
+                        Thumbnail = localPath, 
+                        Medium = localPath, 
+                        Full = localPath 
+                    },
+                    IsPrincipal = isPrincipal,
+                    Ordem = (produto?.Imagens?.Count ?? 0) + 1,
+                    SyncStatus = LocalSyncStatus.PendingCreate
+                };
+
+                await produtoLocalRepository.SaveProdutoImagemOfflineAsync(produtoId, imagem, LocalSyncStatus.PendingCreate, ct);
+                return ApiResponse<ProdutoImagemResponse>.Success(imagem);
+            }
+
             using var stream = await file.OpenReadAsync();
             var streamPart = new StreamPart(stream, file.FileName, file.ContentType);
             var result = await produtoApi.UploadImageAsync(produtoId, streamPart, await ObterBearerTokenAsync(), ct);
