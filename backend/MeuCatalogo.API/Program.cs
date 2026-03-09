@@ -111,9 +111,16 @@ try
 
     Console.WriteLine("✓ Connection string configured successfully.");
     Log.Information("Connection string configured successfully.");
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(connectionString, b => b.MigrationsAssembly("MeuCatalogo.API")));
-
+    builder.Services.AddDbContextPool<ApplicationDbContext>(options =>
+    {
+        options.UseSqlServer(connectionString, b =>
+        {
+            b.MigrationsAssembly("MeuCatalogo.API");
+            b.EnableRetryOnFailure(3, TimeSpan.FromSeconds(2), null);
+            b.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+        });
+    });
+ 
     builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
             options.Password.RequireDigit = true;
@@ -193,6 +200,7 @@ try
             };
         });
     builder.Services.AddAuthorization();
+    builder.Services.AddMemoryCache();
 
     builder.Services.AddScoped<ICatalogoService, CatalogoService>();
     builder.Services.AddScoped<IProdutoService, ProdutoService>();
