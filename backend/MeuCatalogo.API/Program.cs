@@ -19,14 +19,15 @@ using Sentry;
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+    var sentryTraceSampleRate = builder.Configuration.GetValue<double?>("Sentry:TracesSampleRate") ?? (builder.Environment.IsDevelopment() ? 1.0 : 0.1);
+    var sentryProfileSampleRate = builder.Configuration.GetValue<double?>("Sentry:ProfilesSampleRate") ?? (builder.Environment.IsDevelopment() ? 1.0 : 0.0);
 
-    // Configure Sentry
     builder.WebHost.UseSentry(o =>
     {
         o.Dsn = "https://d28b29c06ae140171a04078f72b872b8@o4507538405916672.ingest.us.sentry.io/4510213135925248";
         o.Debug = builder.Environment.IsDevelopment();
-        o.TracesSampleRate = 1.0;
-        o.ProfilesSampleRate = 1.0;
+        o.TracesSampleRate = sentryTraceSampleRate;
+        o.ProfilesSampleRate = sentryProfileSampleRate;
         o.SendDefaultPii = true;
         o.AttachStacktrace = true;
         o.MaxBreadcrumbs = 50;
@@ -61,9 +62,17 @@ try
         else
         {
             // Production logging configuration - simpler approach
+            string logPath = Path.Combine(AppContext.BaseDirectory, "logs");
+            if (!Directory.Exists(logPath))
+            {
+                Directory.CreateDirectory(logPath);
+            }
+
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Warning()
+                .Enrich.FromLogContext()
                 .WriteTo.Console()
+                .WriteTo.File("logs/error-log-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 14, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error)
                 .CreateLogger();
         }
 
