@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using MeuCatalogo.Domain.Enums;
 using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Categoria;
@@ -10,6 +11,7 @@ using MeuCatalogo.Features.Estoque;
 using MeuCatalogo.Features.Categoria.Models;
 using MeuCatalogo.Features.Categoria.UseCases;
 using MeuCatalogo.Features.Produto.Data.Remote.Contracts.Responses;
+using MeuCatalogo.Features.Produto.Presentation;
 using MeuCatalogo.Features.Settings.Services;
 using MeuCatalogo.Features.Produto.UseCases;
 using MeuCatalogo.Infrastructure;
@@ -84,13 +86,13 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         {
             Produto = produto;
             Nome = produto.Nome;
-            PrecoString = produto.Preco.ToString("N2");
-            PrecoComDescontoString = produto.PrecoComDesconto?.ToString("N2") ?? string.Empty;
             InformacoesAdicionais = produto.InformacoesAdicionais;
             Categoria = new CategoriaModel(produto.CategoriaNome, string.Empty, produto.CatalogoId) { Id = produto.CategoriaId };
             Preco = produto.Preco;
             Estoque = produto.Estoque?.Quantidade;
             Imagens = new ObservableCollection<ProdutoImagemResponse>(produto.Imagens);
+            PrecoString = produto.Preco.ToString("N2");
+            PrecoComDescontoString = produto.PrecoComDesconto?.ToString("N2") ?? string.Empty;
             Titulo = "Editar produto";
         }
         else
@@ -405,6 +407,8 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
             }
 
             CancelarCarregamentoCategorias();
+            if (Produto is not null)
+                WeakReferenceMessenger.Default.Send(new ProdutoUpsertedMessage(Produto.Id.ToString()));
             await NavigationService.NavigateToAsync($"//{nameof(ProdutoListaPage)}");
         }
         catch (Exception ex)

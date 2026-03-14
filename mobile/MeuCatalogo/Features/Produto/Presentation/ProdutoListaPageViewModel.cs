@@ -2,15 +2,18 @@ using System.Linq;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using MeuCatalogo.Domain.Enums;
 using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Produto.Data.Local;
 using MeuCatalogo.Features.Produto.Data.Remote.Contracts.Responses;
 using MeuCatalogo.Features.Produto.Domain;
+using MeuCatalogo.Features.Produto.Presentation;
 using MeuCatalogo.Features.Settings.Services;
 using MeuCatalogo.Features.Produto.UseCases;
 using MeuCatalogo.Infrastructure;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.ApplicationModel;
 
 namespace MeuCatalogo.Features.Produto;
 
@@ -43,6 +46,18 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
         _deleteProdutoRemoteUseCase = deleteProdutoRemoteUseCase;
         _settingsService = settingsService;
         _navigationService = navigationService;
+
+        WeakReferenceMessenger.Default.Register<ProdutoUpsertedMessage>(this, async (_, message) =>
+        {
+            try
+            {
+                await AtualizarProdutoNaListaAsync(message.Value);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao atualizar produto na lista");
+            }
+        });
     }
 
     [ObservableProperty] private ObservableCollection<ProdutoEntity> _produtos = [];
@@ -165,6 +180,27 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
         };
 
         await Shell.Current.GoToAsync($"{nameof(ProdutoAdicionarPage)}", true, navigationParameter);
+    }
+
+    private async Task AtualizarProdutoNaListaAsync(string produtoId)
+    {
+        var entity = await _produtoLocalRepository.GetByIdAsync(produtoId);
+        if (entity == null)
+            return;
+
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            var existing = Produtos.FirstOrDefault(p => p.Id == produtoId);
+            if (existing == null)
+            {
+                Produtos.Insert(0, entity);
+                return;
+            }
+
+            var index = Produtos.IndexOf(existing);
+            if (index >= 0)
+                Produtos[index] = entity;
+        });
     }
 
     [RelayCommand]
