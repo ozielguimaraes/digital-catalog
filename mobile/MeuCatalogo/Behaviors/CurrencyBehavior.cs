@@ -51,9 +51,6 @@ public class CurrencyBehavior : Behavior<Entry>, IDisposable
         _entry = bindable;
         _entry.Keyboard = Keyboard.Numeric;
         _entry.TextChanged += OnEntryTextChanged;
-
-        if (string.IsNullOrEmpty(_entry.Text))
-            _entry.Text = FormatCurrency(0m);
     }
 
     protected override void OnDetachingFrom(Entry bindable)
@@ -77,7 +74,7 @@ public class CurrencyBehavior : Behavior<Entry>, IDisposable
 
             if (string.IsNullOrEmpty(digitsOnly))
             {
-                UpdateTextAndCursor(FormatCurrency(0m));
+                UpdateTextAndCursor(string.Empty);
                 return;
             }
 
@@ -105,11 +102,18 @@ public class CurrencyBehavior : Behavior<Entry>, IDisposable
 
     private void UpdateTextAndCursor(string text)
     {
-        _entry?.Dispatcher.Dispatch(() =>
-        {
-            _entry.Text = text;
+        if (_entry == null)
+            return;
 
-            _entry.CursorPosition = text.Length;
+        _entry.Dispatcher.Dispatch(() =>
+        {
+            if (_entry == null)
+                return;
+
+            if (_entry.Text == text)
+                return;
+
+            _entry.Text = text;
         });
     }
 
