@@ -6,11 +6,9 @@ using CommunityToolkit.Mvvm.Input;
 using MeuCatalogo.Domain.Enums;
 using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Categoria;
-using MeuCatalogo.Features.Categoria.Domain;
 using MeuCatalogo.Features.Estoque;
 using MeuCatalogo.Features.Categoria.Models;
 using MeuCatalogo.Features.Categoria.UseCases;
-using MeuCatalogo.Features.Produto.Data.Remote.Contracts.Requests;
 using MeuCatalogo.Features.Produto.Data.Remote.Contracts.Responses;
 using MeuCatalogo.Features.Settings.Services;
 using MeuCatalogo.Features.Produto.UseCases;
@@ -112,7 +110,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
     }
 
     #region Conversão Preços
-    partial void OnNomeChanged(string value) => ValidateNome();
+    partial void OnNomeChanged(string value) => ValidateFields(nameof(UpsertProdutoOfflineFirstRequest.Nome));
 
     partial void OnPrecoStringChanged(string value)
     {
@@ -124,8 +122,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         {
             Preco = preco;
         }
-        ValidatePreco();
-        ValidatePrecoComDesconto();
+        ValidateFields(nameof(UpsertProdutoOfflineFirstRequest.Preco), nameof(UpsertProdutoOfflineFirstRequest.PrecoComDesconto));
     }
 
     partial void OnPrecoComDescontoStringChanged(string value)
@@ -138,7 +135,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         {
             _precoComDesconto = preco;
         }
-        ValidatePrecoComDesconto();
+        ValidateFields(nameof(UpsertProdutoOfflineFirstRequest.PrecoComDesconto));
     }
 
     private static bool TentarConverterPreco(string? value, out decimal preco)
@@ -168,6 +165,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
             {
                 Categoria = categoria;
                 CategoriaErrorMessage = string.Empty;
+                ValidateFields(nameof(UpsertProdutoOfflineFirstRequest.CategoriaId), nameof(UpsertProdutoOfflineFirstRequest.CategoriaNome));
             }
 
             if (!parameters.TryGetValue(BottomSheetParameters.DisponivelEmEstoqueSelecionado, out object? disponivelObj) ||

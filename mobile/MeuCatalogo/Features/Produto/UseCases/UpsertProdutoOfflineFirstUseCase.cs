@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using MeuCatalogo.Core.Abstractions;
 using MeuCatalogo.Domain.Entities;
@@ -6,6 +7,7 @@ using MeuCatalogo.Features.Produto.Data.Local;
 using MeuCatalogo.Features.Produto.Data.Remote.Contracts.Requests;
 using MeuCatalogo.Features.Produto.Data.Remote.Contracts.Responses;
 using MeuCatalogo.Features.Produto.Domain;
+using MeuCatalogo.Features.Produto.Validators;
 using MeuCatalogo.Features.Settings.Services;
 using MeuCatalogo.Infrastructure.Database;
 using MeuCatalogo.Infrastructure.SyncEngine;
@@ -57,6 +59,21 @@ public sealed class UpsertProdutoOfflineFirstUseCase : IUseCase<UpsertProdutoOff
     public async Task<ApiResponse<ProdutoResponse>> ExecuteAsync(UpsertProdutoOfflineFirstRequest request)
     {
         var catalogoId = _settingsService.CatalogoFavorito?.Id ?? Guid.Empty;
+
+        if (catalogoId == Guid.Empty)
+            return ApiResponse<ProdutoResponse>.Error("Nenhum catálogo favorito encontrado. Selecione um catálogo antes de salvar um produto.");
+
+        var validator = new UpsertProdutoValidator(request);
+        if (!validator.IsValid)
+        {
+            var messages = validator.Notifications.Select(x => x.Message);
+            var sb = new StringBuilder();
+            foreach (string message in messages)
+                sb.Append($"{message}\n");
+
+            string error = sb.ToString().TrimEnd();
+            return ApiResponse<ProdutoResponse>.Error(error);
+        }
 
         if (_connectivity.NetworkAccess == NetworkAccess.Internet)
         {
@@ -247,4 +264,3 @@ public sealed class UpsertProdutoOfflineFirstUseCase : IUseCase<UpsertProdutoOff
         await _dbContext.Database.UpdateAsync(existing);
     }
 }
-
