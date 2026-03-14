@@ -5,6 +5,7 @@ using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Produto;
 using MeuCatalogo.Features.Settings.Services;
 using MeuCatalogo.Infrastructure;
+using MeuCatalogo.Infrastructure.Database;
 using Microsoft.Maui;
 
 namespace MeuCatalogo;
@@ -51,6 +52,21 @@ public partial class App
 
             if (Handler is not null)
             {
+                var db = IPlatformApplication.Current?.Services.GetService<AppDbContext>();
+                if (db != null)
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await db.InitializeAsync();
+                        }
+                        catch
+                        {
+                        }
+                    });
+                }
+
                 // await _navigationService.InitializeAsync();
             }
         }

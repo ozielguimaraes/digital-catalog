@@ -15,18 +15,15 @@ public sealed partial class LoginPageViewModel : BasePageViewModel
 {
     private readonly ILogger<LoginPageViewModel> _logger;
     private readonly SigninUseCase _signinUseCase;
-    private readonly SyncAfterLoginUseCase _syncAfterLoginUseCase;
     private readonly IFingerprint _fingerprint;
 
     public LoginPageViewModel(
         ILogger<LoginPageViewModel> logger,
         SigninUseCase signinUseCase,
-        SyncAfterLoginUseCase syncAfterLoginUseCase,
         IFingerprint fingerprint)
     {
         _logger = logger;
         _signinUseCase = signinUseCase;
-        _syncAfterLoginUseCase = syncAfterLoginUseCase;
         _fingerprint = fingerprint;
 #if  DEBUG
         Email = "microzapple@gmail.com";
@@ -77,9 +74,6 @@ public sealed partial class LoginPageViewModel : BasePageViewModel
                 await Toast.Make("A requisição falhou, tente novamente.", ToastDuration.Long).Show();
                 return;
             }
-
-            BusyMessage = "Sincronizando dados…";
-            await _syncAfterLoginUseCase.ExecuteAsync();
 
             var appShellViewModel = Application.Current.MainPage.Handler.MauiContext.Services.GetService<AppShellViewModel>();
             Application.Current.MainPage = new AppShell(appShellViewModel);

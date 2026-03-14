@@ -27,6 +27,7 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
     private readonly DeleteProdutoRemoteUseCase _deleteProdutoRemoteUseCase;
     private readonly ISettingsService _settingsService;
     private readonly INavigationService _navigationService;
+    private bool _backgroundSyncStarted;
 
     public ProdutoListaPageViewModel(
         ILogger<ProdutoListaPageViewModel> logger,
@@ -81,14 +82,7 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
                 return;
             }
 
-            var forceSync = IsRefreshing;
             var localProdutos = await _produtoLocalRepository.GetByCatalogoIdAsync(catalogo.Id.ToString());
-            if (forceSync || (!localProdutos.Any() && HasInternetConnection()) || (HasInternetConnection() && localProdutos.Any(p => string.IsNullOrWhiteSpace(p.ThumbnailUrl))))
-            {
-                await _syncProdutosByCatalogoUseCase.ExecuteAsync(catalogo.Id);
-                localProdutos = await _produtoLocalRepository.GetByCatalogoIdAsync(catalogo.Id.ToString());
-            }
-
             Produtos.Clear();
             Produtos = new ObservableCollection<ProdutoEntity>(localProdutos);
         }
@@ -99,6 +93,59 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
         finally
         {
             IsBusy = false;
+        }
+
+        await MaybeSyncInBackgroundAsync();
+    }
+
+    private async Task MaybeSyncInBackgroundAsync()
+    {
+        try
+        {
+            var catalogo = _settingsService.CatalogoFavorito;
+            if (catalogo == null)
+                return;
+
+            var forceSync = IsRefreshing;
+            var localProdutos = await _produtoLocalRepository.GetByCatalogoIdAsync(catalogo.Id.ToString());
+
+            var shouldSync =
+                forceSync ||
+                (!_backgroundSyncStarted && HasInternetConnection() && (!localProdutos.Any() || localProdutos.Any(p => string.IsNullOrWhiteSpace(p.ThumbnailUrl))));
+
+            if (!shouldSync)
+            {
+                IsRefreshing = false;
+                return;
+            }
+
+            _backgroundSyncStarted = true;
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _syncProdutosByCatalogoUseCase.ExecuteAsync(catalogo.Id);
+                    var updated = await _produtoLocalRepository.GetByCatalogoIdAsync(catalogo.Id.ToString());
+
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        Produtos.Clear();
+                        foreach (var p in updated)
+                            Produtos.Add(p);
+                        IsRefreshing = false;
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Erro ao sincronizar produtos em background.");
+                    MainThread.BeginInvokeOnMainThread(() => IsRefreshing = false);
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao preparar sincronização de produtos.");
             IsRefreshing = false;
         }
     }

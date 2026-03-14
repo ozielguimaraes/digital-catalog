@@ -106,6 +106,8 @@ public static class ServiceCollectionExtension
         builder.Services.AddTransient<ICatalogoRepository, CatalogoRepository>();
         builder.Services.AddTransient<ICatalogoLocalRepository, CatalogoLocalRepository>();
         builder.Services.AddTransient<GetCatalogosUseCase>();
+        builder.Services.AddTransient<GetCatalogosLocalUseCase>();
+        builder.Services.AddTransient<SyncCatalogosUseCase>();
         builder.Services.AddTransient<CreateCatalogoUseCase>();
         builder.Services.AddTransient<DeleteCatalogoUseCase>();
         builder.Services.AddTransient<SetCatalogoFavoritoUseCase>();
@@ -131,7 +133,6 @@ public static class ServiceCollectionExtension
         builder.Services.AddTransient<ISyncHandler, CatalogoPullSyncHandler>();
         builder.Services.AddTransient<ISyncHandler, ProdutoPullSyncHandler>();
         builder.Services.AddTransient<ISyncHandler, ProdutoUpsertSyncHandler>();
-        builder.Services.AddTransient<SyncAfterLoginUseCase>();
 
         return builder;
     }
