@@ -11,9 +11,9 @@ const USER_PASSWORD = __ENV.USER_PASSWORD || 'Asdf@1234';
 
 export const options = {
   stages: [
-    { duration: '1m', target: 300 },
-    { duration: '3m', target: 150 },
-    { duration: '1m', target: 0 },
+    { duration: '1m', target: 1200 },
+    { duration: '3m', target: 500 },
+    { duration: '1m', target: 30 },
   ],
   thresholds: {
     'http_req_duration': ['p(95)<500'],

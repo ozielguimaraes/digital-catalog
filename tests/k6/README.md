@@ -47,3 +47,9 @@ O k6 gerará um relatório no terminal ao final da execução. Preste atenção 
 3.  **Obter Produtos**: Busca os produtos do primeiro catálogo encontrado.
 
 O teste simula um ramp-up (aumento gradual) de usuários até 10 VUs, mantém por 1 minuto e depois diminui.
+
+## Runbook de benchmark
+
+Para execução estruturada de benchmark, validação de ganho de throughput e checklist de infraestrutura/SQL:
+
+- [PERFORMANCE-RUNBOOK.md](file:///Users/ozielsilva/projects/digital-catalog/tests/k6/PERFORMANCE-RUNBOOK.md)

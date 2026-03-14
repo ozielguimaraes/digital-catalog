@@ -3,9 +3,8 @@ using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MeuCatalogo.Features.Auth.ApiClients;
-using MeuCatalogo.Features.Auth.Requests;
-using MeuCatalogo.Features.Auth.Validators;
+using MeuCatalogo.Features.Auth.Data.Remote.Contracts.Requests;
+using MeuCatalogo.Features.Auth.UseCases;
 using MeuCatalogo.Features.Catalogo;
 using Microsoft.Extensions.Logging;
 using Plugin.Fingerprint.Abstractions;
@@ -15,13 +14,19 @@ namespace MeuCatalogo.Features.Auth;
 public sealed partial class LoginPageViewModel : BasePageViewModel
 {
     private readonly ILogger<LoginPageViewModel> _logger;
-    private readonly IAuthService _authService;
+    private readonly SigninUseCase _signinUseCase;
+    private readonly SyncAfterLoginUseCase _syncAfterLoginUseCase;
     private readonly IFingerprint _fingerprint;
 
-    public LoginPageViewModel(ILogger<LoginPageViewModel> logger, IAuthService authService, IFingerprint fingerprint)
+    public LoginPageViewModel(
+        ILogger<LoginPageViewModel> logger,
+        SigninUseCase signinUseCase,
+        SyncAfterLoginUseCase syncAfterLoginUseCase,
+        IFingerprint fingerprint)
     {
         _logger = logger;
-        _authService = authService;
+        _signinUseCase = signinUseCase;
+        _syncAfterLoginUseCase = syncAfterLoginUseCase;
         _fingerprint = fingerprint;
 #if  DEBUG
         Email = "microzapple@gmail.com";
@@ -31,34 +36,28 @@ public sealed partial class LoginPageViewModel : BasePageViewModel
 
     [ObservableProperty] private string? _email;
     [ObservableProperty] private string? _password;
+    [ObservableProperty] private string? _busyMessage;
 
     [RelayCommand]
     private async Task Login()
     {
         try
         {
+            if (IsBusy)
+                return;
+
             if (!HasInternetConnection())
             {
                 await Toast.Make("Sem conexão com a internet", ToastDuration.Long).Show();
                 return;
             }
 
+            IsBusy = true;
+            BusyMessage = "Entrando…";
+
             var request = new SigninRequest(Email: Email, Password: Password);
 
-            var validator = new SigninValidator(request);
-            if (!validator.IsValid)
-            {
-                var messages = validator.Notifications.Select(x => x.Message);
-                var sb = new StringBuilder();
-
-                foreach (string message in messages)
-                    sb.Append($"{message}\n");
-
-                await Application.Current.MainPage.DisplayAlert("Atenção", sb.ToString(), "OK");
-                return;
-            }
-
-            var signinResponse = await _authService.SigninAsync(request);
+            var signinResponse = await _signinUseCase.ExecuteAsync(request);
 
             if (signinResponse.RetornouComErro)
             {
@@ -79,6 +78,9 @@ public sealed partial class LoginPageViewModel : BasePageViewModel
                 return;
             }
 
+            BusyMessage = "Sincronizando dados…";
+            await _syncAfterLoginUseCase.ExecuteAsync();
+
             var appShellViewModel = Application.Current.MainPage.Handler.MauiContext.Services.GetService<AppShellViewModel>();
             Application.Current.MainPage = new AppShell(appShellViewModel);
         }
@@ -87,6 +89,11 @@ public sealed partial class LoginPageViewModel : BasePageViewModel
             _logger.LogError(ex.Message);
 
             await Application.Current.MainPage.DisplayAlert("Oops", "Ocorreu um erro inesperado, se persistir contacte o desenvolvedor", "OK");
+        }
+        finally
+        {
+            BusyMessage = null;
+            IsBusy = false;
         }
     }
 

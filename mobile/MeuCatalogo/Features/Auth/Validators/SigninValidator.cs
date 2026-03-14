@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 using Flunt.Validations;
-using MeuCatalogo.Features.Auth.Requests;
+using MeuCatalogo.Features.Auth.Data.Remote.Contracts.Requests;
 
 namespace MeuCatalogo.Features.Auth.Validators;
 

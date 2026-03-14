@@ -13,7 +13,7 @@ public abstract class BaseApiService
 
     public const string TokenKey = "auth_token";
     public const string RefreshTokenKey = "auth_refresh_token";
-    public const string UserInfoKey = "user_info_key";
+
 
     protected static string ObterMensagemErroApi(ApiException apiEx)
     {
@@ -50,7 +50,7 @@ public abstract class BaseApiService
 
     protected static async Task<string> ObterBearerTokenAsync()
     {
-        string bearerToken = Preferences.Get(TokenKey, string.Empty);
-        return await Task.FromResult($"Bearer {bearerToken}");
+        string? bearerToken = await SecureStorage.Default.GetAsync(TokenKey);
+        return $"Bearer {bearerToken ?? string.Empty}";
     }
 }

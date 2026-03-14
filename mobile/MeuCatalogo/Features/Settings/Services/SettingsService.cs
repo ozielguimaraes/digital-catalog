@@ -1,18 +1,18 @@
 using System.Text.Json;
-using MeuCatalogo.Features.Catalogo.Responses;
+using MeuCatalogo.Features.Catalogo.Domain;
 
 namespace MeuCatalogo.Features.Settings.Services;
 
 public sealed class SettingsService : ISettingsService
 {
-    public CatalogoResponse? CatalogoFavorito
+    public CatalogoInfo? CatalogoFavorito
     {
         get
         {
             string? raw = Preferences.Get(nameof(CatalogoFavorito), null);
             return string.IsNullOrWhiteSpace(raw)
                 ? null
-                : JsonSerializer.Deserialize<CatalogoResponse>(raw);
+                : JsonSerializer.Deserialize<CatalogoInfo>(raw);
         }
         set
         {

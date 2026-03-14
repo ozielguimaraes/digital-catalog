@@ -25,6 +25,12 @@
         <!-- App Identifier -->
         <ApplicationId>br.com.bottonup.app</ApplicationId>
 
+        <!-- ************************************************ -->
+        <!-- Android specific configurations -->
+        <!-- ************************************************ -->
+
+        <ApplicationId Condition="$(TargetFramework.Contains('-android'))">br.com.zanyz.app</ApplicationId>
+
         <!-- Versions -->
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
         <ApplicationVersion>1</ApplicationVersion>

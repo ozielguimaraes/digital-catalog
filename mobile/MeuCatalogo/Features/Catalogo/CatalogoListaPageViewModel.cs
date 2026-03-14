@@ -1,9 +1,10 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MeuCatalogo.Features.Catalogo.ApiClients;
-using MeuCatalogo.Features.Catalogo.Responses;
+using MeuCatalogo.Features.Catalogo.Domain;
+using MeuCatalogo.Features.Catalogo.UseCases;
 using MeuCatalogo.Features.Settings.Services;
+using MeuCatalogo.Infrastructure;
 using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Features.Catalogo;
@@ -11,18 +12,30 @@ namespace MeuCatalogo.Features.Catalogo;
 public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
 {
     private readonly ILogger<CatalogoListaPageViewModel> _logger;
-    private readonly ICatalogoService _catalogoService;
+    private readonly GetCatalogosUseCase _getCatalogosUseCase;
+    private readonly DeleteCatalogoUseCase _deleteCatalogoUseCase;
+    private readonly SetCatalogoFavoritoUseCase _setCatalogoFavoritoUseCase;
     private readonly ISettingsService _settingsService;
+    private readonly INavigationService _navigationService;
 
-    public CatalogoListaPageViewModel(ILogger<CatalogoListaPageViewModel> logger, ICatalogoService catalogoService, ISettingsService settingsService)
+    public CatalogoListaPageViewModel(
+        ILogger<CatalogoListaPageViewModel> logger,
+        GetCatalogosUseCase getCatalogosUseCase,
+        DeleteCatalogoUseCase deleteCatalogoUseCase,
+        SetCatalogoFavoritoUseCase setCatalogoFavoritoUseCase,
+        ISettingsService settingsService,
+        INavigationService navigationService)
     {
         _logger = logger;
-        _catalogoService = catalogoService;
+        _getCatalogosUseCase = getCatalogosUseCase;
+        _deleteCatalogoUseCase = deleteCatalogoUseCase;
+        _setCatalogoFavoritoUseCase = setCatalogoFavoritoUseCase;
         _settingsService = settingsService;
+        _navigationService = navigationService;
         Catalogos = [];
     }
 
-    [ObservableProperty] private ObservableCollection<CatalogoResponse> _catalogos;
+    [ObservableProperty] private ObservableCollection<CatalogoInfo> _catalogos;
 
     [RelayCommand]
     public async Task CarregarCatalogos()
@@ -32,14 +45,14 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
             if (IsBusy) return;
 
             IsBusy = true;
-            var response = await _catalogoService.GetCatalogosByUserIdAsync();
+            var response = await _getCatalogosUseCase.ExecuteAsync();
             if (response.RetornouComErro)
             {
                 await Application.Current.MainPage.DisplayAlert(response.ProblemDetails!.Title, response.ProblemDetails!.Detail, "OK");
                 return;
             }
             Catalogos.Clear();
-            Catalogos = new ObservableCollection<CatalogoResponse>(response.Dados!);
+            Catalogos = new ObservableCollection<CatalogoInfo>(response.Dados!);
 
             if (_settingsService.CatalogoFavorito == null && response.Dados!.Count == 1)
             {
@@ -57,11 +70,11 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
     }
 
     [RelayCommand]
-    private async Task Excluir(CatalogoResponse catalogo)
+    private async Task Excluir(CatalogoInfo catalogo)
     {
         try
         {
-            var response = await _catalogoService.DeleteCatalogoAsync(catalogo.Id);
+            var response = await _deleteCatalogoUseCase.ExecuteAsync(catalogo.Id);
             if (response.RetornouComErro)
             {
                 await Application.Current.MainPage.DisplayAlert(response.ProblemDetails!.Title, response.ProblemDetails!.Detail, "OK");
@@ -78,12 +91,11 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
     }
 
     [RelayCommand]
-    private async Task Favoritar(CatalogoResponse catalogo)
+    private async Task Favoritar(CatalogoInfo catalogo)
     {
         try
         {
-            _settingsService.CatalogoFavorito = catalogo;
-            await Task.CompletedTask;
+            await _setCatalogoFavoritoUseCase.ExecuteAsync(catalogo);
         }
         catch (Exception ex)
         {
@@ -95,6 +107,6 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
     [RelayCommand]
     private async Task Adicionar()
     {
-        await Shell.Current.GoToAsync($"/{nameof(CatalogoAdicionarPage)}");
+        await _navigationService.NavigateToAsync($"/{nameof(CatalogoAdicionarPage)}");
     }
 }

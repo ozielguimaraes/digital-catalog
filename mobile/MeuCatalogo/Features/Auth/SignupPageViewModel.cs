@@ -1,10 +1,11 @@
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MeuCatalogo.Features.Auth.ApiClients;
-using MeuCatalogo.Features.Auth.Requests;
+using MeuCatalogo.Features.Auth.Data.Remote.Contracts.Requests;
+using MeuCatalogo.Features.Auth.UseCases;
 using MeuCatalogo.Features.Auth.Validators;
 using MeuCatalogo.Features.Catalogo;
+using MeuCatalogo.Infrastructure;
 using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Features.Auth;
@@ -12,12 +13,14 @@ namespace MeuCatalogo.Features.Auth;
 public partial class SignupPageViewModel : BasePageViewModel
 {
     private readonly ILogger<SignupPageViewModel> _logger;
-    private readonly IAuthService _authService;
+    private readonly SignupUseCase _signupUseCase;
+    private readonly INavigationService _navigationService;
 
-    public SignupPageViewModel(ILogger<SignupPageViewModel> logger, IAuthService authService)
+    public SignupPageViewModel(ILogger<SignupPageViewModel> logger, SignupUseCase signupUseCase, INavigationService navigationService)
     {
         _logger = logger;
-        _authService = authService;
+        _signupUseCase = signupUseCase;
+        _navigationService = navigationService;
     }
 
     [ObservableProperty]private string _nome;
@@ -43,15 +46,16 @@ public partial class SignupPageViewModel : BasePageViewModel
                 return;
             }
 
-            var response = await _authService.SignupAsync(request);
+            var response = await _signupUseCase.ExecuteAsync(request);
 
-            if (response == null)
+            if (response.RetornouComErro)
             {
-                await Shell.Current.DisplayAlert("Atenção", "Login e/ou senha está incorreto", "OK");
+                var errors = ObterErros(response);
+                await Shell.Current.DisplayAlert("Atenção", string.Join("\n", errors), "OK");
                 return;
             }
 
-            await Shell.Current.GoToAsync($"//{nameof(CatalogoListaPage)}");
+            await _navigationService.NavigateToAsync($"//{nameof(CatalogoListaPage)}");
         }
         catch (Exception ex)
         {

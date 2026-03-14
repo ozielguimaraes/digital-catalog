@@ -1,8 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MeuCatalogo.Features.Catalogo.ApiClients;
-using MeuCatalogo.Features.Catalogo.Requests;
+using MeuCatalogo.Features.Catalogo.Data.Remote.Contracts.Requests;
+using MeuCatalogo.Features.Catalogo.UseCases;
 using MeuCatalogo.Features.Settings.Services;
+using MeuCatalogo.Infrastructure;
 using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Features.Catalogo;
@@ -10,14 +11,20 @@ namespace MeuCatalogo.Features.Catalogo;
 public sealed partial class CatalogoAdicionarPageViewModel : BasePageViewModel
 {
     private readonly ILogger<CatalogoListaPageViewModel> _logger;
-    private readonly ICatalogoService _catalogoService;
+    private readonly CreateCatalogoUseCase _createCatalogoUseCase;
     private readonly ISettingsService _settingsService;
+    private readonly INavigationService _navigationService;
 
-    public CatalogoAdicionarPageViewModel(ILogger<CatalogoListaPageViewModel> logger, ICatalogoService catalogoService, ISettingsService settingsService)
+    public CatalogoAdicionarPageViewModel(
+        ILogger<CatalogoListaPageViewModel> logger,
+        CreateCatalogoUseCase createCatalogoUseCase,
+        ISettingsService settingsService,
+        INavigationService navigationService)
     {
         _logger = logger;
-        _catalogoService = catalogoService;
+        _createCatalogoUseCase = createCatalogoUseCase;
         _settingsService = settingsService;
+        _navigationService = navigationService;
     }
 
     [ObservableProperty] private string _nome;
@@ -64,9 +71,16 @@ public sealed partial class CatalogoAdicionarPageViewModel : BasePageViewModel
                 return;
             }
 
-            var request = new CatalogoCreateRequest(Nome, NomeCurto, NumeroWhatsapp, Email, " ");
+            var request = new CatalogoCreateRequest
+            {
+                Nome = Nome,
+                NomeCurto = NomeCurto,
+                NumeroWhatsapp = NumeroWhatsapp,
+                Email = Email,
+                Descricao = " "
+            };
 
-            var response = await _catalogoService.CreateCatalogoAsync(request);
+            var response = await _createCatalogoUseCase.ExecuteAsync(request);
             if (response.RetornouComErro)
             {
                 string mensagemErro = string.Join("\n", ObterErros(response));
@@ -76,7 +90,7 @@ public sealed partial class CatalogoAdicionarPageViewModel : BasePageViewModel
 
             _settingsService.CatalogoFavorito ??= response.Dados;
 
-            await Shell.Current.GoToAsync($"//{nameof(CatalogoListaPage)}");
+            await _navigationService.NavigateToAsync($"//{nameof(CatalogoListaPage)}");
         }
         catch (Exception ex)
         {

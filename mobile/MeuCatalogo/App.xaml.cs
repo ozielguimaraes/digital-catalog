@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using MeuCatalogo.Features.Auth;
-using MeuCatalogo.Features.Auth.ApiClients;
+using MeuCatalogo.Features.Auth.Data;
 using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Produto;
 using MeuCatalogo.Features.Settings.Services;
@@ -11,19 +11,19 @@ namespace MeuCatalogo;
 
 public partial class App
 {
-    private readonly IAuthService _authService;
+    private readonly IAuthRepository _authRepository;
     private readonly INavigationService _navigationService;
 
-    public App(IAuthService authService, INavigationService navigationService)
+    public App(IAuthRepository authRepository, INavigationService navigationService)
     {
-        _authService = authService;
+        _authRepository = authRepository;
         _navigationService = navigationService;
         InitializeComponent();
     }
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        if (_authService.IsAuthenticated())
+        if (_authRepository.IsAuthenticated())
         {
             var appShellViewModel = IPlatformApplication.Current!.Services.GetService<AppShellViewModel>()
                                     ?? throw new InvalidOperationException("AppShellViewModel is not registered in the DI container.");

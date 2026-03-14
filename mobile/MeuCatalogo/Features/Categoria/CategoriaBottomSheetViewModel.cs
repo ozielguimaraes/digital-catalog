@@ -1,7 +1,10 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MeuCatalogo.Features.Produto.Models;
+using MeuCatalogo.Features.Categoria.Data.Remote.Contracts.Requests;
+using MeuCatalogo.Features.Categoria.Domain;
+using MeuCatalogo.Features.Categoria.Models;
+using MeuCatalogo.Features.Categoria.UseCases;
 using MeuCatalogo.Features.Settings.Services;
 using Plugin.Maui.BottomSheet.Navigation;
 
@@ -9,7 +12,8 @@ namespace MeuCatalogo.Features.Categoria;
 
 public partial class CategoriaBottomSheetViewModel(
     IBottomSheetNavigationService bottomSheetNavigationService,
-    ICategoriaService categoriaService,
+    CreateCategoriaUseCase createCategoriaUseCase,
+    UpdateCategoriaUseCase updateCategoriaUseCase,
     ISettingsService settingsService)
     : BasePageViewModel, INavigationAware
 {
@@ -57,45 +61,52 @@ public partial class CategoriaBottomSheetViewModel(
 
         if (IsEditing && _categoriaEmEdicao != null)
         {
-            var requestModel = new CategoriaModel(
-                nome: NovaCategoria!.Trim(),
-                descricao: _categoriaEmEdicao.Descricao ?? string.Empty,
-                catalogoId: _categoriaEmEdicao.CatalogoId
-            );
-            
-            var responseModel = await categoriaService.AtualizarAsync(_categoriaEmEdicao.Id, requestModel);
-            if (responseModel.RetornouComErro)
+            var request = new CategoriaUpsertRequest
             {
-                NovaCategoriaErrorMessage = string.Join("\n", ObterErros(responseModel));
+                Nome = NovaCategoria!.Trim(),
+                Descricao = _categoriaEmEdicao.Descricao ?? string.Empty,
+                CatalogoId = _categoriaEmEdicao.CatalogoId
+            };
+
+            var response = await updateCategoriaUseCase.ExecuteAsync((_categoriaEmEdicao.Id, request));
+            if (response.RetornouComErro)
+            {
+                NovaCategoriaErrorMessage = string.Join("\n", ObterErros(response));
                 return;
             }
+
+            var updated = ToModel(response.Dados!);
             
             var index = Categorias.IndexOf(_categoriaEmEdicao);
             if (index >= 0)
             {
-                Categorias[index] = responseModel.Dados!;
+                Categorias[index] = updated;
                 if (_itemSelecionado?.Id == _categoriaEmEdicao.Id)
                 {
-                    _itemSelecionado = responseModel.Dados!;
+                    _itemSelecionado = updated;
                     _itemSelecionado.IsSelected = true;
                 }
             }
         }
         else
         {
-            var requestModel = new CategoriaModel(
-                nome: NovaCategoria!.Trim(),
-                descricao: string.Empty,
-                catalogoId: settingsService.CatalogoFavorito?.Id ?? Guid.Empty
-            );
-            var responseModel = await categoriaService.AdicionarAsync(requestModel);
-            if (responseModel.RetornouComErro)
+            var request = new CategoriaUpsertRequest
             {
-                NovaCategoriaErrorMessage = string.Join("\n", ObterErros(responseModel));
+                Nome = NovaCategoria!.Trim(),
+                Descricao = string.Empty,
+                CatalogoId = settingsService.CatalogoFavorito?.Id ?? Guid.Empty
+            };
+
+            var response = await createCategoriaUseCase.ExecuteAsync(request);
+            if (response.RetornouComErro)
+            {
+                NovaCategoriaErrorMessage = string.Join("\n", ObterErros(response));
                 return;
             }
 
-            Categorias.Add(responseModel.Dados!);
+            var created = ToModel(response.Dados!);
+
+            Categorias.Add(created);
         }
 
         NovaCategoria = string.Empty;
@@ -103,6 +114,14 @@ public partial class CategoriaBottomSheetViewModel(
         IsEditing = false;
         _categoriaEmEdicao = null;
     }
+
+    private static CategoriaModel ToModel(CategoriaInfo categoria) => new()
+    {
+        Id = categoria.Id,
+        Nome = categoria.Nome,
+        Descricao = categoria.Descricao,
+        CatalogoId = categoria.CatalogoId
+    };
 
     private bool NovaCategoriaEstaValida()
     {

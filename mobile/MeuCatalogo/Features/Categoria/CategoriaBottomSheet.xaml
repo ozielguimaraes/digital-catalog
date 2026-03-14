@@ -6,7 +6,7 @@
     xmlns:bottomsheet="http://pluginmauibottomsheet.com"
     x:Class="MeuCatalogo.Features.Categoria.CategoriaBottomSheet"
     xmlns:viewmodel="clr-namespace:MeuCatalogo.Features.Categoria"
-    xmlns:models="clr-namespace:MeuCatalogo.Features.Produto.Models"
+    xmlns:models="clr-namespace:MeuCatalogo.Features.Categoria.Models"
     x:DataType="viewmodel:CategoriaBottomSheetViewModel"
     BackgroundColor="{StaticResource White}"
     States="Peek,Medium"

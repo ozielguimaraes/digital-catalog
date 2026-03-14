@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Headers;
-using MeuCatalogo.Features;
 using MeuCatalogo.Features.Auth;
-using MeuCatalogo.Features.Auth.ApiClients;
+using MeuCatalogo.Features.Auth.Data;
+using MeuCatalogo.Features.Auth.Data.Local;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -20,7 +20,8 @@ public class AuthenticationHandler(IServiceProvider serviceProvider, ILogger<Aut
             return await base.SendAsync(request, cancellationToken);
         }
 
-        var token = Preferences.Get(BaseApiService.TokenKey, string.Empty);
+        var authLocal = serviceProvider.GetService<IAuthLocalDataSource>();
+        var token = authLocal != null ? await authLocal.GetAccessTokenAsync(cancellationToken) : null;
         if (!string.IsNullOrEmpty(token))
         {
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -34,14 +35,20 @@ public class AuthenticationHandler(IServiceProvider serviceProvider, ILogger<Aut
 
             try
             {
-                var authService = serviceProvider.GetRequiredService<IAuthService>();
-                var refreshed = await authService.RefreshTokenAsync(cancellationToken);
+                var authRepository = serviceProvider.GetRequiredService<IAuthRepository>();
+                var refreshed = await authRepository.RefreshTokenAsync(cancellationToken);
 
                 if (refreshed)
                 {
                     logger.LogInformation("Token atualizado com sucesso. Reenviando requisição original.");
                     
-                    var newToken = Preferences.Get(BaseApiService.TokenKey, string.Empty);
+                    var newToken = authLocal != null ? await authLocal.GetAccessTokenAsync(cancellationToken) : null;
+                    if (string.IsNullOrEmpty(newToken))
+                    {
+                        logger.LogWarning("Token atualizado mas não encontrado no storage. Redirecionando para login.");
+                        await NavigateToLogin();
+                        return response;
+                    }
                     
                     // Clona a requisição para reenvio
                     var newRequest = await CloneHttpRequestMessageAsync(request);
@@ -67,9 +74,11 @@ public class AuthenticationHandler(IServiceProvider serviceProvider, ILogger<Aut
 
     private Task NavigateToLogin()
     {
-        Preferences.Remove(BaseApiService.TokenKey);
-        Preferences.Remove(BaseApiService.RefreshTokenKey);
-        Preferences.Remove(BaseApiService.UserInfoKey);
+        var authRepository = serviceProvider.GetService<IAuthRepository>();
+        if (authRepository != null)
+        {
+            Task.Run(async () => await authRepository.LogoutAsync());
+        }
 
         MainThread.BeginInvokeOnMainThread(() =>
         {

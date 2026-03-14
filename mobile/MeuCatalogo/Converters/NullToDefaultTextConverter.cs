@@ -1,5 +1,5 @@
 using System.Globalization;
-using MeuCatalogo.Features.Produto.Models;
+using MeuCatalogo.Features.Categoria.Models;
 
 namespace MeuCatalogo.Converters;
 

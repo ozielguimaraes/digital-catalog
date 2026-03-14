@@ -1,5 +1,5 @@
 using MeuCatalogo.Features.Auth;
-using MeuCatalogo.Features.Auth.ApiClients;
+using MeuCatalogo.Features.Auth.Data;
 using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Produto;
 using MeuCatalogo.Features.Settings.Services;
@@ -15,18 +15,18 @@ public interface INavigationService
 
 public sealed class NavigationService : INavigationService
 {
-    private readonly IAuthService _authService;
+    private readonly IAuthRepository _authRepository;
     private readonly ISettingsService _settingsService;
 
-    public NavigationService(IAuthService authService, ISettingsService settingsService)
+    public NavigationService(IAuthRepository authRepository, ISettingsService settingsService)
     {
-        _authService = authService;
+        _authRepository = authRepository;
         _settingsService = settingsService;
     }
 
     public async Task InitializeAsync()
     {
-        bool isAuthenticated =  _authService.IsAuthenticated();
+        bool isAuthenticated =  _authRepository.IsAuthenticated();
         bool possuiCatalogoFavorito = _settingsService.CatalogoFavorito is not null;
 
         string targetPage = isAuthenticated

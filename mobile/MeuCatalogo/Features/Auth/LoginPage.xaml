@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:viewModel="clr-namespace:MeuCatalogo.Features.Auth"
     xmlns:system="clr-namespace:System;assembly=System.Runtime"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     x:DataType="viewModel:LoginPageViewModel"
     BackgroundColor="{StaticResource Primary}">
 
@@ -81,6 +82,7 @@
                         HorizontalOptions="Fill" Margin="20,0,20,0" CornerRadius="10"
                         Padding="0"  FontAttributes="Bold"
                         Background="{StaticResource Primary}"
+                        IsEnabled="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}"
                         Command="{Binding LoginCommand}" />
 
                 <Label Grid.Row="7" Padding="0,12,0,0"
@@ -99,6 +101,22 @@
                 </Label>
             </Grid>
         </Border>
+        <Grid Grid.ColumnSpan="2"
+              Grid.RowSpan="2"
+              BackgroundColor="#80000000"
+              IsVisible="{Binding IsBusy}">
+            <VerticalStackLayout HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 Spacing="12">
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   Color="White"
+                                   WidthRequest="48"
+                                   HeightRequest="48" />
+                <Label Text="{Binding BusyMessage}"
+                       TextColor="White"
+                       HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
+        </Grid>
     </Grid>
     <!-- <ContentPage.Behaviors> -->
     <!--     <local:LoginFormBehavior/> -->
