@@ -12,50 +12,38 @@ using MeuCatalogo.Features.Auth.UseCases;
 
 namespace MeuCatalogo;
 
-public partial class AppShellViewModel : ObservableObject
+public partial class AppShellViewModel(
+    IAppInfo appInfo,
+    GetCurrentUserUseCase getCurrentUserUseCase,
+    GetStartupRouteUseCase getStartupRouteUseCase,
+    LogoutUseCase logoutUseCase)
+    : ObservableObject
 {
-    private readonly IAppInfo _appInfo;
-    private readonly GetCurrentUserUseCase _getCurrentUserUseCase;
-    private readonly GetStartupRouteUseCase _getStartupRouteUseCase;
-    private readonly LogoutUseCase _logoutUseCase;
-
     [ObservableProperty] private string _versionName;
     [ObservableProperty] private string _userDisplayName;
     [ObservableProperty] private string _email;
 
-    public AppShellViewModel(
-        IAppInfo appInfo, 
-        GetCurrentUserUseCase getCurrentUserUseCase, 
-        GetStartupRouteUseCase getStartupRouteUseCase, 
-        LogoutUseCase logoutUseCase)
-    {
-        _appInfo = appInfo;
-        _getCurrentUserUseCase = getCurrentUserUseCase;
-        _getStartupRouteUseCase = getStartupRouteUseCase;
-        _logoutUseCase = logoutUseCase;
-    }
-
     public async Task UpdateUserInfo()
     {
-        var userInfo = await _getCurrentUserUseCase.ExecuteAsync();
+        var userInfo = await getCurrentUserUseCase.ExecuteAsync();
         if (userInfo == null) return;
 
         UserDisplayName = userInfo.Nome.Split(' ')[0];
         Email = $"{userInfo.Email}";
-        VersionName = $"{_appInfo.VersionString} ({_appInfo.BuildString})";
+        VersionName = $"{appInfo.VersionString} ({appInfo.BuildString})";
 
         await Task.CompletedTask;
     }
 
     public async Task<string> ObterPaginaInicialAsync()
     {
-        return await _getStartupRouteUseCase.ExecuteAsync();
+        return await getStartupRouteUseCase.ExecuteAsync();
     }
 
     [RelayCommand]
     private async Task Logout()
     {
-        await _logoutUseCase.ExecuteAsync();
+        await logoutUseCase.ExecuteAsync();
         var page = Application.Current!.MainPage!.Handler!.MauiContext!.Services.GetService<LoginPage>();
         Application.Current.MainPage = page;
         await Task.CompletedTask;

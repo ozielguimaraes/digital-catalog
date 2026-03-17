@@ -20,37 +20,20 @@ using Plugin.Maui.BottomSheet.Navigation;
 
 namespace MeuCatalogo.Features.Produto;
 
-public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, INavigationAware, IQueryAttributable
+public sealed partial class ProdutoAdicionarPageViewModel(
+    ILogger<ProdutoAdicionarPageViewModel> logger,
+    UpsertProdutoOfflineFirstUseCase upsertProdutoOfflineFirstUseCase,
+    UploadProdutoImageUseCase uploadProdutoImageUseCase,
+    GetCategoriasByCatalogoUseCase getCategoriasByCatalogoUseCase,
+    ISettingsService settingsService,
+    IBottomSheetNavigationService bottomSheetNavigationService,
+    INavigationService navigationService)
+    : BasePageViewModel, INavigationAware, IQueryAttributable
 {
-    private readonly ILogger<ProdutoAdicionarPageViewModel> _logger;
-    private readonly UpsertProdutoOfflineFirstUseCase _upsertProdutoOfflineFirstUseCase;
-    private readonly UploadProdutoImageUseCase _uploadProdutoImageUseCase;
-    private readonly GetCategoriasByCatalogoUseCase _getCategoriasByCatalogoUseCase;
-    private readonly ISettingsService _settingsService;
-    private readonly IBottomSheetNavigationService _bottomSheetNavigationService;
-
     private CancellationTokenSource? _ctsCategorias;
     private Task<ApiResponse<List<CategoriaModel>>>? _taskCarregaCategorias;
 
-    public ProdutoAdicionarPageViewModel(
-        ILogger<ProdutoAdicionarPageViewModel> logger,
-        UpsertProdutoOfflineFirstUseCase upsertProdutoOfflineFirstUseCase,
-        UploadProdutoImageUseCase uploadProdutoImageUseCase,
-        GetCategoriasByCatalogoUseCase getCategoriasByCatalogoUseCase,
-        ISettingsService settingsService,
-        IBottomSheetNavigationService bottomSheetNavigationService,
-        INavigationService navigationService)
-    {
-        _logger = logger;
-        _upsertProdutoOfflineFirstUseCase = upsertProdutoOfflineFirstUseCase;
-        _uploadProdutoImageUseCase = uploadProdutoImageUseCase;
-        _getCategoriasByCatalogoUseCase = getCategoriasByCatalogoUseCase;
-        _settingsService = settingsService;
-        _bottomSheetNavigationService = bottomSheetNavigationService;
-        NavigationService = navigationService;
-    }
-
-    private INavigationService NavigationService { get; }
+    private INavigationService NavigationService { get; } = navigationService;
 
     [ObservableProperty] private string _nome;
     [ObservableProperty] private string _nomeErrorMessage;
@@ -199,7 +182,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao processar retorno da navegação");
+            logger.LogError(ex, "Erro ao processar retorno da navegação");
         }
     }
     #endregion
@@ -225,16 +208,16 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
                 { BottomSheetParameters.Categorias, categoriasResponse.Dados! }
             };
 
-            await _bottomSheetNavigationService.NavigateToAsync<CategoriaBottomSheetViewModel>(
+            await bottomSheetNavigationService.NavigateToAsync<CategoriaBottomSheetViewModel>(
                 BottomSheetKeys.ListaCategoria, parametros);
         }
         catch (OperationCanceledException)
         {
-            _logger.LogInformation("Carregamento de categorias cancelado.");
+            logger.LogInformation("Carregamento de categorias cancelado.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao exibir as categorias");
+            logger.LogError(ex, "Erro ao exibir as categorias");
             await Application.Current.MainPage.DisplayAlert("Erro", "Não foi possível exibir as categorias", "OK");
         }
     }
@@ -242,9 +225,9 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
     [RelayCommand]
     private async Task CarregarCategorias()
     {
-        if (_settingsService.CatalogoFavorito is null)
+        if (settingsService.CatalogoFavorito is null)
         {
-            _logger.LogWarning("Nenhum catálogo favorito encontrado.");
+            logger.LogWarning("Nenhum catálogo favorito encontrado.");
 
             await Application.Current.MainPage.DisplayAlert("Erro",
                 "Nenhum catálogo favorito encontrado. Por favor, selecione um catálogo.", "OK");
@@ -256,12 +239,12 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         _ctsCategorias = new CancellationTokenSource();
         var ct = _ctsCategorias.Token;
 
-        _taskCarregaCategorias = CarregarCategoriasInternoAsync(_settingsService.CatalogoFavorito.Id, ct);
+        _taskCarregaCategorias = CarregarCategoriasInternoAsync(settingsService.CatalogoFavorito.Id, ct);
     }
 
     private async Task<ApiResponse<List<CategoriaModel>>> CarregarCategoriasInternoAsync(Guid catalogoId, CancellationToken ct)
     {
-        var response = await _getCategoriasByCatalogoUseCase.ExecuteAsync(catalogoId);
+        var response = await getCategoriasByCatalogoUseCase.ExecuteAsync(catalogoId);
         if (response.RetornouComErro)
             return ApiResponse<List<CategoriaModel>>.Error(response.MensagemDeErro ?? "Erro ao carregar categorias", response.ProblemDetails);
 
@@ -292,12 +275,12 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         {
             var parametros = new BottomSheetNavigationParameters();
 
-            await _bottomSheetNavigationService.NavigateToAsync<EstoqueBottomSheetViewModel>(
+            await bottomSheetNavigationService.NavigateToAsync<EstoqueBottomSheetViewModel>(
                 BottomSheetKeys.Estoque, parametros);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao exibir o estoque");
+            logger.LogError(ex, "Erro ao exibir o estoque");
             await Application.Current.MainPage.DisplayAlert("Erro", "Não foi possível exibir o estoque", "OK");
         }
     }
@@ -348,12 +331,12 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         }
         catch (FeatureNotSupportedException ex)
         {
-            _logger.LogError(ex, "Erro ao selecionar imagem");
+            logger.LogError(ex, "Erro ao selecionar imagem");
             await Application.Current.MainPage.DisplayAlert("Erro", "A câmera não está disponível neste dispositivo ou configuração.", "OK");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao selecionar imagem");
+            logger.LogError(ex, "Erro ao selecionar imagem");
             await Application.Current.MainPage.DisplayAlert("Erro", "Não foi possível abrir câmera/galeria. Verifique permissões do app.", "OK");
         }
         finally
@@ -386,7 +369,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
                 Imagens: Imagens.ToList(),
                 CurrentSyncStatus: Produto?.SyncStatus);
 
-            var response = await _upsertProdutoOfflineFirstUseCase.ExecuteAsync(upsertRequest);
+            var response = await upsertProdutoOfflineFirstUseCase.ExecuteAsync(upsertRequest);
 
             if (response.RetornouComErro)
             {
@@ -413,7 +396,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao salvar produto");
+            logger.LogError(ex, "Erro ao salvar produto");
         }
         finally
         {
@@ -484,7 +467,7 @@ public sealed partial class ProdutoAdicionarPageViewModel : BasePageViewModel, I
                 continue;
 
             var fileResult = new FileResult(imagem.Url);
-            var uploadResponse = await _uploadProdutoImageUseCase.ExecuteAsync((produtoId, fileResult));
+            var uploadResponse = await uploadProdutoImageUseCase.ExecuteAsync((produtoId, fileResult));
 
             if (uploadResponse is { RetornouComSucesso: true, Dados: not null })
             {

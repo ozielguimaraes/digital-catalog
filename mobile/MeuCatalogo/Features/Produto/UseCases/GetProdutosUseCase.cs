@@ -9,22 +9,15 @@ public class GetProdutosRequest
     public bool ForceRefresh { get; set; } = false;
 }
 
-public class GetProdutosUseCase : IUseCase<GetProdutosRequest, IEnumerable<ProdutoEntity>>
+public class GetProdutosUseCase(IProdutoLocalRepository repository) : IUseCase<GetProdutosRequest, IEnumerable<ProdutoEntity>>
 {
-    private readonly IProdutoLocalRepository _repository;
-
-    public GetProdutosUseCase(IProdutoLocalRepository repository)
-    {
-        _repository = repository;
-    }
-
     public async Task<IEnumerable<ProdutoEntity>> ExecuteAsync(GetProdutosRequest request)
     {
         if (request.ForceRefresh)
         {
-            _ = Task.Run(() => _repository.SyncWithRemoteAsync());
+            _ = Task.Run(() => repository.SyncWithRemoteAsync());
         }
 
-        return await _repository.GetAllAsync();
+        return await repository.GetAllAsync();
     }
 }

@@ -4,18 +4,11 @@ using MeuCatalogo.Features.Catalogo.Domain;
 
 namespace MeuCatalogo.Features.Catalogo.UseCases;
 
-public sealed class GetCatalogosLocalUseCase : IUseCaseOut<IReadOnlyList<CatalogoInfo>>
+public sealed class GetCatalogosLocalUseCase(ICatalogoLocalRepository localRepository) : IUseCaseOut<IReadOnlyList<CatalogoInfo>>
 {
-    private readonly ICatalogoLocalRepository _localRepository;
-
-    public GetCatalogosLocalUseCase(ICatalogoLocalRepository localRepository)
-    {
-        _localRepository = localRepository;
-    }
-
     public async Task<IReadOnlyList<CatalogoInfo>> ExecuteAsync()
     {
-        var entities = await _localRepository.GetAllAsync();
+        var entities = await localRepository.GetAllAsync();
         return entities
             .Select(e => new CatalogoInfo
             {

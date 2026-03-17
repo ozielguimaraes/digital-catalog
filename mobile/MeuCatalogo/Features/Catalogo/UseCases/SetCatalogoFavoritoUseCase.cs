@@ -4,18 +4,11 @@ using MeuCatalogo.Features.Settings.Services;
 
 namespace MeuCatalogo.Features.Catalogo.UseCases;
 
-public sealed class SetCatalogoFavoritoUseCase : IUseCase<CatalogoInfo>
+public sealed class SetCatalogoFavoritoUseCase(ISettingsService settingsService) : IUseCase<CatalogoInfo>
 {
-    private readonly ISettingsService _settingsService;
-
-    public SetCatalogoFavoritoUseCase(ISettingsService settingsService)
-    {
-        _settingsService = settingsService;
-    }
-
     public Task ExecuteAsync(CatalogoInfo request)
     {
-        _settingsService.CatalogoFavorito = request;
+        settingsService.CatalogoFavorito = request;
         return Task.CompletedTask;
     }
 }

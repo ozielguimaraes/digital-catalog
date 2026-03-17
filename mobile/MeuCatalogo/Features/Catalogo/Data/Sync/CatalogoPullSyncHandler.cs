@@ -8,28 +8,18 @@ using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Features.Catalogo.Data.Sync;
 
-public sealed class CatalogoPullSyncHandler : ISyncHandler
+public sealed class CatalogoPullSyncHandler(
+    ILogger<CatalogoPullSyncHandler> logger,
+    ICatalogoRemoteDataSource remote,
+    ICatalogoLocalRepository local)
+    : ISyncHandler
 {
-    private readonly ILogger<CatalogoPullSyncHandler> _logger;
-    private readonly ICatalogoRemoteDataSource _remote;
-    private readonly ICatalogoLocalRepository _local;
-
-    public CatalogoPullSyncHandler(
-        ILogger<CatalogoPullSyncHandler> logger,
-        ICatalogoRemoteDataSource remote,
-        ICatalogoLocalRepository local)
-    {
-        _logger = logger;
-        _remote = remote;
-        _local = local;
-    }
-
     public bool CanHandle(SyncQueue item)
         => item.Operation == SyncOperation.PullCatalogos && item.EntityType == SyncEntityTypes.Catalogos;
 
     public async Task HandleAsync(SyncQueue item, CancellationToken ct = default)
     {
-        var response = await _remote.GetCatalogosAsync(ct);
+        var response = await remote.GetCatalogosAsync(ct);
         if (response.RetornouComErro || response.Dados == null)
             throw new InvalidOperationException(response.MensagemDeErro ?? "Erro ao sincronizar catálogos");
 
@@ -47,7 +37,7 @@ public sealed class CatalogoPullSyncHandler : ISyncHandler
             LastModified = now
         }).ToList();
 
-        await _local.ReplaceAllAsync(entities);
-        _logger.LogInformation("Catálogos sincronizados: {Count}", entities.Count);
+        await local.ReplaceAllAsync(entities);
+        logger.LogInformation("Catálogos sincronizados: {Count}", entities.Count);
     }
 }

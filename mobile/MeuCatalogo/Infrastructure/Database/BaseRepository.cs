@@ -3,14 +3,10 @@ using MeuCatalogo.Core.Base;
 
 namespace MeuCatalogo.Infrastructure.Database;
 
-public abstract class BaseRepository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity, new()
+public abstract class BaseRepository<TEntity>(AppDbContext dbContext) : IRepository<TEntity>
+    where TEntity : BaseEntity, new()
 {
-    protected readonly AppDbContext _dbContext;
-
-    protected BaseRepository(AppDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    protected readonly AppDbContext _dbContext = dbContext;
 
     public virtual async Task<TEntity?> GetByIdAsync(string id)
     {

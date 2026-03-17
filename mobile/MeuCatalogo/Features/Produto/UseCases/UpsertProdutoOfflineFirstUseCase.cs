@@ -25,40 +25,20 @@ public sealed record UpsertProdutoOfflineFirstRequest(
     IReadOnlyList<ProdutoImagemResponse> Imagens,
     SyncStatus? CurrentSyncStatus = null);
 
-public sealed class UpsertProdutoOfflineFirstUseCase : IUseCase<UpsertProdutoOfflineFirstRequest, ApiResponse<ProdutoResponse>>
+public sealed class UpsertProdutoOfflineFirstUseCase(
+    IConnectivity connectivity,
+    ISettingsService settingsService,
+    AppDbContext dbContext,
+    ISyncEngine syncEngine,
+    IProdutoLocalRepository produtoLocalRepository,
+    IProdutoImagemLocalRepository produtoImagemLocalRepository,
+    CreateProdutoRemoteUseCase createRemoteUseCase,
+    UpdateProdutoRemoteUseCase updateRemoteUseCase)
+    : IUseCase<UpsertProdutoOfflineFirstRequest, ApiResponse<ProdutoResponse>>
 {
-    private readonly IConnectivity _connectivity;
-    private readonly ISettingsService _settingsService;
-    private readonly AppDbContext _dbContext;
-    private readonly ISyncEngine _syncEngine;
-    private readonly IProdutoLocalRepository _produtoLocalRepository;
-    private readonly IProdutoImagemLocalRepository _produtoImagemLocalRepository;
-    private readonly CreateProdutoRemoteUseCase _createRemoteUseCase;
-    private readonly UpdateProdutoRemoteUseCase _updateRemoteUseCase;
-
-    public UpsertProdutoOfflineFirstUseCase(
-        IConnectivity connectivity,
-        ISettingsService settingsService,
-        AppDbContext dbContext,
-        ISyncEngine syncEngine,
-        IProdutoLocalRepository produtoLocalRepository,
-        IProdutoImagemLocalRepository produtoImagemLocalRepository,
-        CreateProdutoRemoteUseCase createRemoteUseCase,
-        UpdateProdutoRemoteUseCase updateRemoteUseCase)
-    {
-        _connectivity = connectivity;
-        _settingsService = settingsService;
-        _dbContext = dbContext;
-        _syncEngine = syncEngine;
-        _produtoLocalRepository = produtoLocalRepository;
-        _produtoImagemLocalRepository = produtoImagemLocalRepository;
-        _createRemoteUseCase = createRemoteUseCase;
-        _updateRemoteUseCase = updateRemoteUseCase;
-    }
-
     public async Task<ApiResponse<ProdutoResponse>> ExecuteAsync(UpsertProdutoOfflineFirstRequest request)
     {
-        var catalogoId = _settingsService.CatalogoFavorito?.Id ?? Guid.Empty;
+        var catalogoId = settingsService.CatalogoFavorito?.Id ?? Guid.Empty;
 
         if (catalogoId == Guid.Empty)
             return ApiResponse<ProdutoResponse>.Error("Nenhum catálogo favorito encontrado. Selecione um catálogo antes de salvar um produto.");
@@ -75,7 +55,7 @@ public sealed class UpsertProdutoOfflineFirstUseCase : IUseCase<UpsertProdutoOff
             return ApiResponse<ProdutoResponse>.Error(error);
         }
 
-        if (_connectivity.NetworkAccess == NetworkAccess.Internet)
+        if (connectivity.NetworkAccess == NetworkAccess.Internet)
         {
             return await UpsertOnlineAsync(request, catalogoId);
         }
@@ -99,7 +79,7 @@ public sealed class UpsertProdutoOfflineFirstUseCase : IUseCase<UpsertProdutoOff
                 InformacoesAdicionais = request.InformacoesAdicionais
             };
 
-            response = await _createRemoteUseCase.ExecuteAsync(create);
+            response = await createRemoteUseCase.ExecuteAsync(create);
         }
         else
         {
@@ -112,7 +92,7 @@ public sealed class UpsertProdutoOfflineFirstUseCase : IUseCase<UpsertProdutoOff
                 InformacoesAdicionais = request.InformacoesAdicionais
             };
 
-            response = await _updateRemoteUseCase.ExecuteAsync((request.ProdutoId.Value, update));
+            response = await updateRemoteUseCase.ExecuteAsync((request.ProdutoId.Value, update));
         }
 
         if (response is { RetornouComSucesso: true, Dados: not null })
@@ -143,11 +123,11 @@ public sealed class UpsertProdutoOfflineFirstUseCase : IUseCase<UpsertProdutoOff
             LastModified = now
         };
 
-        var existing = await _produtoLocalRepository.GetByIdAsync(localId);
+        var existing = await produtoLocalRepository.GetByIdAsync(localId);
         if (existing is null)
-            await _produtoLocalRepository.AddAsync(entity);
+            await produtoLocalRepository.AddAsync(entity);
         else
-            await _produtoLocalRepository.UpdateAsync(entity);
+            await produtoLocalRepository.UpdateAsync(entity);
 
         var imagensEntity = request.Imagens.Select(i => new ProdutoImagemEntity
         {
@@ -164,7 +144,7 @@ public sealed class UpsertProdutoOfflineFirstUseCase : IUseCase<UpsertProdutoOff
             LastModified = now
         }).ToList();
 
-        await _produtoImagemLocalRepository.ReplaceByProdutoIdAsync(localId, imagensEntity);
+        await produtoImagemLocalRepository.ReplaceByProdutoIdAsync(localId, imagensEntity);
 
         var operation = request.ProdutoId is null ? SyncOperation.Create : SyncOperation.Update;
 
@@ -176,7 +156,7 @@ public sealed class UpsertProdutoOfflineFirstUseCase : IUseCase<UpsertProdutoOff
         else
         {
             var payload = JsonSerializer.Serialize(entity);
-            await _syncEngine.QueueSyncAsync(nameof(ProdutoEntity), localId, operation, payload);
+            await syncEngine.QueueSyncAsync(nameof(ProdutoEntity), localId, operation, payload);
         }
 
         var produtoResponse = new ProdutoResponse
@@ -217,11 +197,11 @@ public sealed class UpsertProdutoOfflineFirstUseCase : IUseCase<UpsertProdutoOff
             LastModified = now
         };
 
-        var existing = await _produtoLocalRepository.GetByIdAsync(id);
+        var existing = await produtoLocalRepository.GetByIdAsync(id);
         if (existing is null)
-            await _produtoLocalRepository.AddAsync(entity);
+            await produtoLocalRepository.AddAsync(entity);
         else
-            await _produtoLocalRepository.UpdateAsync(entity);
+            await produtoLocalRepository.UpdateAsync(entity);
 
         var imagens = produto.Imagens.Select(i => new ProdutoImagemEntity
         {
@@ -238,14 +218,14 @@ public sealed class UpsertProdutoOfflineFirstUseCase : IUseCase<UpsertProdutoOff
             LastModified = now
         }).ToList();
 
-        await _produtoImagemLocalRepository.ReplaceByProdutoIdAsync(id, imagens);
+        await produtoImagemLocalRepository.ReplaceByProdutoIdAsync(id, imagens);
     }
 
     private async Task UpsertQueuedCreateAsync(string entityId, ProdutoEntity entity)
     {
-        await _dbContext.InitializeAsync();
+        await dbContext.InitializeAsync();
 
-        var existing = await _dbContext.Database.Table<SyncQueue>()
+        var existing = await dbContext.Database.Table<SyncQueue>()
             .Where(q => q.EntityType == nameof(ProdutoEntity) && q.EntityId == entityId && q.Operation == SyncOperation.Create)
             .FirstOrDefaultAsync();
 
@@ -253,7 +233,7 @@ public sealed class UpsertProdutoOfflineFirstUseCase : IUseCase<UpsertProdutoOff
 
         if (existing is null)
         {
-            await _syncEngine.QueueSyncAsync(nameof(ProdutoEntity), entityId, SyncOperation.Create, payload);
+            await syncEngine.QueueSyncAsync(nameof(ProdutoEntity), entityId, SyncOperation.Create, payload);
             return;
         }
 
@@ -261,6 +241,6 @@ public sealed class UpsertProdutoOfflineFirstUseCase : IUseCase<UpsertProdutoOff
         existing.Status = SyncStatus.Pending;
         existing.LastError = null;
         existing.RetryCount = 0;
-        await _dbContext.Database.UpdateAsync(existing);
+        await dbContext.Database.UpdateAsync(existing);
     }
 }

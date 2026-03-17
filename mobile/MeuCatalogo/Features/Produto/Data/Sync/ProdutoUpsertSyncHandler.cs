@@ -10,25 +10,13 @@ using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Features.Produto.Data.Sync;
 
-public sealed class ProdutoUpsertSyncHandler : ISyncHandler
+public sealed class ProdutoUpsertSyncHandler(
+    ILogger<ProdutoUpsertSyncHandler> logger,
+    AppDbContext dbContext,
+    CreateProdutoRemoteUseCase createRemoteUseCase,
+    UpdateProdutoRemoteUseCase updateRemoteUseCase)
+    : ISyncHandler
 {
-    private readonly ILogger<ProdutoUpsertSyncHandler> _logger;
-    private readonly AppDbContext _dbContext;
-    private readonly CreateProdutoRemoteUseCase _createRemoteUseCase;
-    private readonly UpdateProdutoRemoteUseCase _updateRemoteUseCase;
-
-    public ProdutoUpsertSyncHandler(
-        ILogger<ProdutoUpsertSyncHandler> logger,
-        AppDbContext dbContext,
-        CreateProdutoRemoteUseCase createRemoteUseCase,
-        UpdateProdutoRemoteUseCase updateRemoteUseCase)
-    {
-        _logger = logger;
-        _dbContext = dbContext;
-        _createRemoteUseCase = createRemoteUseCase;
-        _updateRemoteUseCase = updateRemoteUseCase;
-    }
-
     public bool CanHandle(SyncQueue item)
         => item.EntityType == nameof(ProdutoEntity) && (item.Operation == SyncOperation.Create || item.Operation == SyncOperation.Update);
 
@@ -38,7 +26,7 @@ public sealed class ProdutoUpsertSyncHandler : ISyncHandler
         if (entity == null)
             throw new InvalidOperationException("Payload inválido para sincronização de produto");
 
-        await _dbContext.InitializeAsync();
+        await dbContext.InitializeAsync();
 
         if (item.Operation == SyncOperation.Create)
         {
@@ -52,14 +40,14 @@ public sealed class ProdutoUpsertSyncHandler : ISyncHandler
                 InformacoesAdicionais = entity.InformacoesAdicionais
             };
 
-            var response = await _createRemoteUseCase.ExecuteAsync(create);
+            var response = await createRemoteUseCase.ExecuteAsync(create);
             if (response.RetornouComErro || response.Dados == null)
                 throw new InvalidOperationException(response.MensagemDeErro ?? "Erro ao sincronizar produto");
 
             var remoteId = response.Dados.Id.ToString();
             var localId = entity.Id;
 
-            var local = await _dbContext.Database.Table<ProdutoEntity>().Where(p => p.Id == localId).FirstOrDefaultAsync();
+            var local = await dbContext.Database.Table<ProdutoEntity>().Where(p => p.Id == localId).FirstOrDefaultAsync();
             if (local == null)
                 return;
 
@@ -76,7 +64,7 @@ public sealed class ProdutoUpsertSyncHandler : ISyncHandler
 
             if (remoteId != localId)
             {
-                await _dbContext.Database.RunInTransactionAsync(database =>
+                await dbContext.Database.RunInTransactionAsync(database =>
                 {
                     database.Execute("UPDATE ProdutoImagens SET ProdutoId = ? WHERE ProdutoId = ?", remoteId, localId);
                     database.Execute("UPDATE ProdutoImagens SET CatalogoId = ? WHERE ProdutoId = ?", local.CatalogoId, remoteId);
@@ -87,10 +75,10 @@ public sealed class ProdutoUpsertSyncHandler : ISyncHandler
             }
             else
             {
-                await _dbContext.Database.UpdateAsync(local);
+                await dbContext.Database.UpdateAsync(local);
             }
 
-            _logger.LogInformation("Produto sincronizado (create). LocalId={LocalId} RemoteId={RemoteId}", localId, remoteId);
+            logger.LogInformation("Produto sincronizado (create). LocalId={LocalId} RemoteId={RemoteId}", localId, remoteId);
             return;
         }
 
@@ -104,11 +92,11 @@ public sealed class ProdutoUpsertSyncHandler : ISyncHandler
             InformacoesAdicionais = entity.InformacoesAdicionais
         };
 
-        var updateResponse = await _updateRemoteUseCase.ExecuteAsync((updateId, update));
+        var updateResponse = await updateRemoteUseCase.ExecuteAsync((updateId, update));
         if (updateResponse.RetornouComErro || updateResponse.Dados == null)
             throw new InvalidOperationException(updateResponse.MensagemDeErro ?? "Erro ao sincronizar produto");
 
-        var existing = await _dbContext.Database.Table<ProdutoEntity>().Where(p => p.Id == entity.Id).FirstOrDefaultAsync();
+        var existing = await dbContext.Database.Table<ProdutoEntity>().Where(p => p.Id == entity.Id).FirstOrDefaultAsync();
         if (existing == null)
             return;
 
@@ -122,8 +110,8 @@ public sealed class ProdutoUpsertSyncHandler : ISyncHandler
         existing.SyncStatus = SyncStatus.Completed;
         existing.LastModified = DateTime.UtcNow;
 
-        await _dbContext.Database.UpdateAsync(existing);
-        _logger.LogInformation("Produto sincronizado (update). Id={Id}", entity.Id);
+        await dbContext.Database.UpdateAsync(existing);
+        logger.LogInformation("Produto sincronizado (update). Id={Id}", entity.Id);
     }
 }
 

@@ -5,16 +5,10 @@ using MeuCatalogo.Features.Produto.Data.Remote.Contracts.Responses;
 
 namespace MeuCatalogo.Features.Produto.UseCases;
 
-public sealed class CreateProdutoRemoteUseCase : IUseCase<ProdutoCreateRequest, ApiResponse<ProdutoResponse>>
+public sealed class CreateProdutoRemoteUseCase(IProdutoRepository repository)
+    : IUseCase<ProdutoCreateRequest, ApiResponse<ProdutoResponse>>
 {
-    private readonly IProdutoRepository _repository;
-
-    public CreateProdutoRemoteUseCase(IProdutoRepository repository)
-    {
-        _repository = repository;
-    }
-
     public Task<ApiResponse<ProdutoResponse>> ExecuteAsync(ProdutoCreateRequest request)
-        => _repository.CreateAsync(request);
+        => repository.CreateAsync(request);
 }
 

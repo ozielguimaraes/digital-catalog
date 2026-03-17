@@ -3,12 +3,8 @@ using MeuCatalogo.Infrastructure.Database;
 
 namespace MeuCatalogo.Features.Auth.Data;
 
-public class UserRepository : BaseRepository<UserEntity>, IUserRepository
+public class UserRepository(AppDbContext dbContext) : BaseRepository<UserEntity>(dbContext), IUserRepository
 {
-    public UserRepository(AppDbContext dbContext) : base(dbContext)
-    {
-    }
-
     public async Task<UserEntity?> GetCurrentUserAsync()
     {
         await _dbContext.InitializeAsync();

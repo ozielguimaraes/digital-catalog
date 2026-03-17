@@ -20,6 +20,7 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
     private readonly ISettingsService _settingsService;
     private readonly INavigationService _navigationService;
     private bool _backgroundSyncStarted;
+    private bool _isLoading;
 
     public CatalogoListaPageViewModel(
         ILogger<CatalogoListaPageViewModel> logger,
@@ -41,18 +42,26 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
     }
 
     [ObservableProperty] private ObservableCollection<CatalogoInfo> _catalogos;
+    [ObservableProperty] private bool _hasCatalogos;
+    [ObservableProperty] private bool _showEmptyState;
+    [ObservableProperty] private bool _isSyncing;
 
     [RelayCommand]
-    public async Task CarregarCatalogos()
+    private async Task CarregarCatalogos()
     {
         try
         {
-            if (IsBusy) return;
+            if (_isLoading) return;
 
-            IsBusy = true;
+            _isLoading = true;
             var local = await _getCatalogosLocalUseCase.ExecuteAsync();
             Catalogos.Clear();
-            Catalogos = new ObservableCollection<CatalogoInfo>(local);
+            foreach (var c in local)
+                Catalogos.Add(c);
+
+            HasCatalogos = Catalogos.Count > 0;
+            ShowEmptyState = !HasCatalogos;
+            IsSyncing = false;
 
             if (_settingsService.CatalogoFavorito == null && local.Count == 1)
             {
@@ -62,6 +71,11 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
             if (!_backgroundSyncStarted && HasInternetConnection())
             {
                 _backgroundSyncStarted = true;
+                if (!HasCatalogos)
+                {
+                    IsSyncing = true;
+                    ShowEmptyState = false;
+                }
                 _ = Task.Run(async () =>
                 {
                     try
@@ -76,11 +90,21 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
 
                             if (_settingsService.CatalogoFavorito == null && updated.Count > 0)
                                 FavoritarCommand.Execute(updated[0]);
+
+                            HasCatalogos = Catalogos.Count > 0;
+                            IsSyncing = false;
+                            ShowEmptyState = !HasCatalogos;
                         });
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Erro ao sincronizar catálogos em background.");
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            HasCatalogos = Catalogos.Count > 0;
+                            IsSyncing = false;
+                            ShowEmptyState = !HasCatalogos;
+                        });
                     }
                 });
             }
@@ -91,7 +115,7 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
         }
         finally
         {
-            IsBusy = false;
+            _isLoading = false;
         }
     }
 

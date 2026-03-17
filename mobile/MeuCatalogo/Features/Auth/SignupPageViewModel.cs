@@ -10,19 +10,12 @@ using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Features.Auth;
 
-public partial class SignupPageViewModel : BasePageViewModel
+public partial class SignupPageViewModel(
+    ILogger<SignupPageViewModel> logger,
+    SignupUseCase signupUseCase,
+    INavigationService navigationService)
+    : BasePageViewModel
 {
-    private readonly ILogger<SignupPageViewModel> _logger;
-    private readonly SignupUseCase _signupUseCase;
-    private readonly INavigationService _navigationService;
-
-    public SignupPageViewModel(ILogger<SignupPageViewModel> logger, SignupUseCase signupUseCase, INavigationService navigationService)
-    {
-        _logger = logger;
-        _signupUseCase = signupUseCase;
-        _navigationService = navigationService;
-    }
-
     [ObservableProperty]private string _nome;
     [ObservableProperty]private string _email;
     [ObservableProperty]private string _password;
@@ -46,7 +39,7 @@ public partial class SignupPageViewModel : BasePageViewModel
                 return;
             }
 
-            var response = await _signupUseCase.ExecuteAsync(request);
+            var response = await signupUseCase.ExecuteAsync(request);
 
             if (response.RetornouComErro)
             {
@@ -55,11 +48,11 @@ public partial class SignupPageViewModel : BasePageViewModel
                 return;
             }
 
-            await _navigationService.NavigateToAsync($"//{nameof(CatalogoListaPage)}");
+            await navigationService.NavigateToAsync($"//{nameof(CatalogoListaPage)}");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao criar os dados do sistema.");
+            logger.LogError(ex, "Erro ao criar os dados do sistema.");
             throw;
         }
     }

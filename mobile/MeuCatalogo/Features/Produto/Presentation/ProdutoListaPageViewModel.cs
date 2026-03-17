@@ -28,6 +28,7 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
     private readonly ISettingsService _settingsService;
     private readonly INavigationService _navigationService;
     private bool _backgroundSyncStarted;
+    private bool _isLoading;
 
     public ProdutoListaPageViewModel(
         ILogger<ProdutoListaPageViewModel> logger,
@@ -63,16 +64,19 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
 
     [ObservableProperty] private ObservableCollection<ProdutoEntity> _produtos = [];
     [ObservableProperty] private bool _isRefreshing;
+    [ObservableProperty] private bool _hasProdutos;
+    [ObservableProperty] private bool _showEmptyState;
+    [ObservableProperty] private bool _isSyncing;
 
     [RelayCommand]
     private async Task CarregarDados()
     {
         try
         {
-            if (IsBusy)
+            if (_isLoading)
                 return;
 
-            IsBusy = true;
+            _isLoading = true;
             var catalogo = _settingsService.CatalogoFavorito;
 
             if (catalogo == null)
@@ -84,7 +88,12 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
 
             var localProdutos = await _produtoLocalRepository.GetByCatalogoIdAsync(catalogo.Id.ToString());
             Produtos.Clear();
-            Produtos = new ObservableCollection<ProdutoEntity>(localProdutos);
+            foreach (var p in localProdutos)
+                Produtos.Add(p);
+
+            HasProdutos = Produtos.Count > 0;
+            ShowEmptyState = !HasProdutos;
+            IsSyncing = false;
         }
         catch (Exception ex)
         {
@@ -92,10 +101,11 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
         }
         finally
         {
-            IsBusy = false;
+            _isLoading = false;
+            IsRefreshing = false;
         }
 
-        await MaybeSyncInBackgroundAsync();
+        _ = MaybeSyncInBackgroundAsync();
     }
 
     private async Task MaybeSyncInBackgroundAsync()
@@ -120,6 +130,11 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
             }
 
             _backgroundSyncStarted = true;
+            if (!HasProdutos)
+            {
+                IsSyncing = true;
+                ShowEmptyState = false;
+            }
 
             _ = Task.Run(async () =>
             {
@@ -134,12 +149,22 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
                         foreach (var p in updated)
                             Produtos.Add(p);
                         IsRefreshing = false;
+
+                        HasProdutos = Produtos.Count > 0;
+                        IsSyncing = false;
+                        ShowEmptyState = !HasProdutos;
                     });
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Erro ao sincronizar produtos em background.");
-                    MainThread.BeginInvokeOnMainThread(() => IsRefreshing = false);
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        IsRefreshing = false;
+                        HasProdutos = Produtos.Count > 0;
+                        IsSyncing = false;
+                        ShowEmptyState = !HasProdutos;
+                    });
                 }
             });
         }

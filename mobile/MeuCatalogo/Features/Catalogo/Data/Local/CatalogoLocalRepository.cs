@@ -3,12 +3,9 @@ using MeuCatalogo.Infrastructure.Database;
 
 namespace MeuCatalogo.Features.Catalogo.Data.Local;
 
-public sealed class CatalogoLocalRepository : BaseRepository<CatalogoEntity>, ICatalogoLocalRepository
+public sealed class CatalogoLocalRepository(AppDbContext dbContext)
+    : BaseRepository<CatalogoEntity>(dbContext), ICatalogoLocalRepository
 {
-    public CatalogoLocalRepository(AppDbContext dbContext) : base(dbContext)
-    {
-    }
-
     public async Task ReplaceAllAsync(IEnumerable<CatalogoEntity> catalogos)
     {
         await _dbContext.InitializeAsync();

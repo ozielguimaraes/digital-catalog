@@ -4,24 +4,17 @@ using MeuCatalogo.Features.Categoria.Domain;
 
 namespace MeuCatalogo.Features.Categoria.Data;
 
-public sealed class CategoriaRepository : ICategoriaRepository
+public sealed class CategoriaRepository(ICategoriaRemoteDataSource remote) : ICategoriaRepository
 {
-    private readonly ICategoriaRemoteDataSource _remote;
-
-    public CategoriaRepository(ICategoriaRemoteDataSource remote)
-    {
-        _remote = remote;
-    }
-
     public Task<ApiResponse<CategoriaInfo>> GetByIdAsync(Guid id, CancellationToken ct = default)
-        => _remote.GetByIdAsync(id, ct);
+        => remote.GetByIdAsync(id, ct);
 
     public Task<ApiResponse<IReadOnlyList<CategoriaInfo>>> GetByCatalogoIdAsync(Guid catalogoId, CancellationToken ct = default)
-        => _remote.GetByCatalogoIdAsync(catalogoId, ct);
+        => remote.GetByCatalogoIdAsync(catalogoId, ct);
 
     public Task<ApiResponse<CategoriaInfo>> CreateAsync(CategoriaUpsertRequest request, CancellationToken ct = default)
-        => _remote.CreateAsync(request, ct);
+        => remote.CreateAsync(request, ct);
 
     public Task<ApiResponse<CategoriaInfo>> UpdateAsync(Guid id, CategoriaUpsertRequest request, CancellationToken ct = default)
-        => _remote.UpdateAsync(id, request, ct);
+        => remote.UpdateAsync(id, request, ct);
 }

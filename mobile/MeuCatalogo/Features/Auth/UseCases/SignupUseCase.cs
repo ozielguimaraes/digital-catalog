@@ -7,21 +7,14 @@ using MeuCatalogo.Features.Auth.Validators;
 
 namespace MeuCatalogo.Features.Auth.UseCases;
 
-public sealed class SignupUseCase : IUseCase<SignupRequest, ApiResponse<UserResponse>>
+public sealed class SignupUseCase(IAuthRepository authRepository) : IUseCase<SignupRequest, ApiResponse<UserResponse>>
 {
-    private readonly IAuthRepository _authRepository;
-
-    public SignupUseCase(IAuthRepository authRepository)
-    {
-        _authRepository = authRepository;
-    }
-
     public async Task<ApiResponse<UserResponse>> ExecuteAsync(SignupRequest request)
     {
         var validator = new SignupValidator(request);
         if (validator.IsValid)
         {
-            return await _authRepository.SignupAsync(request);
+            return await authRepository.SignupAsync(request);
         }
 
         var messages = validator.Notifications.Select(x => x.Message);

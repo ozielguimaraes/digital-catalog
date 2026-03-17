@@ -3,16 +3,9 @@ using MeuCatalogo.Features.Produto.Data;
 
 namespace MeuCatalogo.Features.Produto.UseCases;
 
-public sealed class DeleteProdutoRemoteUseCase : IUseCase<Guid, ApiResponse<Guid>>
+public sealed class DeleteProdutoRemoteUseCase(IProdutoRepository repository) : IUseCase<Guid, ApiResponse<Guid>>
 {
-    private readonly IProdutoRepository _repository;
-
-    public DeleteProdutoRemoteUseCase(IProdutoRepository repository)
-    {
-        _repository = repository;
-    }
-
     public Task<ApiResponse<Guid>> ExecuteAsync(Guid request)
-        => _repository.DeleteAsync(request);
+        => repository.DeleteAsync(request);
 }
 

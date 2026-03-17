@@ -8,25 +8,13 @@ using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Features.Catalogo;
 
-public sealed partial class CatalogoAdicionarPageViewModel : BasePageViewModel
+public sealed partial class CatalogoAdicionarPageViewModel(
+    ILogger<CatalogoListaPageViewModel> logger,
+    CreateCatalogoUseCase createCatalogoUseCase,
+    ISettingsService settingsService,
+    INavigationService navigationService)
+    : BasePageViewModel
 {
-    private readonly ILogger<CatalogoListaPageViewModel> _logger;
-    private readonly CreateCatalogoUseCase _createCatalogoUseCase;
-    private readonly ISettingsService _settingsService;
-    private readonly INavigationService _navigationService;
-
-    public CatalogoAdicionarPageViewModel(
-        ILogger<CatalogoListaPageViewModel> logger,
-        CreateCatalogoUseCase createCatalogoUseCase,
-        ISettingsService settingsService,
-        INavigationService navigationService)
-    {
-        _logger = logger;
-        _createCatalogoUseCase = createCatalogoUseCase;
-        _settingsService = settingsService;
-        _navigationService = navigationService;
-    }
-
     [ObservableProperty] private string _nome;
     [ObservableProperty] private string _nomeErrorMessage;
 
@@ -80,7 +68,7 @@ public sealed partial class CatalogoAdicionarPageViewModel : BasePageViewModel
                 Descricao = " "
             };
 
-            var response = await _createCatalogoUseCase.ExecuteAsync(request);
+            var response = await createCatalogoUseCase.ExecuteAsync(request);
             if (response.RetornouComErro)
             {
                 string mensagemErro = string.Join("\n", ObterErros(response));
@@ -88,13 +76,13 @@ public sealed partial class CatalogoAdicionarPageViewModel : BasePageViewModel
                 return;
             }
 
-            _settingsService.CatalogoFavorito ??= response.Dados;
+            settingsService.CatalogoFavorito ??= response.Dados;
 
-            await _navigationService.NavigateToAsync($"//{nameof(CatalogoListaPage)}");
+            await navigationService.NavigateToAsync($"//{nameof(CatalogoListaPage)}");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error salvar catálogo");
+            logger.LogError(ex, "Error salvar catálogo");
         }
     }
 }

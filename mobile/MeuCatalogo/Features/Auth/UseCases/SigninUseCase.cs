@@ -8,21 +8,14 @@ using MeuCatalogo.Infrastructure;
 
 namespace MeuCatalogo.Features.Auth.UseCases;
 
-public class SigninUseCase : IUseCase<SigninRequest, ApiResponse<SigninResponse>>
+public class SigninUseCase(IAuthRepository authRepository) : IUseCase<SigninRequest, ApiResponse<SigninResponse>>
 {
-    private readonly IAuthRepository _authRepository;
-
-    public SigninUseCase(IAuthRepository authRepository)
-    {
-        _authRepository = authRepository;
-    }
-
     public async Task<ApiResponse<SigninResponse>> ExecuteAsync(SigninRequest request)
     {
         var validator = new SigninValidator(request);
         if (validator.IsValid)
         {
-            return await _authRepository.SigninAsync(request);
+            return await authRepository.SigninAsync(request);
         }
 
         var messages = validator.Notifications.Select(x => x.Message);

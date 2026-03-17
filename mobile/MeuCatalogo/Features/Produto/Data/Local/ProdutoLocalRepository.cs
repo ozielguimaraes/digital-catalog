@@ -3,12 +3,9 @@ using MeuCatalogo.Infrastructure.Database;
 
 namespace MeuCatalogo.Features.Produto.Data.Local;
 
-public sealed class ProdutoLocalRepository : BaseRepository<ProdutoEntity>, IProdutoLocalRepository
+public sealed class ProdutoLocalRepository(AppDbContext dbContext)
+    : BaseRepository<ProdutoEntity>(dbContext), IProdutoLocalRepository
 {
-    public ProdutoLocalRepository(AppDbContext dbContext) : base(dbContext)
-    {
-    }
-
     public async Task<IEnumerable<ProdutoEntity>> GetByCatalogoIdAsync(string catalogoId)
     {
         await _dbContext.InitializeAsync();

@@ -116,7 +116,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Features\Catalogo\Validators\" />
       <Folder Include="Features\Categoria\Requests\" />
       <Folder Include="Features\Categoria\Responses\" />
       <Folder Include="Features\Categoria\Validators\" />

@@ -4,16 +4,9 @@ using MeuCatalogo.Features.Produto.Data.Remote.Contracts.Responses;
 
 namespace MeuCatalogo.Features.Produto.UseCases;
 
-public sealed class GetProdutoByIdUseCase : IUseCase<Guid, ApiResponse<ProdutoResponse>>
+public sealed class GetProdutoByIdUseCase(IProdutoRepository repository) : IUseCase<Guid, ApiResponse<ProdutoResponse>>
 {
-    private readonly IProdutoRepository _repository;
-
-    public GetProdutoByIdUseCase(IProdutoRepository repository)
-    {
-        _repository = repository;
-    }
-
     public Task<ApiResponse<ProdutoResponse>> ExecuteAsync(Guid request)
-        => _repository.ObterPorIdAsync(request);
+        => repository.ObterPorIdAsync(request);
 }
 

@@ -6,24 +6,16 @@ using MeuCatalogo.Infrastructure.SyncEngine;
 
 namespace MeuCatalogo.Features.Produto.UseCases;
 
-public sealed class SyncProdutosByCatalogoUseCase : IUseCase<Guid, int>
+public sealed class SyncProdutosByCatalogoUseCase(ISyncEngine syncEngine, IProdutoLocalRepository localRepository)
+    : IUseCase<Guid, int>
 {
-    private readonly ISyncEngine _syncEngine;
-    private readonly IProdutoLocalRepository _localRepository;
-
-    public SyncProdutosByCatalogoUseCase(ISyncEngine syncEngine, IProdutoLocalRepository localRepository)
-    {
-        _syncEngine = syncEngine;
-        _localRepository = localRepository;
-    }
-
     public async Task<int> ExecuteAsync(Guid request)
     {
         var payload = JsonSerializer.Serialize(new PullProdutosByCatalogoPayload { CatalogoId = request.ToString() });
-        await _syncEngine.QueueSyncAsync(SyncEntityTypes.ProdutosByCatalogo, request.ToString(), SyncOperation.PullProdutosByCatalogoId, payload);
-        await _syncEngine.ProcessQueueAsync();
+        await syncEngine.QueueSyncAsync(SyncEntityTypes.ProdutosByCatalogo, request.ToString(), SyncOperation.PullProdutosByCatalogoId, payload);
+        await syncEngine.ProcessQueueAsync();
 
-        var produtos = await _localRepository.GetByCatalogoIdAsync(request.ToString());
+        var produtos = await localRepository.GetByCatalogoIdAsync(request.ToString());
         return produtos.Count();
     }
 

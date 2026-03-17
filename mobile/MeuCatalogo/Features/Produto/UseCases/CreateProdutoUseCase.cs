@@ -14,17 +14,9 @@ public class CreateProdutoRequest
     public string? CategoriaId { get; set; }
 }
 
-public class CreateProdutoUseCase : IUseCase<CreateProdutoRequest, ProdutoEntity>
+public class CreateProdutoUseCase(IProdutoLocalRepository repository, ISyncEngine syncEngine)
+    : IUseCase<CreateProdutoRequest, ProdutoEntity>
 {
-    private readonly IProdutoLocalRepository _repository;
-    private readonly ISyncEngine _syncEngine;
-
-    public CreateProdutoUseCase(IProdutoLocalRepository repository, ISyncEngine syncEngine)
-    {
-        _repository = repository;
-        _syncEngine = syncEngine;
-    }
-
     public async Task<ProdutoEntity> ExecuteAsync(CreateProdutoRequest request)
     {
         // 1. Create purely local entity
@@ -39,11 +31,11 @@ public class CreateProdutoUseCase : IUseCase<CreateProdutoRequest, ProdutoEntity
         };
 
         // 2. Save directly to Local Database (Fast, Offline)
-        await _repository.AddAsync(entity);
+        await repository.AddAsync(entity);
 
         // 3. Queue for synchronization to Remote API
         var payload = JsonSerializer.Serialize(entity);
-        await _syncEngine.QueueSyncAsync(nameof(ProdutoEntity), entity.Id, SyncOperation.Create, payload);
+        await syncEngine.QueueSyncAsync(nameof(ProdutoEntity), entity.Id, SyncOperation.Create, payload);
 
         // 4. Return result immediately
         return entity;

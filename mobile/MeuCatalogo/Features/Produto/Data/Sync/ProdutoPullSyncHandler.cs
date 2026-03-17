@@ -10,25 +10,13 @@ using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo.Features.Produto.Data.Sync;
 
-public sealed class ProdutoPullSyncHandler : ISyncHandler
+public sealed class ProdutoPullSyncHandler(
+    ILogger<ProdutoPullSyncHandler> logger,
+    IProdutoRepository remoteRepository,
+    IProdutoLocalRepository localRepository,
+    IProdutoImagemLocalRepository imagemLocalRepository)
+    : ISyncHandler
 {
-    private readonly ILogger<ProdutoPullSyncHandler> _logger;
-    private readonly IProdutoRepository _remoteRepository;
-    private readonly IProdutoLocalRepository _localRepository;
-    private readonly IProdutoImagemLocalRepository _imagemLocalRepository;
-
-    public ProdutoPullSyncHandler(
-        ILogger<ProdutoPullSyncHandler> logger,
-        IProdutoRepository remoteRepository,
-        IProdutoLocalRepository localRepository,
-        IProdutoImagemLocalRepository imagemLocalRepository)
-    {
-        _logger = logger;
-        _remoteRepository = remoteRepository;
-        _localRepository = localRepository;
-        _imagemLocalRepository = imagemLocalRepository;
-    }
-
     public bool CanHandle(SyncQueue item)
         => item.Operation == SyncOperation.PullProdutosByCatalogoId && item.EntityType == SyncEntityTypes.ProdutosByCatalogo;
 
@@ -39,7 +27,7 @@ public sealed class ProdutoPullSyncHandler : ISyncHandler
             throw new InvalidOperationException("Payload inválido para sincronização de produtos");
 
         var catalogoId = Guid.Parse(payload.CatalogoId);
-        var response = await _remoteRepository.ObterPorCatalogoIdAsync(catalogoId, ct);
+        var response = await remoteRepository.ObterPorCatalogoIdAsync(catalogoId, ct);
         if (response.RetornouComErro || response.Dados == null)
             throw new InvalidOperationException(response.MensagemDeErro ?? "Erro ao sincronizar produtos");
 
@@ -59,7 +47,7 @@ public sealed class ProdutoPullSyncHandler : ISyncHandler
             LastModified = now
         }).ToList();
 
-        await _localRepository.ReplaceByCatalogoIdAsync(payload.CatalogoId, entities);
+        await localRepository.ReplaceByCatalogoIdAsync(payload.CatalogoId, entities);
 
         var imagens = response.Dados
             .SelectMany(p => p.Imagens.Select(img => new ProdutoImagemEntity
@@ -78,8 +66,8 @@ public sealed class ProdutoPullSyncHandler : ISyncHandler
             }))
             .ToList();
 
-        await _imagemLocalRepository.ReplaceByCatalogoIdAsync(payload.CatalogoId, imagens);
-        _logger.LogInformation("Produtos sincronizados para catálogo {CatalogoId}: {Count}", payload.CatalogoId, entities.Count);
+        await imagemLocalRepository.ReplaceByCatalogoIdAsync(payload.CatalogoId, imagens);
+        logger.LogInformation("Produtos sincronizados para catálogo {CatalogoId}: {Count}", payload.CatalogoId, entities.Count);
     }
 
     private sealed record PullProdutosByCatalogoPayload

@@ -28,12 +28,23 @@
                 <VerticalStackLayout Padding="16,0" Spacing="25">
                     <Button
                         Text="Adicionar Novo"
-                        IsVisible="{Binding Produtos, Converter={toolkit:IsListNotNullOrEmptyConverter}}"
+                        IsVisible="{Binding HasProdutos}"
                         SemanticProperties.Hint="Navega para tela de adicionar novo produto"
                         HorizontalOptions="Fill"
                         Command="{Binding AdicionarCommand}" />
                     <Grid RowDefinitions="Auto,Auto">
-                        <VerticalStackLayout IsVisible="{Binding Produtos, Converter={toolkit:IsListNullOrEmptyConverter}}">
+                        <VerticalStackLayout IsVisible="{Binding IsSyncing}"
+                                             VerticalOptions="Center"
+                                             HorizontalOptions="Center">
+                            <ActivityIndicator IsRunning="{Binding IsSyncing}"
+                                               Color="{StaticResource Primary}"
+                                               WidthRequest="48"
+                                               HeightRequest="48" />
+                            <Label Text="Carregando…"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout IsVisible="{Binding ShowEmptyState}">
                             <Image
                                 Source="ic_x_mark_circle_thin.png"
                                 HeightRequest="85"
@@ -128,16 +139,50 @@
                                                            TextColor="{AppThemeBinding Light=Black, Dark=White}" />
 
                                                     <HorizontalStackLayout Spacing="8">
+                                                        <Label Text="{Binding PrecoComDesconto, StringFormat='{0:C}'}"
+                                                               FontSize="14"
+                                                               TextColor="{StaticResource Primary}"
+                                                               FontAttributes="Bold"
+                                                               IsVisible="True">
+                                                            <Label.Triggers>
+                                                                <DataTrigger TargetType="Label" Binding="{Binding PrecoComDesconto}" Value="{x:Null}">
+                                                                    <Setter Property="IsVisible" Value="False" />
+                                                                </DataTrigger>
+                                                                <DataTrigger TargetType="Label" Binding="{Binding PrecoComDesconto}" Value="0">
+                                                                    <Setter Property="IsVisible" Value="False" />
+                                                                </DataTrigger>
+                                                            </Label.Triggers>
+                                                        </Label>
+
                                                         <Label Text="{Binding Preco, StringFormat='{0:C}'}"
                                                                FontSize="14"
                                                                TextColor="{StaticResource Primary}"
-                                                               FontAttributes="Bold"/>
+                                                               FontAttributes="Bold"
+                                                               IsVisible="False">
+                                                            <Label.Triggers>
+                                                                <DataTrigger TargetType="Label" Binding="{Binding PrecoComDesconto}" Value="{x:Null}">
+                                                                    <Setter Property="IsVisible" Value="True" />
+                                                                </DataTrigger>
+                                                                <DataTrigger TargetType="Label" Binding="{Binding PrecoComDesconto}" Value="0">
+                                                                    <Setter Property="IsVisible" Value="True" />
+                                                                </DataTrigger>
+                                                            </Label.Triggers>
+                                                        </Label>
 
-                                                        <Label Text="{Binding PrecoComDesconto, StringFormat='{0:C}'}"
+                                                        <Label Text="{Binding Preco, StringFormat='{0:C}'}"
                                                                FontSize="12"
                                                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
                                                                TextDecorations="Strikethrough"
-                                                               IsVisible="{Binding PrecoComDesconto, Converter={toolkit:IsNotNullConverter}}"/>
+                                                               IsVisible="True">
+                                                            <Label.Triggers>
+                                                                <DataTrigger TargetType="Label" Binding="{Binding PrecoComDesconto}" Value="{x:Null}">
+                                                                    <Setter Property="IsVisible" Value="False" />
+                                                                </DataTrigger>
+                                                                <DataTrigger TargetType="Label" Binding="{Binding PrecoComDesconto}" Value="0">
+                                                                    <Setter Property="IsVisible" Value="False" />
+                                                                </DataTrigger>
+                                                            </Label.Triggers>
+                                                        </Label>
                                                     </HorizontalStackLayout>
 
                                                     <Label Text="{Binding CategoriaNome}"

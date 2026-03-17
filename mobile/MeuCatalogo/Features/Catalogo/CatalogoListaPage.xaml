@@ -11,12 +11,23 @@
         <VerticalStackLayout Padding="30,0" Spacing="25">
             <Button
                 Text="Adicionar Novo"
-                IsVisible="{Binding Catalogos, Converter={toolkit:IsListNotNullOrEmptyConverter}}"
+                IsVisible="{Binding HasCatalogos}"
                 SemanticProperties.Hint="Navega para tela de adicionar novo catálogo"
                 HorizontalOptions="Fill"
                 Command="{Binding AdicionarCommand}" />
                 <Grid RowDefinitions="Auto,Auto">
-                    <VerticalStackLayout IsVisible="{Binding Catalogos, Converter={toolkit:IsListNullOrEmptyConverter}}">
+                    <VerticalStackLayout IsVisible="{Binding IsSyncing}"
+                                         VerticalOptions="Center"
+                                         HorizontalOptions="Center">
+                        <ActivityIndicator IsRunning="{Binding IsSyncing}"
+                                           Color="{StaticResource Primary}"
+                                           WidthRequest="48"
+                                           HeightRequest="48" />
+                        <Label Text="Carregando…"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout IsVisible="{Binding ShowEmptyState}">
                     <Image
                         Source="ic_x_mark_circle_thin.png"
                         HeightRequest="85"

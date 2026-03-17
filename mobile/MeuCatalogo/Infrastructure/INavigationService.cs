@@ -13,21 +13,13 @@ public interface INavigationService
     Task PopAsync();
 }
 
-public sealed class NavigationService : INavigationService
+public sealed class NavigationService(IAuthRepository authRepository, ISettingsService settingsService)
+    : INavigationService
 {
-    private readonly IAuthRepository _authRepository;
-    private readonly ISettingsService _settingsService;
-
-    public NavigationService(IAuthRepository authRepository, ISettingsService settingsService)
-    {
-        _authRepository = authRepository;
-        _settingsService = settingsService;
-    }
-
     public async Task InitializeAsync()
     {
-        bool isAuthenticated =  _authRepository.IsAuthenticated();
-        bool possuiCatalogoFavorito = _settingsService.CatalogoFavorito is not null;
+        bool isAuthenticated =  authRepository.IsAuthenticated();
+        bool possuiCatalogoFavorito = settingsService.CatalogoFavorito is not null;
 
         string targetPage = isAuthenticated
             ? (possuiCatalogoFavorito ? nameof(ProdutoAdicionarPage) : nameof(CatalogoListaPage))

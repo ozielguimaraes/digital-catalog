@@ -4,19 +4,12 @@ using MeuCatalogo.Infrastructure.SyncEngine;
 
 namespace MeuCatalogo.Features.Catalogo.UseCases;
 
-public sealed class SyncCatalogosUseCase : IUseCaseOut<int>
+public sealed class SyncCatalogosUseCase(ISyncEngine syncEngine) : IUseCaseOut<int>
 {
-    private readonly ISyncEngine _syncEngine;
-
-    public SyncCatalogosUseCase(ISyncEngine syncEngine)
-    {
-        _syncEngine = syncEngine;
-    }
-
     public async Task<int> ExecuteAsync()
     {
-        await _syncEngine.QueueSyncAsync(SyncEntityTypes.Catalogos, "all", SyncOperation.PullCatalogos, "{}");
-        await _syncEngine.ProcessQueueAsync();
+        await syncEngine.QueueSyncAsync(SyncEntityTypes.Catalogos, "all", SyncOperation.PullCatalogos, "{}");
+        await syncEngine.ProcessQueueAsync();
         return 0;
     }
 }
