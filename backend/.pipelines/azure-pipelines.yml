@@ -54,20 +54,31 @@ steps:
     zipAfterPublish: false
     modifyOutputPath: false
 
-- task: UsePythonVersion@0
-  displayName: 'Instalar Python 3.x para Script de Deploy'
+- task: AzureWebApp@1
+  displayName: 'Deploy to Azure App Service'
   inputs:
-    versionSpec: '3.x'
-    addToPath: true
+    azureSubscription: 'GTech(b42a60f5-3c02-4a26-851c-36d2273fb56a)'
+    appType: 'webAppLinux'
+    appName: 'catalogo-api-epc5gndpfggde0eg.brazilsouth-01.azurewebsites.net'
+    deployToSlotOrASE: true
+    resourceGroupName: 'Catalogo'
+    slotName: 'production'
+    package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
 
-- task: PythonScript@0
-  displayName: 'Executar Deploy Seguro via FTP (com app_offline)'
-  inputs:
-    scriptSource: 'filePath'
-    scriptPath: 'backend/.pipelines/deploy-iis.py'
-  env:
-    FTP_URL: $(ftpUrl)
-    FTP_USER: $(ftpUser)
-    FTP_PASS: $(ftpPassword)
-    LOCAL_DIR: $(Build.ArtifactStagingDirectory)
-    REMOTE_DIR: '/wwwroot' # Caminho padrão IIS
+# - task: UsePythonVersion@0
+#   displayName: 'Instalar Python 3.x para Script de Deploy'
+#   inputs:
+#     versionSpec: '3.x'
+#     addToPath: true
+
+# - task: PythonScript@0
+#   displayName: 'Executar Deploy Seguro via FTP (com app_offline)'
+#   inputs:
+#     scriptSource: 'filePath'
+#     scriptPath: 'backend/.pipelines/deploy-iis.py'
+#   env:
+#     FTP_URL: $(ftpUrl)
+#     FTP_USER: $(ftpUser)
+#     FTP_PASS: $(ftpPassword)
+#     LOCAL_DIR: $(Build.ArtifactStagingDirectory)
+#     REMOTE_DIR: '/wwwroot' # Caminho padrão IIS
