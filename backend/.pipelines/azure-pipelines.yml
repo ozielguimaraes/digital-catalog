@@ -47,19 +47,16 @@ steps:
   displayName: 'Publicar Projeto'
   inputs:
     command: 'publish'
-    publishWebProjects: false
     projects: '**/MeuCatalogo.API.csproj'
-    # --output define onde os arquivos finais ficarão antes do upload
-    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory) --no-build'
-    zipAfterPublish: false
-    modifyOutputPath: false
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
 
 - task: AzureWebApp@1
   displayName: 'Deploy to Azure App Service'
   inputs:
     azureSubscription: 'GTech(b42a60f5-3c02-4a26-851c-36d2273fb56a)'
     appType: 'webAppLinux'
-    appName: 'catalogo-api-epc5gndpfggde0eg.brazilsouth-01.azurewebsites.net'
+    appName: 'catalogo-api-epc5gndpfggde0eg'
     deployToSlotOrASE: true
     resourceGroupName: 'Catalogo'
     slotName: 'production'
