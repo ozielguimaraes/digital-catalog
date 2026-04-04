@@ -21,10 +21,10 @@ public class SigninUseCase(IAuthRepository authRepository) : IUseCase<SigninRequ
         var messages = validator.Notifications.Select(x => x.Message);
         var sb = new StringBuilder();
 
-        foreach (string message in messages)
+        foreach (var message in messages)
             sb.Append($"{message}\n");
 
-        string error = sb.ToString().TrimEnd();
+        var error = sb.ToString().TrimEnd();
         return ApiResponse<SigninResponse>.Error(error);
     }
 }

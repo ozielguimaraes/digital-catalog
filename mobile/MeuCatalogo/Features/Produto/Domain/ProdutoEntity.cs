@@ -16,10 +16,9 @@ public class ProdutoEntity : BaseEntity
     public string? CategoriaId { get; set; }
     public string? CategoriaNome { get; set; }
     public string? ThumbnailUrl { get; set; }
-    
+
     // Offline Tracking Metadata
     public SyncStatus SyncStatus { get; set; } = SyncStatus.Completed;
     public DateTime LastModified { get; set; } = DateTime.UtcNow;
     public int Version { get; set; } = 1;
-    public string DeviceId { get; set; } = string.Empty;
 }

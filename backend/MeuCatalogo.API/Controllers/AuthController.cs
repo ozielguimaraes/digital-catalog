@@ -13,6 +13,7 @@ using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Annotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace MeuCatalogo.API.Controllers;
 
@@ -167,18 +168,11 @@ public class AuthController : BaseApiController
             return UnauthorizedResponse("Email ou senha incorretos");
         }
 
-        string token = GenerateJwtToken(user);
+        var token = GenerateJwtToken(user);
         var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(user.Id);
+        var userDto = await BuildUserDtoAsync(user);
 
-        var response = ApiResponse<SigninResponse>.Success(new SigninResponse(token, refreshToken.Token,
-            new UserDto
-            {
-                Id = user.Id,
-                UserName = user.UserName,
-                Email = user.Email,
-                Nome = user.Nome,
-                DataCriacao = user.DataCriacao
-            }));
+        var response = ApiResponse<SigninResponse>.Success(new SigninResponse(token, refreshToken.Token, userDto));
         _cache.Set(loginCacheKey, response.Data, TimeSpan.FromSeconds(45));
 
         _logger.LogDebug("Login bem-sucedido para {UserId}", user.Id);
@@ -328,7 +322,7 @@ public class AuthController : BaseApiController
     [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
     public async Task<IActionResult> GetCurrentUser()
     {
-        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Obtendo dados do usuário autenticado: {UserId}", userId);
 
         var user = await _userManager.FindByIdAsync(userId);
@@ -338,16 +332,34 @@ public class AuthController : BaseApiController
             return NotFoundResponse("Usuário não encontrado");
         }
 
-        var response = ApiResponse<UserDto>.Success(new UserDto
+        var response = ApiResponse<UserDto>.Success(await BuildUserDtoAsync(user));
+
+        return HandleApiResponse(response);
+    }
+
+    private async Task<UserDto> BuildUserDtoAsync(ApplicationUser user)
+    {
+        var catalogoFavorito = await _userManager.Users
+            .Where(x => x.Id == user.Id)
+            .SelectMany(x => x.Catalogos
+                .OrderBy(c => c.DataCriacao)
+                .Take(1))
+            .Select(c => new CatalogoFavoritoDto
+            {
+                Id = c.Id,
+                Nome = c.Nome
+            })
+            .FirstOrDefaultAsync();
+
+        return new UserDto
         {
             Id = user.Id,
             UserName = user.UserName,
             Email = user.Email,
             Nome = user.Nome,
-            DataCriacao = user.DataCriacao
-        });
-
-        return HandleApiResponse(response);
+            DataCriacao = user.DataCriacao,
+            CatalogoFavorito = catalogoFavorito
+        };
     }
 
     /// <summary>
@@ -394,7 +406,7 @@ public class AuthController : BaseApiController
             user.Email
         );
 
-        bool emailSent = await _emailSender.EnviarEmailAsync(message);
+        var emailSent = await _emailSender.EnviarEmailAsync(message);
 
         if (!emailSent)
         {

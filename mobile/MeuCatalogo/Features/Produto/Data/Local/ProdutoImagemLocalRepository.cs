@@ -37,4 +37,10 @@ public sealed class ProdutoImagemLocalRepository(AppDbContext dbContext) : IProd
             database.InsertAll(list);
         });
     }
+
+    public async Task DeleteByProdutoIdAsync(string produtoId)
+    {
+        await dbContext.InitializeAsync();
+        await dbContext.Database.ExecuteAsync("DELETE FROM ProdutoImagens WHERE ProdutoId = ?", produtoId);
+    }
 }

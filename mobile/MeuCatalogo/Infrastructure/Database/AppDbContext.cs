@@ -10,8 +10,6 @@ namespace MeuCatalogo.Infrastructure.Database;
 
 public class AppDbContext
 {
-    private const int CurrentSchemaVersion = 2;
-
     private SQLiteAsyncConnection? _database;
     private bool _initialized;
 
@@ -38,7 +36,7 @@ public class AppDbContext
 
             await ConfigureDatabaseAsync();
             await CreateTablesAsync();
-            await RunMigrationsAsync();
+            await EnsureCurrentSchemaAsync();
             await CreateIndexesAsync();
 
             _initialized = true;
@@ -95,39 +93,7 @@ public class AppDbContext
             "CREATE INDEX IF NOT EXISTS idx_produto_categoria ON Produtos (CategoriaId)");
     }
 
-    private async Task RunMigrationsAsync()
-    {
-        if (_database == null)
-            return;
-
-        var version = await _database.ExecuteScalarAsync<int>("PRAGMA user_version;");
-
-        while (version < CurrentSchemaVersion)
-        {
-            version++;
-
-            switch (version)
-            {
-                case 1:
-                    await Migration1Async();
-                    break;
-
-                case 2:
-                    await Migration2Async();
-                    break;
-            }
-
-            await _database.ExecuteAsync($"PRAGMA user_version = {version};");
-        }
-    }
-
-    private Task Migration1Async()
-    {
-        // Initial schema version marker
-        return Task.CompletedTask;
-    }
-
-    private async Task Migration2Async()
+    private async Task EnsureCurrentSchemaAsync()
     {
         if (_database == null)
             return;
@@ -137,6 +103,8 @@ public class AppDbContext
         await EnsureColumnExistsAsync("Produtos", "CatalogoId", "TEXT");
         await EnsureColumnExistsAsync("Produtos", "CategoriaNome", "TEXT");
         await EnsureColumnExistsAsync("Produtos", "ThumbnailUrl", "TEXT");
+        await EnsureColumnExistsAsync("SyncQueues", "NextRetryAt", "TEXT");
+        await EnsureColumnExistsAsync("SyncQueues", "CompletedAt", "TEXT");
     }
 
     private async Task EnsureColumnExistsAsync(

@@ -1,0 +1,92 @@
+You must implement an offline-first synchronization pattern.
+
+Rules:
+1. All write operations must persist locally first (SQLite).
+2. UI must update immediately using local state (Single Source of Truth).
+3. Each record must have a sync status:
+   - Pending
+   - Synced
+   - Failed
+
+4. Sync must run in background:
+   - Retry automatically
+   - Handle conflicts safely
+   - Never block UI
+
+5. UI must reflect sync state:
+   - Pending → subtle indicator (icon or label)
+   - Synced → no noise or small confirmation
+   - Failed → visible retry option
+
+6. Never show "success" if data is not synced to server.
+   Instead:
+   - "Saved locally"
+   - "Syncing..."
+   - "Failed to sync"
+
+7. Architecture must follow:
+   View → ViewModel → UseCase → Repository → LocalDB + RemoteAPI
+
+8. Repository must be SSOT:
+   - UI reads ONLY from local database
+   - Remote is only for sync
+
+9. Implement a sync queue:
+   - Queue unsynced items
+   - Process sequentially
+   - Mark status after result
+
+10. Code must be scalable, testable, and follow clean architecture.
+
+11. Sync engine must:
+   - Guarantee single execution (no parallel processing)
+   - Use exponential backoff for retries
+   - Never delete sync history, only mark as completed
+   - Respect retry scheduling (NextRetryAt)
+
+12. Backend idempotency is REQUIRED:
+   - All entities must use client-generated IDs (GUID)
+   - The backend must accept client IDs as the source of truth
+   - Retry operations must NOT create duplicates
+   - Especially for CREATE operations, the same request must be safely repeatable
+   - The system must behave correctly under retries and network failures
+
+Write flow:
+UI
+ ↓
+ViewModel
+ ↓
+UseCase (CreatePost / AddProduct)
+ ↓
+Repository
+ ↓
+LocalDB (status = Pending)
+ ↓
+RETURN (immediate)
+
+Background sync:
+SyncService
+ ↓
+Get Pending Items
+ ↓
+Send to API
+ ↓
+Update status:
+   Success → Synced
+   Error   → Failed
+
+Read flow (SSOT):
+UI
+ ↓
+ViewModel
+ ↓
+Repository
+ ↓
+LocalDB ONLY
+
+
+_________
+próximo passo, mas NÃo será implementado agora:
+detecção de conflito (last-write vs merge)
+sync incremental (delta sync)
+prioridade de fila (ex: delete antes de update)

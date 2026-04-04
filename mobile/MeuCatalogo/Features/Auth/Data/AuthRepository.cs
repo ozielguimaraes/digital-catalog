@@ -3,10 +3,16 @@ using MeuCatalogo.Features.Auth.Data.Remote;
 using MeuCatalogo.Features.Auth.Data.Remote.Contracts.Requests;
 using MeuCatalogo.Features.Auth.Data.Remote.Contracts.Responses;
 using MeuCatalogo.Features.Auth.Domain;
+using MeuCatalogo.Features.Catalogo.Domain;
+using MeuCatalogo.Features.Settings.Services;
 
 namespace MeuCatalogo.Features.Auth.Data;
 
-public sealed class AuthRepository(IAuthRemoteDataSource remote, IAuthLocalDataSource local, IUserRepository userRepository)
+public sealed class AuthRepository(
+    IAuthRemoteDataSource remote,
+    IAuthLocalDataSource local,
+    IUserRepository userRepository,
+    ISettingsService settingsService)
     : IAuthRepository
 {
     public bool IsAuthenticated()
@@ -58,6 +64,13 @@ public sealed class AuthRepository(IAuthRemoteDataSource remote, IAuthLocalDataS
         };
 
         await userRepository.SetCurrentUserAsync(userEntity);
+        settingsService.CatalogoFavorito = response.Dados.CatalogoFavorito is null
+            ? null
+            : new CatalogoInfo
+            {
+                Id = response.Dados.CatalogoFavorito.Id,
+                Nome = response.Dados.CatalogoFavorito.Nome
+            };
 
         return response;
     }
@@ -88,6 +101,7 @@ public sealed class AuthRepository(IAuthRemoteDataSource remote, IAuthLocalDataS
     {
         local.ClearTokens();
         local.SetIsAuthenticatedFlag(false);
+        settingsService.CatalogoFavorito = null;
         await userRepository.ClearUserAsync();
     }
 }

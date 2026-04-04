@@ -6,4 +6,11 @@ public sealed record UserResponse
     public required string Nome { get; init; }
     public required string Email { get; init; }
     public required string UserName { get; init; }
+    public CatalogoFavoritoResponse? CatalogoFavorito { get; init; }
+}
+
+public sealed record CatalogoFavoritoResponse
+{
+    public Guid Id { get; init; }
+    public required string Nome { get; init; }
 }

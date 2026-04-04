@@ -16,6 +16,5 @@ public sealed class CatalogoEntity : BaseEntity
     public SyncStatus SyncStatus { get; set; } = SyncStatus.Completed;
     public DateTime LastModified { get; set; } = DateTime.UtcNow;
     public int Version { get; set; } = 1;
-    public string DeviceId { get; set; } = string.Empty;
 }
 

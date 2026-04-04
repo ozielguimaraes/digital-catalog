@@ -2,10 +2,12 @@ using MeuCatalogo.Domain.Entities;
 using MeuCatalogo.Domain.Enums;
 using MeuCatalogo.Infrastructure.Database;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using System.Threading;
 
 namespace MeuCatalogo.Infrastructure.SyncEngine;
 
-public class SyncEngineService(
+public sealed class SyncEngineService(
     AppDbContext dbContext,
     ILogger<SyncEngineService> logger,
     IConnectivity connectivity,
@@ -14,7 +16,13 @@ public class SyncEngineService(
 {
     private readonly IReadOnlyList<ISyncHandler> _handlers = handlers.ToList();
 
-    public async Task QueueSyncAsync(string entityType, string entityId, SyncOperation operation, string payload)
+    private static readonly SemaphoreSlim _syncLock = new(1, 1);
+
+    public async Task QueueSyncAsync(
+        string entityType,
+        string entityId,
+        SyncOperation operation,
+        string payload)
     {
         await dbContext.InitializeAsync();
 
@@ -25,16 +33,37 @@ public class SyncEngineService(
             Operation = operation,
             Payload = payload,
             Status = SyncStatus.Pending,
-            CreatedAt = DateTime.UtcNow
+            RetryCount = 0,
+            CreatedAt = DateTime.UtcNow,
+            NextRetryAt = DateTime.UtcNow
         };
 
         await dbContext.Database.InsertAsync(syncItem);
-        logger.LogInformation($"Queued sync item {syncItem.Id} for {entityType}");
 
-        // Attempt immediate processing if connected
+        logger.LogInformation(
+            "Queued sync item {Id} ({EntityType}/{Operation})",
+            syncItem.Id,
+            entityType,
+            operation);
+
         if (connectivity.NetworkAccess == NetworkAccess.Internet)
         {
-            _ = Task.Run(ProcessQueueAsync);
+            _ = TriggerProcessingAsync();
+        }
+    }
+
+    private async Task TriggerProcessingAsync()
+    {
+        if (!await _syncLock.WaitAsync(0))
+            return;
+
+        try
+        {
+            await ProcessQueueAsync();
+        }
+        finally
+        {
+            _syncLock.Release();
         }
     }
 
@@ -42,18 +71,22 @@ public class SyncEngineService(
     {
         if (connectivity.NetworkAccess != NetworkAccess.Internet)
         {
-            logger.LogWarning("Cannot process sync queue. No internet connection.");
+            logger.LogWarning("No internet. Skipping sync.");
             return;
         }
 
         await dbContext.InitializeAsync();
 
+        var now = DateTime.UtcNow;
+
         var pendingItems = await dbContext.Database.Table<SyncQueue>()
-            .Where(q => q.Status == SyncStatus.Pending || q.Status == SyncStatus.Failed)
+            .Where(q =>
+                (q.Status == SyncStatus.Pending || q.Status == SyncStatus.Failed) &&
+                q.NextRetryAt <= now)
             .OrderBy(q => q.CreatedAt)
             .ToListAsync();
 
-        if (!pendingItems.Any())
+        if (pendingItems.Count == 0)
             return;
 
         foreach (var item in pendingItems)
@@ -63,27 +96,26 @@ public class SyncEngineService(
                 item.Status = SyncStatus.InProgress;
                 await dbContext.Database.UpdateAsync(item);
 
-                bool success = await ProcessItemAsync(item);
+                var success = await ProcessItemAsync(item);
 
                 if (success)
                 {
                     item.Status = SyncStatus.Completed;
-                    await dbContext.Database.DeleteAsync(item);
+                    item.CompletedAt = DateTime.UtcNow;
+
+                    await dbContext.Database.UpdateAsync(item);
                 }
                 else
                 {
-                    item.Status = SyncStatus.Failed;
-                    item.RetryCount++;
-                    await dbContext.Database.UpdateAsync(item);
+                    await MarkAsFailedAsync(item, "Handler returned false");
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Error processing sync queue item {item.Id}");
-                item.Status = SyncStatus.Failed;
-                item.RetryCount++;
-                item.LastError = ex.Message;
-                await dbContext.Database.UpdateAsync(item);
+                logger.LogError(ex,
+                    "Error processing sync item {Id}", item.Id);
+
+                await MarkAsFailedAsync(item, ex.Message);
             }
         }
     }
@@ -91,13 +123,32 @@ public class SyncEngineService(
     private async Task<bool> ProcessItemAsync(SyncQueue item)
     {
         var handler = _handlers.FirstOrDefault(h => h.CanHandle(item));
-        if (handler == null)
+
+        if (handler is null)
         {
-            logger.LogWarning("No handler registered for sync item {EntityType} / {Operation}", item.EntityType, item.Operation);
+            logger.LogWarning(
+                "No handler for {EntityType}/{Operation}",
+                item.EntityType,
+                item.Operation);
+
             return false;
         }
 
         await handler.HandleAsync(item);
         return true;
+    }
+
+    private async Task MarkAsFailedAsync(SyncQueue item, string error)
+    {
+        item.Status = SyncStatus.Failed;
+        item.RetryCount++;
+        item.LastError = error;
+
+        // Backoff exponencial (máx 5 min)
+        var delaySeconds = Math.Min(Math.Pow(2, item.RetryCount), 300);
+
+        item.NextRetryAt = DateTime.UtcNow.AddSeconds(delaySeconds);
+
+        await dbContext.Database.UpdateAsync(item);
     }
 }

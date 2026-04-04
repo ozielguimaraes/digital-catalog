@@ -7,4 +7,5 @@ public interface IProdutoImagemLocalRepository
     Task<IReadOnlyList<ProdutoImagemEntity>> GetByProdutoIdAsync(string produtoId);
     Task ReplaceByCatalogoIdAsync(string catalogoId, IEnumerable<ProdutoImagemEntity> imagens);
     Task ReplaceByProdutoIdAsync(string produtoId, IEnumerable<ProdutoImagemEntity> imagens);
+    Task DeleteByProdutoIdAsync(string produtoId);
 }

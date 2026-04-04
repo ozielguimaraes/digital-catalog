@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Maui;
 using MeuCatalogo.Extensions;
 using MeuCatalogo.Infrastructure;
 using Microsoft.Extensions.Logging;
@@ -11,6 +11,7 @@ using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.Hosting;
 using Plugin.Maui.BottomSheet.Hosting;
+using Sentry;
 
 namespace MeuCatalogo;
 
@@ -39,6 +40,24 @@ public static class MauiProgram
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
             .UseBottomSheet(config => config.CopyPagePropertiesToBottomSheet = true)
+            .UseSentry(options =>
+            {
+                options.Dsn = "https://d28b29c06ae140171a04078f72b872b8@o4507538405916672.ingest.us.sentry.io/4510213135925248";
+
+                options.TracesSampleRate = 0.2;
+                options.ProfilesSampleRate = 0.1;
+                options.AttachStacktrace = true;
+                options.MaxBreadcrumbs = 50;
+                options.SendDefaultPii = true;
+                options.MinimumEventLevel = LogLevel.Warning;
+                options.SetBeforeSend((sentryEvent) => sentryEvent.Level < SentryLevel.Warning ? null : sentryEvent);
+
+#if DEBUG
+                options.Environment = "debug";
+#else
+                options.Environment = "production";
+#endif
+            })
             //.ConfigureSyncfusionToolkit()
             .ConfigureFonts(fonts =>
             {

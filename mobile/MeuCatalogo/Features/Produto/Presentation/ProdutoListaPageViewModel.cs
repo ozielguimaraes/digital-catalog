@@ -6,7 +6,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using MeuCatalogo.Domain.Enums;
 using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Produto.Data.Local;
-using MeuCatalogo.Features.Produto.Data.Remote.Contracts.Responses;
 using MeuCatalogo.Features.Produto.Domain;
 using MeuCatalogo.Features.Produto.Presentation;
 using MeuCatalogo.Features.Settings.Services;
@@ -21,10 +20,9 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
 {
     private readonly ILogger<ProdutoListaPageViewModel> _logger;
     private readonly IProdutoLocalRepository _produtoLocalRepository;
-    private readonly IProdutoImagemLocalRepository _produtoImagemLocalRepository;
     private readonly SyncProdutosByCatalogoUseCase _syncProdutosByCatalogoUseCase;
-    private readonly GetProdutoByIdUseCase _getProdutoByIdUseCase;
-    private readonly DeleteProdutoRemoteUseCase _deleteProdutoRemoteUseCase;
+    private readonly GetProdutoForEditOfflineFirstUseCase _getProdutoForEditOfflineFirstUseCase;
+    private readonly DeleteProdutoOfflineFirstUseCase _deleteProdutoOfflineFirstUseCase;
     private readonly ISettingsService _settingsService;
     private readonly INavigationService _navigationService;
     private bool _backgroundSyncStarted;
@@ -33,19 +31,17 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
     public ProdutoListaPageViewModel(
         ILogger<ProdutoListaPageViewModel> logger,
         IProdutoLocalRepository produtoLocalRepository,
-        IProdutoImagemLocalRepository produtoImagemLocalRepository,
         SyncProdutosByCatalogoUseCase syncProdutosByCatalogoUseCase,
-        GetProdutoByIdUseCase getProdutoByIdUseCase,
-        DeleteProdutoRemoteUseCase deleteProdutoRemoteUseCase,
+        GetProdutoForEditOfflineFirstUseCase getProdutoForEditOfflineFirstUseCase,
+        DeleteProdutoOfflineFirstUseCase deleteProdutoOfflineFirstUseCase,
         ISettingsService settingsService,
         INavigationService navigationService)
     {
         _logger = logger;
         _produtoLocalRepository = produtoLocalRepository;
-        _produtoImagemLocalRepository = produtoImagemLocalRepository;
         _syncProdutosByCatalogoUseCase = syncProdutosByCatalogoUseCase;
-        _getProdutoByIdUseCase = getProdutoByIdUseCase;
-        _deleteProdutoRemoteUseCase = deleteProdutoRemoteUseCase;
+        _getProdutoForEditOfflineFirstUseCase = getProdutoForEditOfflineFirstUseCase;
+        _deleteProdutoOfflineFirstUseCase = deleteProdutoOfflineFirstUseCase;
         _settingsService = settingsService;
         _navigationService = navigationService;
 
@@ -184,70 +180,13 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
     [RelayCommand]
     private async Task Editar(ProdutoEntity produto)
     {
-        var catalogoId = Guid.TryParse(produto.CatalogoId, out var parsedCatalogoId) ? parsedCatalogoId : Guid.Empty;
-        var categoriaId = Guid.TryParse(produto.CategoriaId, out var parsedCategoriaId) ? parsedCategoriaId : Guid.Empty;
-        var produtoId = Guid.TryParse(produto.Id, out var parsedProdutoId) ? parsedProdutoId : Guid.Empty;
-
-        var imagens = await _produtoImagemLocalRepository.GetByProdutoIdAsync(produto.Id);
-        if (!imagens.Any() && HasInternetConnection() && Guid.TryParse(produto.Id, out var remoteId) && remoteId != Guid.Empty)
-        {
-            var remote = await _getProdutoByIdUseCase.ExecuteAsync(remoteId);
-            if (remote is { RetornouComSucesso: true, Dados: not null })
-            {
-                var now = DateTime.UtcNow;
-                var imagensRemote = remote.Dados.Imagens.Select(i => new ProdutoImagemEntity
-                {
-                    Id = i.Id.ToString(),
-                    ProdutoId = produto.Id,
-                    CatalogoId = remote.Dados.CatalogoId.ToString(),
-                    Url = i.Url,
-                    Thumbnail = i.Images.Thumbnail,
-                    Medium = i.Images.Medium,
-                    Full = i.Images.Full,
-                    IsPrincipal = i.IsPrincipal,
-                    Ordem = i.Ordem,
-                    SyncStatus = i.SyncStatus,
-                    LastModified = now
-                }).ToList();
-
-                await _produtoImagemLocalRepository.ReplaceByProdutoIdAsync(produto.Id, imagensRemote);
-                imagens = imagensRemote;
-            }
-        }
-
-        var imagensResponse = imagens.Select(i => new ProdutoImagemResponse
-        {
-            Id = Guid.TryParse(i.Id, out var imageId) ? imageId : Guid.Empty,
-            Url = i.Url,
-            Images = new ProdutoImagemLinksResponse
-            {
-                Thumbnail = i.Thumbnail,
-                Medium = i.Medium,
-                Full = i.Full
-            },
-            IsPrincipal = i.IsPrincipal,
-            Ordem = i.Ordem,
-            SyncStatus = i.SyncStatus
-        }).ToList();
+        var produtoResponse = await _getProdutoForEditOfflineFirstUseCase.ExecuteAsync(produto);
 
         var navigationParameter = new Dictionary<string, object>
         {
             {
                 "Produto",
-                new ProdutoResponse
-                {
-                    Id = produtoId,
-                    Nome = produto.Nome,
-                    Preco = produto.Preco,
-                    PrecoComDesconto = produto.PrecoComDesconto,
-                    InformacoesAdicionais = produto.InformacoesAdicionais,
-                    CategoriaId = categoriaId,
-                    CategoriaNome = produto.CategoriaNome ?? string.Empty,
-                    CatalogoId = catalogoId,
-                    Estoque = null,
-                    Imagens = imagensResponse,
-                    SyncStatus = SyncStatus.Completed
-                }
+                produtoResponse
             }
         };
 
@@ -284,13 +223,16 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
         try
         {
             IsBusy = true;
-            var response = await _deleteProdutoRemoteUseCase.ExecuteAsync(Guid.Parse(produto.Id));
+            var hadInternet = HasInternetConnection();
+            var response = await _deleteProdutoOfflineFirstUseCase.ExecuteAsync(Guid.Parse(produto.Id));
 
             if (response.RetornouComSucesso)
             {
                 Produtos.Remove(produto);
-                await _produtoLocalRepository.DeleteAsync(produto);
-                await Application.Current.MainPage.DisplayAlert("Sucesso", "Produto removido com sucesso.", "OK");
+                if (hadInternet)
+                    await Application.Current.MainPage.DisplayAlert("Sucesso", "Produto removido com sucesso.", "OK");
+                else
+                    await Application.Current.MainPage.DisplayAlert("Sucesso", "Produto removido localmente e será sincronizado quando houver internet.", "OK");
             }
             else
             {

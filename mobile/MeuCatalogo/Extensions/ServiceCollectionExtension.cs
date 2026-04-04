@@ -1,4 +1,5 @@
 using System;
+using MeuCatalogo.Core.Abstractions;
 using MeuCatalogo.Features.Auth;
 using MeuCatalogo.Features.Auth.Data;
 using MeuCatalogo.Features.Auth.Data.Local;
@@ -88,7 +89,7 @@ public static class ServiceCollectionExtension
     {
         builder.Services.AddTransient<LoggingHttpClientHandler>();
         builder.Services.AddTransient<AuthenticationHandler>();
-        builder.Services.AddSingleton<IConnectivity>(Connectivity.Current);
+        builder.Services.AddSingleton(Connectivity.Current);
         builder.Services.AddSingleton<ISettingsService, SettingsService>();
         builder.Services.AddSingleton<INavigationService, NavigationService>();
         builder.Services.AddSingleton<AppDbContext>();
@@ -122,10 +123,12 @@ public static class ServiceCollectionExtension
         builder.Services.AddTransient<IProdutoImagemLocalRepository, ProdutoImagemLocalRepository>();
         builder.Services.AddTransient<GetProdutosByCatalogoIdUseCase>();
         builder.Services.AddTransient<GetProdutoByIdUseCase>();
+        builder.Services.AddTransient<GetProdutoForEditOfflineFirstUseCase>();
         builder.Services.AddTransient<CreateProdutoRemoteUseCase>();
         builder.Services.AddTransient<UpdateProdutoRemoteUseCase>();
         builder.Services.AddTransient<UpsertProdutoOfflineFirstUseCase>();
         builder.Services.AddTransient<DeleteProdutoRemoteUseCase>();
+        builder.Services.AddTransient<DeleteProdutoOfflineFirstUseCase>();
         builder.Services.AddTransient<UploadProdutoImageUseCase>();
         builder.Services.AddTransient<GetProdutosUseCase>();
         builder.Services.AddTransient<CreateProdutoUseCase>();
@@ -133,6 +136,7 @@ public static class ServiceCollectionExtension
         builder.Services.AddTransient<ISyncHandler, CatalogoPullSyncHandler>();
         builder.Services.AddTransient<ISyncHandler, ProdutoPullSyncHandler>();
         builder.Services.AddTransient<ISyncHandler, ProdutoUpsertSyncHandler>();
+        builder.Services.AddTransient<ISyncHandler, ProdutoDeleteSyncHandler>();
 
         return builder;
     }

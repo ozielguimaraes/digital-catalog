@@ -13,6 +13,7 @@ using MeuCatalogo.API.Middlewares;
 using MeuCatalogo.API.Converters;
 using MeuCatalogo.API.Infrastructure.Messages;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 using Sentry;
 
@@ -166,7 +167,11 @@ try
     }
     else
     {
-        Console.WriteLine("⚠ EmailSettings section missing - EmailSender not configured.");
+        // Fallback configuration to prevent startup crashes when config is missing
+        // This registers a dummy EmailSender that logs warnings instead of crashing
+        Console.WriteLine("⚠ EmailSettings section missing - Using fallback Dummy EmailSender.");
+        builder.Services.AddTransient<EmailSender>(sp => 
+            new EmailSender("dummy@example.com", "dummy", "localhost", 25, false, "Dummy Sender"));
     }
 
     // Validate JWT configuration
@@ -351,6 +356,11 @@ try
     });
 
     app.UseSentryTracing();
+
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
+    });
 
     var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "Uploads");
 

@@ -1,12 +1,10 @@
-using System;
 using MeuCatalogo.Features.Auth;
 using MeuCatalogo.Features.Auth.Data;
-using MeuCatalogo.Features.Catalogo;
-using MeuCatalogo.Features.Produto;
 using MeuCatalogo.Features.Settings.Services;
 using MeuCatalogo.Infrastructure;
 using MeuCatalogo.Infrastructure.Database;
-using Microsoft.Maui;
+using MeuCatalogo.Infrastructure.SyncEngine;
+using Microsoft.Extensions.Logging;
 
 namespace MeuCatalogo;
 
@@ -14,11 +12,23 @@ public partial class App
 {
     private readonly IAuthRepository _authRepository;
     private readonly INavigationService _navigationService;
+    private readonly IConnectivity _connectivity;
+    private readonly ISyncEngine _syncEngine;
+    private readonly ILogger<App> _logger;
+    private bool _syncLifecycleInitialized;
 
-    public App(IAuthRepository authRepository, INavigationService navigationService)
+    public App(
+        IAuthRepository authRepository,
+        INavigationService navigationService,
+        IConnectivity connectivity,
+        ISyncEngine syncEngine,
+        ILogger<App> logger)
     {
         _authRepository = authRepository;
         _navigationService = navigationService;
+        _connectivity = connectivity;
+        _syncEngine = syncEngine;
+        _logger = logger;
         InitializeComponent();
     }
 
@@ -28,9 +38,6 @@ public partial class App
         {
             var appShellViewModel = IPlatformApplication.Current!.Services.GetService<AppShellViewModel>()
                                     ?? throw new InvalidOperationException("AppShellViewModel is not registered in the DI container.");
-
-            var settingsService = IPlatformApplication.Current.Services.GetService<ISettingsService>()
-                                  ?? throw new InvalidOperationException("SettingsService is not registered in the DI container.");
 
             var shell = new AppShell(appShellViewModel);
 
@@ -42,7 +49,6 @@ public partial class App
 
         return new Window(new LoginPage(loginPageViewModel));
     }
-
 
     protected override async void OnHandlerChanged()
     {
@@ -67,6 +73,9 @@ public partial class App
                     });
                 }
 
+                InitializeSyncLifecycle();
+                _ = ProcessPendingSyncAsync();
+
                 // await _navigationService.InitializeAsync();
             }
         }
@@ -74,6 +83,38 @@ public partial class App
         {
             Console.WriteLine(ex);
             throw;
+        }
+    }
+
+    private void InitializeSyncLifecycle()
+    {
+        if (_syncLifecycleInitialized)
+            return;
+
+        _connectivity.ConnectivityChanged += OnConnectivityChanged;
+        _syncLifecycleInitialized = true;
+    }
+
+    private void OnConnectivityChanged(object? sender, ConnectivityChangedEventArgs e)
+    {
+        if (e.NetworkAccess != NetworkAccess.Internet)
+            return;
+
+        _ = ProcessPendingSyncAsync();
+    }
+
+    private async Task ProcessPendingSyncAsync()
+    {
+        if (_connectivity.NetworkAccess != NetworkAccess.Internet)
+            return;
+
+        try
+        {
+            await _syncEngine.ProcessQueueAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao processar fila de sincronização.");
         }
     }
 }

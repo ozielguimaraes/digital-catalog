@@ -9,6 +9,13 @@ public class UserDto
     public string Email { get; set; }
     public string UserName { get; set; }
     public DateTime DataCriacao { get; set; }
+    public CatalogoFavoritoDto? CatalogoFavorito { get; set; }
+}
+
+public class CatalogoFavoritoDto
+{
+    public Guid Id { get; set; }
+    public string Nome { get; set; }
 }
 
 public class UserRegisterDto
