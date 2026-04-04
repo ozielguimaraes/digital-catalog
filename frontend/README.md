@@ -80,6 +80,24 @@ Then open:
 
 ---
 
+### Generate Publish Package
+
+To generate a reusable production package for publishing, run:
+
+```bash
+npm run package:publish
+```
+
+This command:
+
+* builds the Angular app in production mode
+* generates `build-info.json` and `version.txt`
+* creates a `.zip` file inside the `artifacts/` folder
+
+The generated ZIP is ready to upload to your hosting environment.
+
+---
+
 ## Angualr.js Tailwind Components
 
 TailAdmin Angular ships with a rich set of **ready-to-use dashboard features**:

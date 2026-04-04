@@ -50,21 +50,6 @@
   <div class="container">
     <div class="filters-content">
       <div class="filter-group">
-        <label for="catalog-select">Catálogo:</label>
-        <select 
-          id="catalog-select" 
-          [(ngModel)]="selectedCatalog" 
-          (change)="onCatalogChange()"
-          class="filter-select"
-        >
-          <option value="">Todos os catálogos</option>
-          <option *ngFor="let catalog of catalogs" [value]="catalog.id">
-            {{ catalog.nome }}
-          </option>
-        </select>
-      </div>
-
-      <div class="filter-group">
         <label for="category-select">Categoria:</label>
         <select 
           id="category-select" 
@@ -104,7 +89,7 @@
         <p>Tente ajustar os filtros ou termo de busca</p>
       </div>
 
-      <div *ngFor="let product of products" class="product-card">
+      <div *ngFor="let product of products" class="product-card" (click)="onProductClick(product)">
         <div class="product-image" (click)="onProductClick(product)">
           <img [src]="getProductImage(product)" [alt]="product.nome" loading="lazy">
           <div *ngIf="hasDiscount(product)" class="discount-badge">
@@ -132,7 +117,7 @@
                 <button 
                   type="button"
                   class="quantity-btn" 
-                  (click)="decreaseQuantity(product)"
+                  (click)="decreaseQuantity(product); $event.stopPropagation()"
                 >
                   -
                 </button>
@@ -143,11 +128,12 @@
                   min="1"
                   max="99"
                   class="quantity-input"
+                  (click)="$event.stopPropagation()"
                 >
                 <button 
                   type="button"
                   class="quantity-btn" 
-                  (click)="increaseQuantity(product)"
+                  (click)="increaseQuantity(product); $event.stopPropagation()"
                 >
                   +
                 </button>
@@ -155,7 +141,7 @@
             </div>
             <button 
               class="btn btn-primary" 
-              (click)="addToCart(product)"
+              (click)="addToCart(product); $event.stopPropagation()"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M9 22C9.55228 22 10 21.5523 10 21C10 20.4477 9.55228 20 9 20C8.44772 20 8 20.4477 8 21C8 21.5523 8.44772 22 9 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -221,3 +207,54 @@
 
 <!-- Cart Modal -->
 <app-cart-modal #cartModal></app-cart-modal>
+
+<div *ngIf="selectedProduct" class="product-details-overlay" (click)="closeProductDetails()">
+  <div class="product-details-modal" (click)="$event.stopPropagation()">
+    <button type="button" class="product-details-close" (click)="closeProductDetails()">
+      ×
+    </button>
+
+    <div class="product-details-content">
+      <div class="product-details-gallery">
+        <div class="product-details-main-image">
+          <img [src]="getSelectedProductImage()" [alt]="selectedProduct.nome">
+        </div>
+
+        <div class="product-details-thumbnails" *ngIf="getProductGallery(selectedProduct).length > 1">
+          <button
+            *ngFor="let image of getProductGallery(selectedProduct); let index = index"
+            type="button"
+            class="product-details-thumbnail"
+            [class.active]="index === selectedImageIndex"
+            (click)="selectProductImage(index)">
+            <img [src]="image" [alt]="selectedProduct.nome + ' ' + (index + 1)">
+          </button>
+        </div>
+      </div>
+
+      <div class="product-details-info">
+        <span class="product-details-category">{{ selectedProduct.categoriaNome }}</span>
+        <h2>{{ selectedProduct.nome }}</h2>
+
+        <div class="product-details-price">
+          <span *ngIf="hasDiscount(selectedProduct)" class="original-price">
+            R$ {{ selectedProduct.preco | number:'1.2-2' }}
+          </span>
+          <span class="current-price">
+            R$ {{ getProductPrice(selectedProduct) | number:'1.2-2' }}
+          </span>
+        </div>
+
+        <p class="product-details-description">
+          {{ selectedProduct.informacoesAdicionais || 'Sem descrição disponível para este produto.' }}
+        </p>
+
+        <div class="product-details-actions">
+          <button class="btn btn-primary" (click)="addToCart(selectedProduct)">
+            Adicionar ao Carrinho
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

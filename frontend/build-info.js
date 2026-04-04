@@ -57,8 +57,10 @@ function calculateSize(dirPath) {
   return { totalSize, fileCount };
 }
 
-// Calcular tamanho do build
-const distPath = path.join(__dirname, 'dist', 'ng-tailadmin');
+const distRootPath = path.join(__dirname, 'dist', 'ng-tailadmin');
+const distPath = fs.existsSync(path.join(distRootPath, 'browser'))
+  ? path.join(distRootPath, 'browser')
+  : distRootPath;
 const sizeInfo = calculateSize(distPath);
 
 buildInfo.files.totalSize = sizeInfo.totalSize;

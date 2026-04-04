@@ -23,8 +23,10 @@ export class HomeComponent implements OnInit {
   products: Product[] = [];
   categories: Category[] = [];
   catalogs: Catalog[] = [];
+  selectedProduct: Product | null = null;
   selectedCategory: string = '';
   selectedCatalog: string = '';
+  selectedImageIndex = 0;
   loading = false;
   error: string | null = null;
   searchTerm = '';
@@ -231,8 +233,42 @@ export class HomeComponent implements OnInit {
   }
 
   onProductClick(product: Product) {
-    // Navigate to product details or open modal
-    console.log('Product clicked:', product);
+    this.selectedProduct = product;
+    this.selectedImageIndex = 0;
+  }
+
+  closeProductDetails(): void {
+    this.selectedProduct = null;
+    this.selectedImageIndex = 0;
+  }
+
+  selectProductImage(index: number): void {
+    this.selectedImageIndex = index;
+  }
+
+  getProductGallery(product: Product): string[] {
+    if (!product.imagens?.length) {
+      return ['assets/images/placeholder-product.jpg'];
+    }
+
+    return [...product.imagens]
+      .sort((first, second) => {
+        if (first.isPrincipal === second.isPrincipal) {
+          return first.ordem - second.ordem;
+        }
+
+        return first.isPrincipal ? -1 : 1;
+      })
+      .map(image => this.imageUrlService.getImageUrl(image.url));
+  }
+
+  getSelectedProductImage(): string {
+    if (!this.selectedProduct) {
+      return 'assets/images/placeholder-product.jpg';
+    }
+
+    const gallery = this.getProductGallery(this.selectedProduct);
+    return gallery[this.selectedImageIndex] ?? gallery[0];
   }
 
   addToCart(product: Product): void {

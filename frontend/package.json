@@ -5,6 +5,9 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --configuration production",
+    "build:publish": "npm run build:prod && node build-info.js",
+    "package:publish": "bash ./package-release.sh",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

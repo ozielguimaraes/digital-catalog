@@ -12,19 +12,39 @@ export interface BackendError {
   errors?: { [key: string]: string[] };
 }
 
+function getSafeStatus(error: Partial<HttpErrorResponse> | null | undefined): number | null {
+  return typeof error?.status === 'number' ? error.status : null;
+}
+
+function getSafeMessage(error: unknown): string | null {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const message = (error as { message?: unknown }).message;
+    return typeof message === 'string' && message.trim().length > 0 ? message : null;
+  }
+
+  return null;
+}
+
 /**
  * Extrai a mensagem de erro mais apropriada do backend
  * Prioriza: detail > message > title > mensagem padrão
  */
 export function extractErrorMessage(error: HttpErrorResponse, defaultMessage: string = 'Ocorreu um erro inesperado'): string {
   console.error('Full error object:', error);
+  const status = getSafeStatus(error);
   
   // Capture error in Sentry with context
   Sentry.withScope(scope => {
     scope.setTag('errorType', 'http');
-    scope.setTag('statusCode', error.status.toString());
+    if (status !== null) {
+      scope.setTag('statusCode', status.toString());
+    }
     scope.setContext('httpError', {
-      status: error.status,
+      status,
       statusText: error.statusText,
       url: error.url,
       method: error.error?.method || 'unknown'
@@ -34,7 +54,7 @@ export function extractErrorMessage(error: HttpErrorResponse, defaultMessage: st
   });
   
   // Se for um erro de rede ou timeout
-  if (error.status === 0) {
+  if (status === 0) {
     return 'Erro de conexão. Verifique sua internet e tente novamente.';
   }
 
@@ -66,27 +86,32 @@ export function extractErrorMessage(error: HttpErrorResponse, defaultMessage: st
 
   // Se não houver mensagem específica do backend, usar mensagens padrão por status
   // Se for erro de servidor (5xx)
-  if (error.status >= 500) {
+  if (status !== null && status >= 500) {
     return 'Erro interno do servidor. Tente novamente mais tarde.';
   }
 
   // Se for erro de autorização (401) - mas só se não houver mensagem do backend
-  if (error.status === 401) {
+  if (status === 401) {
     return 'Sessão expirada. Faça login novamente.';
   }
 
   // Se for erro de permissão
-  if (error.status === 403) {
+  if (status === 403) {
     return 'Acesso negado. Você não tem permissão para esta ação.';
   }
 
   // Se for erro de não encontrado
-  if (error.status === 404) {
+  if (status === 404) {
     return 'Recurso não encontrado.';
   }
 
+  const fallbackMessage = getSafeMessage(error);
+  if (fallbackMessage) {
+    return fallbackMessage;
+  }
+
   // Fallback para mensagem padrão baseada no status
-  return getDefaultMessageByStatus(error.status) || defaultMessage;
+  return (status !== null && getDefaultMessageByStatus(status)) || defaultMessage;
 }
 
 /**
