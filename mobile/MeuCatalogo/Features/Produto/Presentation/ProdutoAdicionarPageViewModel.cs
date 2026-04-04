@@ -60,6 +60,46 @@ public sealed partial class ProdutoAdicionarPageViewModel(
     [ObservableProperty] private ObservableCollection<ProdutoImagemResponse> _imagens = [];
     [ObservableProperty] private bool _isProcessandoImagem;
 
+    private ProdutoImagemResponse? _imagemSendoArrastada;
+
+    [RelayCommand]
+    private void ArrastarImagemIniciado(ProdutoImagemResponse imagem)
+    {
+        _imagemSendoArrastada = imagem;
+    }
+
+    [RelayCommand]
+    private void SoltarImagem(ProdutoImagemResponse imagemDestino)
+    {
+        if (_imagemSendoArrastada == null || _imagemSendoArrastada == imagemDestino)
+            return;
+
+        int indexOrigem = Imagens.IndexOf(_imagemSendoArrastada);
+        int indexDestino = Imagens.IndexOf(imagemDestino);
+
+        if (indexOrigem != -1 && indexDestino != -1)
+        {
+            var lista = Imagens.ToList();
+            var item = lista[indexOrigem];
+            lista.RemoveAt(indexOrigem);
+            lista.Insert(indexDestino, item);
+
+            // Atualiza ordem e quem é principal
+            for (int i = 0; i < lista.Count; i++)
+            {
+                lista[i].Ordem = i + 1;
+                lista[i].IsPrincipal = (i == 0);
+            }
+
+            Imagens = new ObservableCollection<ProdutoImagemResponse>(lista);
+
+            if (Produto != null)
+                Produto.Imagens = lista;
+        }
+
+        _imagemSendoArrastada = null;
+    }
+
     [ObservableProperty] private ProdutoResponse? _produto;
     [ObservableProperty] private bool _isSaving;
 

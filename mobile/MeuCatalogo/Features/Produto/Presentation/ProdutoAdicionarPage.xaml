@@ -50,6 +50,14 @@
                                 HeightRequest="120"
                                 WidthRequest="120"
                                 BackgroundColor="{StaticResource Gray100}">
+                            <Border.GestureRecognizers>
+                                <DragGestureRecognizer CanDrag="True" 
+                                                       DragStartingCommand="{Binding Source={x:Reference ProdutoAdicionarPageRoot}, Path=BindingContext.ArrastarImagemIniciadoCommand}"
+                                                       DragStartingCommandParameter="{Binding .}" />
+                                <DropGestureRecognizer AllowDrop="True"
+                                                       DropCommand="{Binding Source={x:Reference ProdutoAdicionarPageRoot}, Path=BindingContext.SoltarImagemCommand}"
+                                                       DropCommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
                             <Grid>
                                 <Image Aspect="AspectFill" Source="{Binding Images.Medium}" />
                                 <Border WidthRequest="24"
