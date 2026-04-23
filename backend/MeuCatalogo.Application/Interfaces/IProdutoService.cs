@@ -17,5 +17,5 @@ public interface IProdutoService
     Task<ApiResponse<ProdutoDto>> AtualizarAsync(Guid id, ProdutoUpdateDto produtoDto, string userId);
     Task<ApiResponse<bool>> RemoverAsync(Guid id, string userId);
     Task<ApiResponse<EstoqueDto>> AtualizarEstoqueAsync(Guid produtoId, EstoqueUpdateDto estoqueDto, string userId);
-    Task<ApiResponse<ImageDto>> UploadImagemAsync(Guid produtoId, IFormFile file, string userId);
+    Task<ApiResponse<ImageDto>> UploadImagemAsync(Guid produtoId, IFormFile file, string userId, bool isPrincipal = false, int ordem = 0);
 }

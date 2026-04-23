@@ -1,3 +1,4 @@
+using MeuCatalogo.Core.Abstractions.Imaging;
 using System.Diagnostics;
 using System.Globalization;
 using System.Collections.ObjectModel;
@@ -25,6 +26,7 @@ public sealed partial class ProdutoAdicionarPageViewModel(
     UpsertProdutoOfflineFirstUseCase upsertProdutoOfflineFirstUseCase,
     UploadProdutoImageUseCase uploadProdutoImageUseCase,
     GetCategoriasByCatalogoUseCase getCategoriasByCatalogoUseCase,
+    IImageProcessor imageProcessor,
     ISettingsService settingsService,
     IBottomSheetNavigationService bottomSheetNavigationService,
     INavigationService navigationService)
@@ -472,9 +474,10 @@ public sealed partial class ProdutoAdicionarPageViewModel(
         var caminhoLocal = Path.Combine(FileSystem.AppDataDirectory, nomeArquivo);
 
         await using (var origem = await file.OpenReadAsync())
+        await using (var fluxoComprimido = await imageProcessor.CompressAsync(origem))
         await using (var destino = File.Create(caminhoLocal))
         {
-            await origem.CopyToAsync(destino);
+            await fluxoComprimido.CopyToAsync(destino);
         }
 
         return new ProdutoImagemResponse
@@ -503,11 +506,18 @@ public sealed partial class ProdutoAdicionarPageViewModel(
             if (imagem.SyncStatus == SyncStatus.Completed)
                 continue;
 
+            // Se a URL já for remota, não precisamos fazer upload novamente
+            if (!string.IsNullOrWhiteSpace(imagem.Url) && imagem.Url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                imagem.SyncStatus = SyncStatus.Completed;
+                continue;
+            }
+
             if (string.IsNullOrWhiteSpace(imagem.Url) || !File.Exists(imagem.Url))
                 continue;
 
             var fileResult = new FileResult(imagem.Url);
-            var uploadResponse = await uploadProdutoImageUseCase.ExecuteAsync((produtoId, fileResult));
+            var uploadResponse = await uploadProdutoImageUseCase.ExecuteAsync((produtoId, fileResult, imagem.IsPrincipal, imagem.Ordem));
 
             if (uploadResponse is { RetornouComSucesso: true, Dados: not null })
             {

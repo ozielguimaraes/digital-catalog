@@ -7,7 +7,7 @@ namespace MeuCatalogo.Application.Infrastructure.Mappers;
 
 public static class CatalogoMapper
 {
-    public static CatalogoDto MapToDto(this Catalogo catalogo, IStorageService storage = null)
+    public static CatalogoDto MapToDto(this Catalogo catalogo, IStorageService? storage = null)
     {
         return new CatalogoDto
         {
@@ -26,7 +26,7 @@ public static class CatalogoMapper
 
 public static class ProdutoMapper
 {
-    public static ProdutoDto MapToDto(this Produto produto, IStorageService storage = null)
+    public static ProdutoDto MapToDto(this Produto produto, IStorageService? storage = null)
     {
         return new ProdutoDto
         {
@@ -40,14 +40,36 @@ public static class ProdutoMapper
             CatalogoId = produto.CatalogoId,
             DataCriacao = produto.DataCriacao,
             DataAtualizacao = produto.DataAtualizacao,
-            Imagens = produto.Imagens?.Select(img => new ProdutoImagemDto
+            Imagens = produto.Imagens?.Select(img =>
             {
-                Id = img.Id,
-                Url = storage != null 
-                    ? storage.GetPresignedUrlFromPublicUrl(img.Url, TimeSpan.FromMinutes(60)) 
-                    : img.Url,
-                IsPrincipal = img.IsPrincipal,
-                Ordem = img.Ordem
+                if (storage == null)
+                {
+                    return new ProdutoImagemDto
+                    {
+                        Id = img.Id,
+                        Url = img.BasePath,
+                        IsPrincipal = img.IsPrincipal,
+                        Ordem = img.Ordem
+                    };
+                }
+
+                var thumbUrl = storage.GetPresignedUrlFromPublicUrl(storage.GetBlobUrl($"{img.BasePath}thumb.webp"), TimeSpan.FromMinutes(60));
+                var mediumUrl = storage.GetPresignedUrlFromPublicUrl(storage.GetBlobUrl($"{img.BasePath}medium.webp"), TimeSpan.FromMinutes(60));
+                var fullUrl = storage.GetPresignedUrlFromPublicUrl(storage.GetBlobUrl($"{img.BasePath}full.webp"), TimeSpan.FromMinutes(60));
+
+                return new ProdutoImagemDto
+                {
+                    Id = img.Id,
+                    Url = fullUrl,
+                    Images = new ImageLinksDto
+                    {
+                        Thumbnail = thumbUrl,
+                        Medium = mediumUrl,
+                        Full = fullUrl
+                    },
+                    IsPrincipal = img.IsPrincipal,
+                    Ordem = img.Ordem
+                };
             }).OrderBy(i => i.Ordem).ToList() ?? new List<ProdutoImagemDto>(),
             Variacoes = produto.Variacoes?.Select(v => new VariacaoDto
             {

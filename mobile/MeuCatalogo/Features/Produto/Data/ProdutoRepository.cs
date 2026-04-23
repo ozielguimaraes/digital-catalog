@@ -21,7 +21,7 @@ public sealed class ProdutoRepository(IProdutoRemoteDataSource remote) : IProdut
     public Task<ApiResponse<Guid>> DeleteAsync(Guid id, CancellationToken ct = default)
         => remote.DeleteAsync(id, ct);
 
-    public Task<ApiResponse<ProdutoImagemResponse>> UploadImageAsync(Guid produtoId, FileResult file, CancellationToken ct = default)
-        => remote.UploadImageAsync(produtoId, file, ct);
+    public Task<ApiResponse<ProdutoImagemResponse>> UploadImageAsync(Guid produtoId, FileResult file, bool isPrincipal = false, int ordem = 0, CancellationToken ct = default)
+        => remote.UploadImageAsync(produtoId, file, isPrincipal, ordem, ct);
 }
 

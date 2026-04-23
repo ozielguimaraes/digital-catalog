@@ -23,8 +23,10 @@ using MeuCatalogo.Features.Produto.Data.Remote;
 using MeuCatalogo.Features.Produto.Data.Sync;
 using MeuCatalogo.Features.Produto.UseCases;
 using MeuCatalogo.Features.Settings.Services;
+using MeuCatalogo.Core.Abstractions.Imaging;
 using MeuCatalogo.Infrastructure;
 using MeuCatalogo.Infrastructure.Database;
+using MeuCatalogo.Infrastructure.Imaging;
 using MeuCatalogo.Infrastructure.SyncEngine;
 using Plugin.Maui.BottomSheet.Hosting;
 using Polly;
@@ -93,6 +95,7 @@ public static class ServiceCollectionExtension
         builder.Services.AddSingleton<ISettingsService, SettingsService>();
         builder.Services.AddSingleton<INavigationService, NavigationService>();
         builder.Services.AddSingleton<AppDbContext>();
+        builder.Services.AddSingleton<IImageProcessor, MauiImageProcessor>();
         builder.Services.AddSingleton<ISyncEngine, SyncEngineService>();
         builder.Services.AddSingleton<IAuthLocalDataSource, AuthLocalDataSource>();
         builder.Services.AddTransient<IAuthRemoteDataSource, AuthRemoteDataSource>();

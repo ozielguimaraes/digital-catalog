@@ -43,6 +43,8 @@ public interface IProdutoApi
         Guid produtoId,
         [AliasAs("file")] StreamPart file,
         [Header("Authorization")] string bearerToken,
+        bool isPrincipal = false,
+        int ordem = 0,
         CancellationToken ct = default);
 }
 

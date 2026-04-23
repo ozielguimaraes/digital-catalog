@@ -16,7 +16,7 @@ public class ProdutoImagemConfiguration : IEntityTypeConfiguration<ProdutoImagem
             .IsRequired()
             .HasMaxLength(255);
 
-        builder.Property(pi => pi.Url)
+        builder.Property(pi => pi.BasePath)
             .IsRequired()
             .HasMaxLength(500);
 

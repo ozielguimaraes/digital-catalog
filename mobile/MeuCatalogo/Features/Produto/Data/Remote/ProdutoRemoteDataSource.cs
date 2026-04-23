@@ -123,7 +123,7 @@ public sealed class ProdutoRemoteDataSource(
         }
     }
 
-    public async Task<ApiResponse<ProdutoImagemResponse>> UploadImageAsync(Guid produtoId, FileResult file, CancellationToken ct = default)
+    public async Task<ApiResponse<ProdutoImagemResponse>> UploadImageAsync(Guid produtoId, FileResult file, bool isPrincipal = false, int ordem = 0, CancellationToken ct = default)
     {
         try
         {
@@ -138,8 +138,6 @@ public sealed class ProdutoRemoteDataSource(
                     await sourceStream.CopyToAsync(destStream);
                 }
 
-                bool isPrincipal = false;
-
                 var imagem = new ProdutoImagemResponse
                 {
                     Id = Guid.NewGuid(),
@@ -151,7 +149,7 @@ public sealed class ProdutoRemoteDataSource(
                         Full = localPath
                     },
                     IsPrincipal = isPrincipal,
-                    Ordem = 1,
+                    Ordem = ordem == 0 ? 1 : ordem,
                     SyncStatus = SyncStatus.Pending
                 };
 
@@ -161,7 +159,7 @@ public sealed class ProdutoRemoteDataSource(
             using var stream = await file.OpenReadAsync();
             var streamPart = new StreamPart(stream, file.FileName, file.ContentType);
             var token = await authLocal.GetAccessTokenAsync(ct);
-            var result = await produtoApi.UploadImageAsync(produtoId, streamPart, $"Bearer {token}", ct);
+            var result = await produtoApi.UploadImageAsync(produtoId, streamPart, $"Bearer {token}", isPrincipal, ordem, ct);
             result.Url = ObterUrlDisponivel(result);
             result.Images.Thumbnail = NormalizarUrlImagem(result.Images.Thumbnail);
             result.Images.Medium = NormalizarUrlImagem(result.Images.Medium);
@@ -172,13 +170,13 @@ public sealed class ProdutoRemoteDataSource(
         catch (ApiException apiEx)
         {
             logger.LogWarning(apiEx, "Erro ao enviar imagem.");
-            var offlineImage = await BuildOfflineImageAsync(produtoId, file);
+            var offlineImage = await BuildOfflineImageAsync(produtoId, file, isPrincipal, ordem);
             return ApiResponse<ProdutoImagemResponse>.Success(offlineImage);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Erro inesperado ao enviar imagem.");
-            var offlineImage = await BuildOfflineImageAsync(produtoId, file);
+            var offlineImage = await BuildOfflineImageAsync(produtoId, file, isPrincipal, ordem);
             return ApiResponse<ProdutoImagemResponse>.Success(offlineImage);
         }
     }
@@ -201,7 +199,7 @@ public sealed class ProdutoRemoteDataSource(
         };
     }
 
-    private async Task<ProdutoImagemResponse> BuildOfflineImageAsync(Guid produtoId, FileResult file)
+    private async Task<ProdutoImagemResponse> BuildOfflineImageAsync(Guid produtoId, FileResult file, bool isPrincipal, int ordem)
     {
         var extension = Path.GetExtension(file.FileName);
         if (string.IsNullOrWhiteSpace(extension))
@@ -226,8 +224,8 @@ public sealed class ProdutoRemoteDataSource(
                 Medium = localPath,
                 Full = localPath
             },
-            IsPrincipal = false,
-            Ordem = 999,
+            IsPrincipal = isPrincipal,
+            Ordem = ordem,
             SyncStatus = SyncStatus.Pending
         };
     }

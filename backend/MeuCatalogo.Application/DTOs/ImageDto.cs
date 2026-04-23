@@ -2,6 +2,7 @@ namespace MeuCatalogo.Application.DTOs;
 
 public class ImageDto
 {
+    public Guid Id { get; set; }
     public string Url { get; set; } = string.Empty;
     public ImageLinksDto Images { get; set; } = new();
     public string FileName { get; set; } = string.Empty;

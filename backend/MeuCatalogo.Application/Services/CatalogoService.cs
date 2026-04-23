@@ -103,12 +103,25 @@ public sealed class CatalogoService : ICatalogoService
                     DataCriacao = p.Estoque.DataCriacao,
                     DataAtualizacao = p.Estoque.DataAtualizacao
                 } : null,
-                Imagens = p.Imagens?.Select(img => new ProdutoImagemDto
+                Imagens = p.Imagens?.Select(img =>
                 {
-                    Id = img.Id,
-                    Url = _storage.GetPresignedUrlFromPublicUrl(img.Url, TimeSpan.FromMinutes(60)),
-                    IsPrincipal = img.IsPrincipal,
-                    Ordem = img.Ordem
+                    var thumbUrl = _storage.GetPresignedUrlFromPublicUrl(_storage.GetBlobUrl($"{img.BasePath}thumb.webp"), TimeSpan.FromMinutes(60));
+                    var mediumUrl = _storage.GetPresignedUrlFromPublicUrl(_storage.GetBlobUrl($"{img.BasePath}medium.webp"), TimeSpan.FromMinutes(60));
+                    var fullUrl = _storage.GetPresignedUrlFromPublicUrl(_storage.GetBlobUrl($"{img.BasePath}full.webp"), TimeSpan.FromMinutes(60));
+
+                    return new ProdutoImagemDto
+                    {
+                        Id = img.Id,
+                        Url = fullUrl,
+                        Images = new ImageLinksDto
+                        {
+                            Thumbnail = thumbUrl,
+                            Medium = mediumUrl,
+                            Full = fullUrl
+                        },
+                        IsPrincipal = img.IsPrincipal,
+                        Ordem = img.Ordem
+                    };
                 }).OrderBy(i => i.Ordem).ToList() ?? new List<ProdutoImagemDto>(),
                 Variacoes = p.Variacoes?.Select(v => new VariacaoDto
                 {
@@ -152,7 +165,7 @@ public sealed class CatalogoService : ICatalogoService
         if (user == null)
             return ApiResponse<CatalogoDto>.Error(ResponseType.NotFound, "Usuário não encontrado.");
 
-        int quantidadeAtual = await _dbContext.Catalogos.CountAsync(c => c.UserId == usuarioId);
+        var quantidadeAtual = await _dbContext.Catalogos.CountAsync(c => c.UserId == usuarioId);
 
         if (!user.PodeAdicionarCatalogo(quantidadeAtual))
             return ApiResponse<CatalogoDto>.Error(ResponseType.Validation, "Limite de catálogos do seu plano atingido. Faça um upgrade para continuar.");

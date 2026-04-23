@@ -8,6 +8,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Webp;
 
 namespace MeuCatalogo.Application.Services;
 
@@ -175,6 +178,30 @@ public sealed class ProdutoService : IProdutoService
             }
         }
 
+        // Atualiza imagens
+        if (dto.Imagens != null)
+        {
+            var idsNoRequest = dto.Imagens.Select(i => i.Id).ToList();
+            
+            // Remove as que não estão mais na lista
+            var imagensParaRemover = produto.Imagens.Where(i => !idsNoRequest.Contains(i.Id)).ToList();
+            foreach (var img in imagensParaRemover)
+            {
+                _dbContext.ProdutoImagens.Remove(img);
+            }
+
+            // Atualiza as existentes
+            foreach (var imgDto in dto.Imagens)
+            {
+                var imagemExistente = produto.Imagens.FirstOrDefault(i => i.Id == imgDto.Id);
+                if (imagemExistente != null)
+                {
+                    imagemExistente.Ordem = imgDto.Ordem;
+                    imagemExistente.IsPrincipal = imgDto.IsPrincipal;
+                }
+            }
+        }
+
         await _dbContext.AtualizarProdutoAsync(produto);
         return ApiResponse<ProdutoDto>.Success(MapProdutoToDto(produto));
     }
@@ -198,7 +225,7 @@ public sealed class ProdutoService : IProdutoService
 
     #region Upload e Arquivos
 
-    public async Task<ApiResponse<ImageDto>> UploadImagemAsync(Guid produtoId, IFormFile file, string userId)
+    public async Task<ApiResponse<ImageDto>> UploadImagemAsync(Guid produtoId, IFormFile file, string userId, bool isPrincipal = false, int ordem = 0)
     {
         if (file == null || file.Length == 0)
             return ApiResponse<ImageDto>.Error(ResponseType.Validation, "Arquivo não pode ser vazio");
@@ -216,28 +243,60 @@ public sealed class ProdutoService : IProdutoService
         if (catalogo?.UserId != userId)
             return ApiResponse<ImageDto>.Error(ResponseType.Forbidden, "Acesso negado.");
 
-        var isPrincipal = !produto.Imagens.Any();
+        var imageId = Guid.NewGuid();
         var shortName = catalogo.NomeCurto?.Trim() ?? catalogo.Id.ToString();
-        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-        var fileName = isPrincipal ? "main" + extension : $"img-{produto.Imagens.Count + 1}-{Guid.NewGuid()}{extension}";
-        var blobPath = $"catalog/{shortName}/products/{produtoId}/{fileName}";
+        var basePath = $"catalog/{shortName}/products/{produtoId}/{imageId}/";
 
-        await using (var stream = file.OpenReadStream())
+        using var inputStream = file.OpenReadStream();
+        using var image = await Image.LoadAsync(inputStream);
+        
+        // Normalize orientation (EXIF)
+        image.Mutate(x => x.AutoOrient());
+
+        var versions = new[]
         {
-            var _ = await _storage.UploadAsync(blobPath, stream, file.ContentType);
+            new { Name = "thumb", MaxSize = 300, Quality = 75 },
+            new { Name = "medium", MaxSize = 800, Quality = 80 },
+            new { Name = "full", MaxSize = 1920, Quality = 90 }
+        };
+
+        foreach (var version in versions)
+        {
+            using var outputStream = new MemoryStream();
+            var resizedImage = image.Clone(x =>
+            {
+                if (image.Width > version.MaxSize || image.Height > version.MaxSize)
+                {
+                    x.Resize(new ResizeOptions
+                    {
+                        Size = new Size(version.MaxSize, version.MaxSize),
+                        Mode = ResizeMode.Max
+                    });
+                }
+            });
+
+            await resizedImage.SaveAsWebpAsync(outputStream, new WebpEncoder { Quality = version.Quality });
+            outputStream.Position = 0;
+            
+            var blobPath = $"{basePath}{version.Name}.webp";
+            await _storage.UploadAsync(blobPath, outputStream, "image/webp");
         }
 
-        var imageUrl = _storage.GetBlobUrl(blobPath);
+        if (!isPrincipal && !produto.Imagens.Any())
+            isPrincipal = true;
+
+        var imgOrdem = ordem == 0 ? produto.Imagens.Count + 1 : ordem;
 
         var produtoImagem = new ProdutoImagem
         {
+            Id = imageId,
             ProdutoId = produtoId,
-            FileName = fileName,
-            Url = imageUrl,
-            ContentType = file.ContentType,
+            FileName = file.FileName,
+            BasePath = basePath,
+            ContentType = "image/webp",
             Size = file.Length,
             IsPrincipal = isPrincipal,
-            Ordem = produto.Imagens.Count + 1
+            Ordem = imgOrdem
         };
 
         _dbContext.ProdutoImagens.Add(produtoImagem);
@@ -245,16 +304,17 @@ public sealed class ProdutoService : IProdutoService
 
         return ApiResponse<ImageDto>.Success(new ImageDto
         {
-            Url = imageUrl,
+            Id = imageId,
+            Url = _storage.GetBlobUrl($"{basePath}full.webp"),
             Images = new ImageLinksDto
             {
-                Thumbnail = imageUrl,
-                Medium = imageUrl,
-                Full = imageUrl
+                Thumbnail = _storage.GetBlobUrl($"{basePath}thumb.webp"),
+                Medium = _storage.GetBlobUrl($"{basePath}medium.webp"),
+                Full = _storage.GetBlobUrl($"{basePath}full.webp")
             },
-            FileName = fileName,
+            FileName = file.FileName,
             Size = file.Length,
-            ContentType = file.ContentType,
+            ContentType = "image/webp",
             UploadDate = DateTime.UtcNow,
             IsPrincipal = isPrincipal,
             Ordem = produtoImagem.Ordem
@@ -349,16 +409,19 @@ public sealed class ProdutoService : IProdutoService
             } : null,
             Imagens = p.Imagens?.Select(img =>
             {
-                var imageUrl = _storage.GetPresignedUrlFromPublicUrl(img.Url, TimeSpan.FromMinutes(60));
+                var thumbUrl = _storage.GetPresignedUrlFromPublicUrl(_storage.GetBlobUrl($"{img.BasePath}thumb.webp"), TimeSpan.FromMinutes(60));
+                var mediumUrl = _storage.GetPresignedUrlFromPublicUrl(_storage.GetBlobUrl($"{img.BasePath}medium.webp"), TimeSpan.FromMinutes(60));
+                var fullUrl = _storage.GetPresignedUrlFromPublicUrl(_storage.GetBlobUrl($"{img.BasePath}full.webp"), TimeSpan.FromMinutes(60));
+                
                 return new ProdutoImagemDto
                 {
                     Id = img.Id,
-                    Url = imageUrl,
+                    Url = fullUrl,
                     Images = new ImageLinksDto
                     {
-                        Thumbnail = imageUrl,
-                        Medium = imageUrl,
-                        Full = imageUrl
+                        Thumbnail = thumbUrl,
+                        Medium = mediumUrl,
+                        Full = fullUrl
                     },
                     IsPrincipal = img.IsPrincipal,
                     Ordem = img.Ordem

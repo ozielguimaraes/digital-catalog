@@ -55,4 +55,5 @@ public class ProdutoUpdateDto
     public decimal? PrecoComDesconto { get; set; }
     public string? InformacoesAdicionais { get; set; }
     public EstoqueUpdateDto? Estoque { get; set; }
+    public ICollection<ProdutoImagemDto> Imagens { get; set; } = new List<ProdutoImagemDto>();
 }

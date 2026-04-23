@@ -10,5 +10,5 @@ public interface IProdutoRepository
     Task<ApiResponse<ProdutoResponse>> CreateAsync(ProdutoCreateRequest request, CancellationToken ct = default);
     Task<ApiResponse<ProdutoResponse>> UpdateAsync(Guid id, ProdutoUpdateRequest request, CancellationToken ct = default);
     Task<ApiResponse<Guid>> DeleteAsync(Guid id, CancellationToken ct = default);
-    Task<ApiResponse<ProdutoImagemResponse>> UploadImageAsync(Guid produtoId, FileResult file, CancellationToken ct = default);
+    Task<ApiResponse<ProdutoImagemResponse>> UploadImageAsync(Guid produtoId, FileResult file, bool isPrincipal = false, int ordem = 0, CancellationToken ct = default);
 }

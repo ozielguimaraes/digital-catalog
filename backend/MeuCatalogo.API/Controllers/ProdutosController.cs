@@ -244,7 +244,7 @@ public class ProdutosController : BaseApiController
     [SwaggerResponse(403, "Usuário não tem acesso ao produto", typeof(ProblemDetails))]
     [SwaggerResponse(404, "Produto não encontrado", typeof(ProblemDetails))]
     [SwaggerResponse(500, "Erro interno do servidor", typeof(ProblemDetails))]
-    public async Task<IActionResult> UploadImage(Guid produtoId, IFormFile? file)
+    public async Task<IActionResult> UploadImage(Guid produtoId, IFormFile? file, [FromQuery] bool isPrincipal = false, [FromQuery] int ordem = 0)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         _logger.LogInformation("Upload de imagem para produto {ProdutoId} pelo usuário {UserId}", produtoId, userId);
@@ -254,7 +254,7 @@ public class ProdutosController : BaseApiController
             return BadRequest(new { message = "Arquivo não pode ser vazio" });
         }
 
-        var response = await _produtoService.UploadImagemAsync(produtoId, file, userId);
+        var response = await _produtoService.UploadImagemAsync(produtoId, file, userId, isPrincipal, ordem);
         EnriquecerImagemUpload(response);
         return HandleApiResponse(response);
     }

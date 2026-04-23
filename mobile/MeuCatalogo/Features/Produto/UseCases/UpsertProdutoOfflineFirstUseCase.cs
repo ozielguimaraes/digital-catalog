@@ -89,7 +89,8 @@ public sealed class UpsertProdutoOfflineFirstUseCase(
                 CategoriaId = request.CategoriaId,
                 Preco = request.Preco,
                 PrecoComDesconto = request.PrecoComDesconto,
-                InformacoesAdicionais = request.InformacoesAdicionais
+                InformacoesAdicionais = request.InformacoesAdicionais,
+                Imagens = request.Imagens.ToList()
             };
 
             response = await updateRemoteUseCase.ExecuteAsync((request.ProdutoId.Value, update));

@@ -1,3 +1,5 @@
+using MeuCatalogo.Features.Produto.Data.Remote.Contracts.Responses;
+
 namespace MeuCatalogo.Features.Produto.Data.Remote.Contracts.Requests;
 
 public sealed record ProdutoUpdateRequest
@@ -7,5 +9,6 @@ public sealed record ProdutoUpdateRequest
     public decimal Preco { get; init; }
     public decimal? PrecoComDesconto { get; init; }
     public string? InformacoesAdicionais { get; init; }
+    public ICollection<ProdutoImagemResponse> Imagens { get; init; } = new List<ProdutoImagemResponse>();
 }
 
