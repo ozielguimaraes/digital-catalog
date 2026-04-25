@@ -17,175 +17,246 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <ScrollView>
-        <VerticalStackLayout Margin="16,0" Spacing="16">
-            <!-- Seção de Imagens -->
-            <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,16,0,0">
-                <Label Text="Imagens" FontAttributes="Bold" VerticalOptions="Center" />
-                <Button Grid.Column="1"
-                        Text="Adicionar"
-                        FontSize="Small"
-                        HeightRequest="36"
-                        Padding="12,0"
-                        IsEnabled="{Binding IsProcessandoImagem, Converter={toolkit:InvertedBoolConverter}}"
-                        Command="{Binding AdicionarImagemCommand}" />
-                <ActivityIndicator Grid.Column="2"
-                                   IsRunning="{Binding IsProcessandoImagem}"
-                                   IsVisible="{Binding IsProcessandoImagem}"
-                                   VerticalOptions="Center"
-                                   HorizontalOptions="End"
-                                   Margin="8,0,0,0"
-                                   Color="{StaticResource Primary}" />
-            </Grid>
+    <Grid RowDefinitions="*,Auto">
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="24,16,24,24" Spacing="20">
 
-            <CollectionView ItemsSource="{Binding Imagens}"
-                            HeightRequest="120"
-                            SelectionMode="None">
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Horizontal" ItemSpacing="8" />
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="contracts:ProdutoImagemResponse">
-                        <Border StrokeShape="RoundRectangle 8"
-                                HeightRequest="120"
-                                WidthRequest="120"
-                                BackgroundColor="{StaticResource Gray100}">
-                            <Border.GestureRecognizers>
-                                <DragGestureRecognizer CanDrag="True" 
-                                                       DragStartingCommand="{Binding Source={x:Reference ProdutoAdicionarPageRoot}, Path=BindingContext.ArrastarImagemIniciadoCommand}"
-                                                       DragStartingCommandParameter="{Binding .}" />
-                                <DropGestureRecognizer AllowDrop="True"
-                                                       DropCommand="{Binding Source={x:Reference ProdutoAdicionarPageRoot}, Path=BindingContext.SoltarImagemCommand}"
-                                                       DropCommandParameter="{Binding .}" />
-                            </Border.GestureRecognizers>
-                            <Grid>
-                                <Image Aspect="AspectFill" Source="{Binding Images.Medium}" />
-                                <Border WidthRequest="24"
-                                        HeightRequest="24"
-                                        HorizontalOptions="End"
-                                        VerticalOptions="Start"
-                                        Margin="4"
-                                        Padding="4"
-                                        BackgroundColor="Red"
-                                        Stroke="Transparent">
+                <!-- Header -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Style="{StaticResource Caps}" Text="ATELIÊ · PRODUTO" />
+                    <Label Style="{StaticResource SerifH1}"
+                           Text="{Binding Titulo}" />
+                </VerticalStackLayout>
+
+                <!-- Imagens -->
+                <VerticalStackLayout Spacing="10">
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <Label Grid.Column="0"
+                               Style="{StaticResource FieldLabel}"
+                               Text="IMAGENS"
+                               VerticalOptions="Center" />
+                        <Button Grid.Column="1"
+                                Style="{StaticResource SecondaryButton}"
+                                Text="ADICIONAR"
+                                FontSize="11"
+                                CharacterSpacing="2"
+                                HeightRequest="36"
+                                MinimumHeightRequest="36"
+                                Padding="14,0"
+                                IsEnabled="{Binding IsProcessandoImagem, Converter={toolkit:InvertedBoolConverter}}"
+                                Command="{Binding AdicionarImagemCommand}" />
+                        <ActivityIndicator Grid.Column="2"
+                                           IsRunning="{Binding IsProcessandoImagem}"
+                                           IsVisible="{Binding IsProcessandoImagem}"
+                                           VerticalOptions="Center"
+                                           HorizontalOptions="End"
+                                           Margin="8,0,0,0" />
+                    </Grid>
+
+                    <CollectionView ItemsSource="{Binding Imagens}"
+                                    HeightRequest="124"
+                                    SelectionMode="None">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="contracts:ProdutoImagemResponse">
+                                <Border StrokeThickness="0"
+                                        HeightRequest="120"
+                                        WidthRequest="120"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource SurfaceMutedColorDark}}">
                                     <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="4" />
+                                        <RoundRectangle CornerRadius="14" />
                                     </Border.StrokeShape>
-                                    <Image Source="ic_trash_can_outlined.png">
-                                        <Image.GestureRecognizers>
-                                            <TapGestureRecognizer
-                                                Command="{Binding Source={x:Reference ProdutoAdicionarPageRoot}, Path=BindingContext.RemoverImagemCommand}"
-                                                CommandParameter="{Binding .}" />
-                                        </Image.GestureRecognizers>
-                                        <Image.Behaviors>
-                                            <toolkit:IconTintColorBehavior TintColor="{StaticResource White}" />
-                                        </Image.Behaviors>
-                                    </Image>
+                                    <Border.GestureRecognizers>
+                                        <DragGestureRecognizer CanDrag="True"
+                                                               DragStartingCommand="{Binding Source={x:Reference ProdutoAdicionarPageRoot}, Path=BindingContext.ArrastarImagemIniciadoCommand}"
+                                                               DragStartingCommandParameter="{Binding .}" />
+                                        <DropGestureRecognizer AllowDrop="True"
+                                                               DropCommand="{Binding Source={x:Reference ProdutoAdicionarPageRoot}, Path=BindingContext.SoltarImagemCommand}"
+                                                               DropCommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+
+                                    <Grid>
+                                        <Image Aspect="AspectFill" Source="{Binding Images.Medium}" />
+
+                                        <!-- Delete -->
+                                        <Border WidthRequest="28"
+                                                HeightRequest="28"
+                                                HorizontalOptions="End"
+                                                VerticalOptions="Start"
+                                                Margin="6"
+                                                Padding="0"
+                                                StrokeThickness="0"
+                                                BackgroundColor="{StaticResource DangerColor}">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="14" />
+                                            </Border.StrokeShape>
+                                            <Image Source="ic_trash_can_outlined.png"
+                                                   WidthRequest="16"
+                                                   HeightRequest="16">
+                                                <Image.Behaviors>
+                                                    <toolkit:IconTintColorBehavior TintColor="{StaticResource OnPrimaryColor}" />
+                                                </Image.Behaviors>
+                                                <Image.GestureRecognizers>
+                                                    <TapGestureRecognizer
+                                                        Command="{Binding Source={x:Reference ProdutoAdicionarPageRoot}, Path=BindingContext.RemoverImagemCommand}"
+                                                        CommandParameter="{Binding .}" />
+                                                </Image.GestureRecognizers>
+                                            </Image>
+                                        </Border>
+
+                                        <!-- Principal pill -->
+                                        <Border IsVisible="{Binding IsPrincipal}"
+                                                BackgroundColor="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}"
+                                                StrokeThickness="0"
+                                                Padding="8,3"
+                                                Margin="0,0,0,8"
+                                                VerticalOptions="End"
+                                                HorizontalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="99" />
+                                            </Border.StrokeShape>
+                                            <Label Text="PRINCIPAL"
+                                                   FontFamily="LatoBold"
+                                                   FontSize="9"
+                                                   CharacterSpacing="2"
+                                                   TextColor="{StaticResource OnPrimaryColor}" />
+                                        </Border>
+                                    </Grid>
                                 </Border>
-                                <Label Text="Principal"
-                                       IsVisible="{Binding IsPrincipal}"
-                                       BackgroundColor="{StaticResource Primary}"
-                                       TextColor="White"
-                                       FontSize="10"
-                                       VerticalOptions="End"
-                                       HorizontalOptions="Center"
-                                       Padding="8,2"
-                                       Margin="0,0,0,4"/>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-                <CollectionView.EmptyView>
-                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center">
-                        <Label Text="Sem imagens" TextColor="Gray" HorizontalOptions="Center" />
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                        <CollectionView.EmptyView>
+                            <Border Style="{StaticResource Card}"
+                                    Padding="16"
+                                    HeightRequest="120">
+                                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="6">
+                                    <Label Style="{StaticResource Caps}" Text="SEM IMAGENS" HorizontalTextAlignment="Center" />
+                                    <Label Style="{StaticResource BodyMuted}" Text="Toque em adicionar para enviar fotos do produto." HorizontalTextAlignment="Center" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </CollectionView.EmptyView>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- Detalhes -->
+                <Border Style="{StaticResource Card}" Padding="20">
+                    <VerticalStackLayout Spacing="0">
+                        <Label Style="{StaticResource Caps}" Text="DETALHES" />
+                        <Label Style="{StaticResource SerifH3}" Text="Informações do produto" Margin="0,2,0,8" />
+
+                        <components:CustomEntry Title="NOME"
+                                                Placeholder="Nome do produto"
+                                                Text="{Binding Nome}"
+                                                MaxLength="50"
+                                                ErrorMessage="{Binding NomeErrorMessage}"
+                                                HasError="{Binding NomeErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+
+                        <components:NumericEntry Title="PREÇO"
+                                                 Text="{Binding PrecoString}"
+                                                 ErrorMessage="{Binding PrecoErrorMessage}"
+                                                 HasError="{Binding PrecoErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+
+                        <components:NumericEntry Title="PREÇO COM DESCONTO (OPCIONAL)"
+                                                 Text="{Binding PrecoComDescontoString}"
+                                                 ErrorMessage="{Binding PrecoComDescontoErrorMessage}"
+                                                 HasError="{Binding PrecoComDescontoErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
                     </VerticalStackLayout>
-                </CollectionView.EmptyView>
-            </CollectionView>
+                </Border>
 
-            <components:CustomEntry Title="Nome"
-                                    Text="{Binding Nome}"
-                                    MaxLength="50"
-                                    ErrorMessage="{Binding NomeErrorMessage}"
-                                    HasError="{Binding NomeErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
-        <components:NumericEntry Title="Preço"
-                                 Text="{Binding PrecoString}"
-                                 ErrorMessage="{Binding PrecoErrorMessage}"
-                                 HasError="{Binding PrecoErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+                <!-- Categoria & Estoque -->
+                <Border Style="{StaticResource Card}" Padding="20">
+                    <VerticalStackLayout Spacing="14">
+                        <Label Style="{StaticResource Caps}" Text="ORGANIZAÇÃO" />
+                        <Label Style="{StaticResource SerifH3}" Text="Categoria e estoque" Margin="0,-6,0,4" />
 
-          <components:NumericEntry Title="Preço com desconto (opcional)"
-                                Text="{Binding PrecoComDescontoString}"
-                                ErrorMessage="{Binding PrecoComDescontoErrorMessage}"
-                                HasError="{Binding PrecoComDescontoErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+                        <!-- Categoria picker -->
+                        <VerticalStackLayout Spacing="6">
+                            <Label Style="{StaticResource FieldLabel}" Text="CATEGORIA" />
+                            <Border Style="{StaticResource PillEntryHost}">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ExibirCategoriasCommand}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="*,Auto" Padding="14,12">
+                                    <Label Grid.Column="0"
+                                           VerticalOptions="Center"
+                                           Text="{Binding Categoria, Converter={StaticResource NullToDefaultTextConverter}, ConverterParameter='Selecione a categoria'}" />
+                                    <Label Grid.Column="1"
+                                           Text="›"
+                                           FontSize="22"
+                                           VerticalOptions="Center"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextMutedColorLight}, Dark={StaticResource TextMutedColorDark}}" />
+                                </Grid>
+                            </Border>
+                            <Label Text="{Binding CategoriaErrorMessage}"
+                                   TextColor="{StaticResource DangerColor}"
+                                   FontFamily="LatoRegular"
+                                   FontSize="12"
+                                   Margin="2,0,0,0"
+                                   IsVisible="{Binding CategoriaErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+                        </VerticalStackLayout>
 
-        <Label FontAttributes="Bold"
-               Margin="0,8,0,0"
-               Text="Categoria"/>
-        <Border BackgroundColor="{StaticResource Gray100}">
-            <Border.GestureRecognizers>
-                <TapGestureRecognizer Command="{Binding ExibirCategoriasCommand}" />
-            </Border.GestureRecognizers>
-            <Grid RowDefinitions="Auto, 1">
-                <Grid.Margin>
-                    <Thickness Left="4" Right="4" Bottom="6" Top="16" />
-                </Grid.Margin>
+                        <!-- Estoque picker -->
+                        <VerticalStackLayout Spacing="6">
+                            <Label Style="{StaticResource FieldLabel}" Text="ESTOQUE" />
+                            <Border Style="{StaticResource PillEntryHost}">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ExibirEstoqueCommand}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="*,Auto" Padding="14,12">
+                                    <Label Grid.Column="0"
+                                           VerticalOptions="Center"
+                                           Text="{Binding Estoque, Converter={StaticResource NullToDefaultTextConverter}, ConverterParameter='Disponível (estoque ilimitado)'}" />
+                                    <Label Grid.Column="1"
+                                           Text="›"
+                                           FontSize="22"
+                                           VerticalOptions="Center"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextMutedColorLight}, Dark={StaticResource TextMutedColorDark}}" />
+                                </Grid>
+                            </Border>
+                            <Label Text="{Binding EstoqueErrorMessage}"
+                                   TextColor="{StaticResource DangerColor}"
+                                   FontFamily="LatoRegular"
+                                   FontSize="12"
+                                   Margin="2,0,0,0"
+                                   IsVisible="{Binding EstoqueErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
 
-                <Label Margin="0,0,0,8"
-                       Text="{Binding Categoria, Converter={StaticResource NullToDefaultTextConverter}, ConverterParameter='Selecione a categoria'}" />
-
-                <BoxView Grid.Row="1"
-                         HeightRequest="1"
-                         Color="{StaticResource Gray500}" />
+        <!-- Sticky save bar -->
+        <Border Grid.Row="1"
+                StrokeThickness="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceColorLight}, Dark={StaticResource SurfaceColorDark}}"
+                Padding="24,12,24,18">
+            <Border.Shadow>
+                <Shadow Brush="Black" Offset="0,-4" Radius="12" Opacity="0.06" />
+            </Border.Shadow>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <Button Grid.Column="0"
+                        Style="{StaticResource PrimaryButton}"
+                        Text="SALVAR"
+                        IsEnabled="True"
+                        Command="{Binding SalvarCommand}">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsSaving}" Value="True">
+                            <Setter Property="IsEnabled" Value="False" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsProcessandoImagem}" Value="True">
+                            <Setter Property="IsEnabled" Value="False" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+                <ActivityIndicator Grid.Column="1"
+                                   IsRunning="{Binding IsSaving}"
+                                   IsVisible="{Binding IsSaving}"
+                                   VerticalOptions="Center"
+                                   HeightRequest="24"
+                                   WidthRequest="24" />
             </Grid>
         </Border>
-
-        <Label FontAttributes="Bold"
-               Margin="0,8,0,0"
-               Text="Estoque"/>
-        <Border BackgroundColor="{StaticResource Gray100}">
-            <Border.GestureRecognizers>
-                <TapGestureRecognizer Command="{Binding ExibirEstoqueCommand}" />
-            </Border.GestureRecognizers>
-            <Grid RowDefinitions="Auto, 1">
-                <Grid.Margin>
-                    <Thickness Left="4" Right="4" Bottom="6" Top="16" />
-                </Grid.Margin>
-
-                <Label Margin="0,0,0,8"
-                       Text="{Binding Estoque, Converter={StaticResource NullToDefaultTextConverter}, ConverterParameter='Disponível (estoque ilimitado)'}" />
-
-                <BoxView Grid.Row="1"
-                         HeightRequest="1"
-                         Color="{StaticResource Gray500}" />
-            </Grid>
-        </Border>
-        <Label Text="{Binding CategoriaErrorMessage}"
-               Margin="0,0,0,16"
-               FontSize="16"
-               TextColor="{StaticResource Magenta}"
-               IsVisible="{Binding EstoqueErrorMessage, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
-
-        <Grid ColumnDefinitions="*,Auto"
-              Margin="0,24,0,0">
-            <Button Text="Salvar"
-                    Grid.Column="0"
-                    IsEnabled="True"
-                    Command="{Binding SalvarCommand}">
-                <Button.Triggers>
-                    <DataTrigger TargetType="Button" Binding="{Binding IsSaving}" Value="True">
-                        <Setter Property="IsEnabled" Value="False" />
-                    </DataTrigger>
-                    <DataTrigger TargetType="Button" Binding="{Binding IsProcessandoImagem}" Value="True">
-                        <Setter Property="IsEnabled" Value="False" />
-                    </DataTrigger>
-                </Button.Triggers>
-            </Button>
-            <ActivityIndicator Grid.Column="1"
-                               Margin="12,0,0,0"
-                               IsRunning="{Binding IsSaving}"
-                               IsVisible="{Binding IsSaving}"
-                               VerticalOptions="Center"
-                               Color="{StaticResource Primary}" />
-        </Grid>
-    </VerticalStackLayout>
-    </ScrollView>
+    </Grid>
 </ContentPage>

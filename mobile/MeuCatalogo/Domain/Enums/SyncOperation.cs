@@ -6,5 +6,6 @@ public enum SyncOperation
     Update,
     Delete,
     PullCatalogos,
-    PullProdutosByCatalogoId
+    PullProdutosByCatalogoId,
+    PullCategoriasByCatalogoId
 }

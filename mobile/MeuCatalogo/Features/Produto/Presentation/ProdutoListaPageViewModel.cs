@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -174,23 +175,53 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
     [RelayCommand]
     private async Task Adicionar()
     {
-        await _navigationService.NavigateToAsync($"{nameof(ProdutoAdicionarPage)}");
+        if (IsBusy)
+            return;
+
+        try
+        {
+            IsBusy = true;
+            await Task.Yield();
+
+            var sw = Stopwatch.StartNew();
+            await _navigationService.NavigateToAsync($"{nameof(ProdutoAdicionarPage)}");
+            _logger.LogInformation("Navegação Adicionar -> ProdutoAdicionarPage em {ElapsedMs}ms", sw.ElapsedMilliseconds);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
     private async Task Editar(ProdutoEntity produto)
     {
-        var produtoResponse = await _getProdutoForEditOfflineFirstUseCase.ExecuteAsync(produto);
+        if (IsBusy)
+            return;
 
-        var navigationParameter = new Dictionary<string, object>
+        try
         {
-            {
-                "Produto",
-                produtoResponse
-            }
-        };
+            IsBusy = true;
+            await Task.Yield();
 
-        await Shell.Current.GoToAsync($"{nameof(ProdutoAdicionarPage)}", true, navigationParameter);
+            var sw = Stopwatch.StartNew();
+            var produtoResponse = await _getProdutoForEditOfflineFirstUseCase.ExecuteAsync(produto);
+
+            var navigationParameter = new Dictionary<string, object>
+            {
+                {
+                    "Produto",
+                    produtoResponse
+                }
+            };
+
+            await Shell.Current.GoToAsync($"{nameof(ProdutoAdicionarPage)}", true, navigationParameter);
+            _logger.LogInformation("Navegação Editar -> ProdutoAdicionarPage em {ElapsedMs}ms", sw.ElapsedMilliseconds);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     private async Task AtualizarProdutoNaListaAsync(string produtoId)

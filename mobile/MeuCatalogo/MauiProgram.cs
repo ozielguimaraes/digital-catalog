@@ -64,6 +64,14 @@ public static class MauiProgram
                 fonts.AddFont("Lato-Light.ttf", "LatoLight");
                 fonts.AddFont("Lato-Regular.ttf", "LatoRegular");
                 fonts.AddFont("Lato-Bold.ttf", "LatoBold");
+                fonts.AddFont("Lato-Black.ttf", "LatoBlack");
+                fonts.AddFont("Lato-Italic.ttf", "LatoItalic");
+                fonts.AddFont("Lora-Regular.ttf", "LoraRegular");
+                fonts.AddFont("Lora-Medium.ttf", "LoraMedium");
+                fonts.AddFont("Lora-SemiBold.ttf", "LoraSemiBold");
+                fonts.AddFont("Lora-Bold.ttf", "LoraBold");
+                fonts.AddFont("Lora-Italic.ttf", "LoraItalic");
+                fonts.AddFont("Lora-MediumItalic.ttf", "LoraMediumItalic");
             })
             .AddClientServices(ApiConstants.BaseUrl)
             .AddApplicationServices()

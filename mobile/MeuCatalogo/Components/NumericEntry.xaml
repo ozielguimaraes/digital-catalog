@@ -7,32 +7,38 @@
              x:Class="MeuCatalogo.Components.NumericEntry"
              x:Name="CustomEntryRoot">
 
-        <VerticalStackLayout Spacing="2">
-            <Label x:Name="TitleLabel"
-                   FontAttributes="Bold"
-                   Margin="0,8,0,0"
-                   Text="{Binding Title, Source={x:Reference CustomEntryRoot}}"/>
+    <VerticalStackLayout Spacing="6" Margin="0,12,0,0">
+        <Label x:Name="TitleLabel"
+               Style="{StaticResource FieldLabel}"
+               Text="{Binding Title, Source={x:Reference CustomEntryRoot}}" />
+        <Border Style="{StaticResource PillEntryHost}">
             <Entry x:Name="EntryField"
                    x:FieldModifier="public"
-                   Placeholder="{Binding Title}"
+                   Placeholder="{Binding Title, Source={x:Reference CustomEntryRoot}}"
                    Text="{Binding Source={x:Reference CustomEntryRoot}, Path=Text, Mode=TwoWay}"
                    Keyboard="Numeric"
                    ReturnType="{Binding Source={x:Reference CustomEntryRoot}, Path=ReturnType}"
                    MaxLength="{Binding Source={x:Reference CustomEntryRoot}, Path=MaxLength}"
-                   ReturnCommand="{Binding Source={x:Reference CustomEntryRoot}, Path=ReturnCommand}">
+                   ReturnCommand="{Binding Source={x:Reference CustomEntryRoot}, Path=ReturnCommand}"
+                   BackgroundColor="Transparent"
+                   Margin="14,4">
                 <Entry.Behaviors>
                     <behaviors:CurrencyBehavior UseThousandSeparator="True" UseDecimalSeparator="True" />
                     <toolkit:NumericValidationBehavior InvalidStyle="{StaticResource InvalidEntryStyle}"
-                                                   ValidStyle="{StaticResource ValidEntryStyle}"
-                                                   Flags="ValidateOnValueChanged"
-                                                   MinimumValue="{Binding Source={x:Reference CustomEntryRoot}, Path=MinimumValue}"
-                                                   MaximumValue="{Binding Source={x:Reference CustomEntryRoot}, Path=MaximumValue}"
-                                                   MaximumDecimalPlaces="{Binding Source={x:Reference CustomEntryRoot}, Path=MaximumDecimalPlaces}" />
+                                                       ValidStyle="{StaticResource ValidEntryStyle}"
+                                                       Flags="ValidateOnValueChanged"
+                                                       MinimumValue="{Binding Source={x:Reference CustomEntryRoot}, Path=MinimumValue}"
+                                                       MaximumValue="{Binding Source={x:Reference CustomEntryRoot}, Path=MaximumValue}"
+                                                       MaximumDecimalPlaces="{Binding Source={x:Reference CustomEntryRoot}, Path=MaximumDecimalPlaces}" />
                 </Entry.Behaviors>
             </Entry>
-            <Label x:Name="ErrorLabel"
-                   Text="{Binding ErrorMessage, Source={x:Reference CustomEntryRoot}}"
-                   TextColor="Red"
-                   IsVisible="{Binding HasError, Source={x:Reference CustomEntryRoot}}"/>
-        </VerticalStackLayout>
-    </ContentView>
+        </Border>
+        <Label x:Name="ErrorLabel"
+               Text="{Binding ErrorMessage, Source={x:Reference CustomEntryRoot}}"
+               TextColor="{StaticResource DangerColor}"
+               FontFamily="LatoRegular"
+               FontSize="12"
+               Margin="2,0,0,0"
+               IsVisible="{Binding HasError, Source={x:Reference CustomEntryRoot}}" />
+    </VerticalStackLayout>
+</ContentView>

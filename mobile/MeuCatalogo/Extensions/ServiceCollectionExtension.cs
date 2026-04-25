@@ -13,7 +13,9 @@ using MeuCatalogo.Features.Catalogo.Data.Sync;
 using MeuCatalogo.Features.Catalogo.UseCases;
 using MeuCatalogo.Features.Categoria;
 using MeuCatalogo.Features.Categoria.Data;
+using MeuCatalogo.Features.Categoria.Data.Local;
 using MeuCatalogo.Features.Categoria.Data.Remote;
+using MeuCatalogo.Features.Categoria.Data.Sync;
 using MeuCatalogo.Features.Categoria.UseCases;
 using MeuCatalogo.Features.Estoque;
 using MeuCatalogo.Features.Produto;
@@ -117,7 +119,9 @@ public static class ServiceCollectionExtension
         builder.Services.AddTransient<SetCatalogoFavoritoUseCase>();
         builder.Services.AddTransient<ICategoriaRemoteDataSource, CategoriaRemoteDataSource>();
         builder.Services.AddTransient<ICategoriaRepository, CategoriaRepository>();
+        builder.Services.AddTransient<ICategoriaLocalRepository, CategoriaLocalRepository>();
         builder.Services.AddTransient<GetCategoriasByCatalogoUseCase>();
+        builder.Services.AddTransient<SyncCategoriasByCatalogoUseCase>();
         builder.Services.AddTransient<CreateCategoriaUseCase>();
         builder.Services.AddTransient<UpdateCategoriaUseCase>();
         builder.Services.AddTransient<IProdutoRemoteDataSource, ProdutoRemoteDataSource>();
@@ -137,6 +141,7 @@ public static class ServiceCollectionExtension
         builder.Services.AddTransient<CreateProdutoUseCase>();
         builder.Services.AddTransient<SyncProdutosByCatalogoUseCase>();
         builder.Services.AddTransient<ISyncHandler, CatalogoPullSyncHandler>();
+        builder.Services.AddTransient<ISyncHandler, CategoriaPullSyncHandler>();
         builder.Services.AddTransient<ISyncHandler, ProdutoPullSyncHandler>();
         builder.Services.AddTransient<ISyncHandler, ProdutoUpsertSyncHandler>();
         builder.Services.AddTransient<ISyncHandler, ProdutoDeleteSyncHandler>();

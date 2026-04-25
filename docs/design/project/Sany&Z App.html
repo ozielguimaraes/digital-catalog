@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sany&Z — App do Ateliê</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Lato:wght@300;400;700;900&display=swap">
+<link rel="stylesheet" href="styles/tokens.css">
+<style>
+  body { min-height: 100vh; }
+
+  .stage {
+    padding: 48px 40px 80px;
+    display: flex; flex-direction: column; gap: 56px;
+  }
+
+  .hero {
+    max-width: 1200px; margin: 0 auto 0; padding: 0 0 16px;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 40px;
+  }
+  .hero h1 {
+    font-size: 56px; line-height: 1.05; font-style: italic; font-weight: 500;
+    max-width: 640px; letter-spacing: -0.02em;
+  }
+  .hero h1 em { color: var(--copper-sany); font-style: italic; }
+  .hero p { color: var(--muted); font-size: 15px; margin-top: 14px; line-height: 1.55; max-width: 520px; }
+  .hero .meta { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 18px; font-size: 12px; color: var(--muted); }
+  .hero .meta b { color: var(--ink); font-weight: 700; }
+
+  .section-label {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: center; gap: 14px;
+    font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--copper-brown);
+  }
+  .section-label::before, .section-label::after {
+    content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--line), transparent);
+  }
+
+  .grid {
+    max-width: 1400px; margin: 0 auto; display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(390px, 420px));
+    gap: 54px 40px; justify-content: center;
+  }
+
+  .tweaks-panel {
+    position: fixed; top: 20px; right: 20px; z-index: 100;
+    width: 260px; background: #fff; border-radius: 14px;
+    border: 1px solid var(--line); box-shadow: var(--sh-lg);
+    padding: 14px; font-size: 13px;
+    display: none;
+  }
+  .tweaks-panel.open { display: block; }
+  .tweaks-panel h4 { font-size: 13px; font-family: var(--sans); font-weight: 700; margin-bottom: 10px; }
+  .tweaks-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--line-soft); }
+  .tweaks-row:last-child { border-bottom: none; }
+  .tweaks-row label { margin: 0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
+  .tweaks-row select { width: 130px; padding: 5px 8px; font-size: 12px; }
+
+  .footer {
+    max-width: 1200px; margin: 40px auto 0;
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: var(--muted);
+  }
+
+  /* Decor: pattern bag repeat na lateral do hero */
+  .deco {
+    width: 280px; height: 280px; flex-shrink: 0;
+    background: var(--copper-grad); border-radius: 28px;
+    position: relative; overflow: hidden;
+    box-shadow: var(--sh-lg);
+  }
+  .deco::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><g fill='none' stroke='%23fff' stroke-width='0.8' opacity='0.4'><path d='M 15 12 C 15 7, 25 7, 25 12 L 27 30 L 13 30 Z'/></g></svg>");
+    background-size: 40px;
+  }
+  .deco svg { position: absolute; bottom: 20px; left: 20px; width: 100px; color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- TWEAKS PANEL -->
+<div class="tweaks-panel" id="tweaks-panel">
+  <h4>Tweaks</h4>
+  <div class="tweaks-row">
+    <label>Tema público</label>
+    <select id="tw-theme">
+      <option value="light">Claro (copper)</option>
+      <option value="dark">Escuro</option>
+    </select>
+  </div>
+  <div class="tweaks-row">
+    <label>Catálogo</label>
+    <select id="tw-catalog">
+      <option value="full">Com produtos</option>
+      <option value="empty">Vazio</option>
+    </select>
+  </div>
+  <div class="tweaks-row">
+    <label>Estoque</label>
+    <select id="tw-stock">
+      <option value="on">Mostrar qtd</option>
+      <option value="off">Apenas disponível</option>
+    </select>
+  </div>
+</div>
+
+<!-- REACT ROOT -->
+<div id="root"></div>
+
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- Components -->
+<script type="text/babel" src="components/shared.jsx"></script>
+<script type="text/babel" src="components/shell.jsx"></script>
+<script type="text/babel" src="components/screens-1.jsx"></script>
+<script type="text/babel" src="components/screens-2.jsx"></script>
+<script type="text/babel" src="components/screens-3.jsx"></script>
+<script type="text/babel" src="components/screens-4.jsx"></script>
+
+<!-- App -->
+<script type="text/babel">
+  const { useState } = React;
+
+  // Wrapper que roteia cada phone pra um screen
+  function PhoneRoute({ initial = 'home', label }) {
+    const [screen, setScreen] = useState(initial);
+    const [tab, setTab] = useState(initial);
+
+    const go = (s) => {
+      setScreen(s);
+      // Sync bottom tab if relevant
+      if (['home','catalogs','orders','finance','more'].includes(s)) setTab(s);
+      else if (s === 'catalog' || s === 'catalogForm' || s === 'product' || s === 'productForm' || s === 'public') setTab('catalogs');
+      else if (s === 'clients' || s === 'suppliers') setTab('more');
+      else if (s === 'receivable' || s === 'payable') setTab('finance');
+    };
+
+    const screens = {
+      login: <LoginScreen go={go}/>,
+      home: <HomeScreen go={go}/>,
+      catalogs: <CatalogsScreen go={go}/>,
+      catalog: <CatalogScreen go={go}/>,
+      catalogForm: <CatalogFormScreen go={go}/>,
+      product: <ProductScreen go={go}/>,
+      productForm: <ProductFormScreen go={go}/>,
+      public: <PublicScreen go={go}/>,
+      orders: <OrdersScreen go={go}/>,
+      clients: <ClientsScreen go={go}/>,
+      suppliers: <SuppliersScreen go={go}/>,
+      finance: <FinanceScreen go={go}/>,
+      receivable: <ReceivableScreen go={go}/>,
+      payable: <PayableScreen go={go}/>,
+      more: <MoreScreen go={go}/>,
+    };
+
+    const hideBottom = ['login', 'public', 'productForm', 'catalogForm'].includes(screen);
+    const statusDark = screen === 'login';
+
+    return (
+      <div style={{ position: 'relative' }}>
+        <Phone label={label} statusDark={statusDark}>
+          {screens[screen] || <HomeScreen go={go}/>}
+          {!hideBottom && <BottomNav current={tab} onTab={go}/>}
+        </Phone>
+      </div>
+    );
+  }
+
+  function App() {
+    return (
+      <div className="stage">
+        {/* HERO */}
+        <div className="hero">
+          <div>
+            <div style={{ marginBottom: 18 }}>
+              <LogoLockup size="md"/>
+            </div>
+            <h1>App do ateliê, <em>feito sob medida</em> para a Sany&Z.</h1>
+            <p>Catálogos digitais, gestão de pedidos, clientes, fornecedores e financeiro — tudo em um app mobile com a linguagem da marca: tons copper, serifa elegante e cuidado em cada detalhe.</p>
+            <div className="meta">
+              <span><b>15 telas</b> · prototipadas</span>
+              <span><b>Protótipo clicável</b> · toque nos elementos</span>
+              <span><b>Identidade Sany&Z</b> · paleta oficial</span>
+            </div>
+          </div>
+          <div className="deco">
+            <svg viewBox="0 0 200 200">
+              <path d="M 65 60 C 65 30, 135 30, 135 60" stroke="currentColor" strokeWidth="4" fill="none" strokeLinecap="round"/>
+              <path d="M 40 65 L 160 65 L 155 170 Q 155 178 147 178 L 53 178 Q 45 178 45 170 Z" fill="rgba(255,255,255,0.95)"/>
+              <rect x="92" y="105" width="16" height="22" rx="2" fill="rgba(138,71,42,0.7)"/>
+            </svg>
+          </div>
+        </div>
+
+        {/* Seção 1 — Onboarding + Home */}
+        <div className="section-label">01 — Entrada no app</div>
+        <div className="grid">
+          <PhoneRoute initial="login" label="Login"/>
+          <PhoneRoute initial="home" label="Home / Dashboard"/>
+          <PhoneRoute initial="more" label="Mais / Perfil"/>
+        </div>
+
+        {/* Seção 2 — Catálogos */}
+        <div className="section-label">02 — Catálogos & Produtos</div>
+        <div className="grid">
+          <PhoneRoute initial="catalogs" label="Lista de catálogos"/>
+          <PhoneRoute initial="catalogForm" label="Novo catálogo"/>
+          <PhoneRoute initial="catalog" label="Detalhe do catálogo"/>
+          <PhoneRoute initial="productForm" label="Novo produto (editor)"/>
+          <PhoneRoute initial="product" label="Detalhe do produto"/>
+          <PhoneRoute initial="public" label="Visualização pública"/>
+        </div>
+
+        {/* Seção 3 — CRM */}
+        <div className="section-label">03 — Pedidos, Clientes, Fornecedores</div>
+        <div className="grid">
+          <PhoneRoute initial="orders" label="Pedidos"/>
+          <PhoneRoute initial="clients" label="Clientes"/>
+          <PhoneRoute initial="suppliers" label="Fornecedores"/>
+        </div>
+
+        {/* Seção 4 — Financeiro */}
+        <div className="section-label">04 — Financeiro</div>
+        <div className="grid">
+          <PhoneRoute initial="finance" label="Fluxo de caixa"/>
+          <PhoneRoute initial="receivable" label="A receber"/>
+          <PhoneRoute initial="payable" label="A pagar"/>
+        </div>
+
+        <div className="footer">
+          <LogoLockup size="sm"/>
+          <div>App mobile · Sany&Z · Ateliê de bolsas</div>
+        </div>
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+  // ── Tweaks
+  (function () {
+    const TWEAKS = /*EDITMODE-BEGIN*/{"theme":"light","catalog":"full","stock":"on"}/*EDITMODE-END*/;
+    const panel = document.getElementById('tweaks-panel');
+    window.addEventListener('message', (e) => {
+      if (e.data?.type === '__activate_edit_mode') panel.classList.add('open');
+      if (e.data?.type === '__deactivate_edit_mode') panel.classList.remove('open');
+    });
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+  })();
+</script>
+</body>
+</html>

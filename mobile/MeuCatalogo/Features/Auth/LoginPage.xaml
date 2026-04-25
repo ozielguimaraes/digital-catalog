@@ -4,121 +4,128 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:viewModel="clr-namespace:MeuCatalogo.Features.Auth"
-    xmlns:system="clr-namespace:System;assembly=System.Runtime"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-    x:DataType="viewModel:LoginPageViewModel"
-    BackgroundColor="{StaticResource Primary}">
+    x:DataType="viewModel:LoginPageViewModel">
 
-     <Grid ColumnDefinitions="0.5*, 0.5*" RowDefinitions="0.3*, 0.7*"
-              Background="{OnPlatform Default=Transparent, WinUI=#83E9EE,MacCatalyst=#83E9EE}">
-        <Border  Grid.ColumnSpan="{OnPlatform Default=2, WinUI=1, MacCatalyst=1}"
-                 Stroke="Transparent"
-                 Background="{OnPlatform Default=#ede8e2,WinUI=Transparent, MacCatalyst=Transparent}"
-                 Padding="32"
-                 Grid.RowSpan="{OnPlatform Default=1, WinUI=2, MacCatalyst=2}">
-            <Border.StrokeShape>
-                <RoundRectangle CornerRadius="0,0,100,100"/>
-            </Border.StrokeShape>
-            <Image Source="logo.png"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Center"
-                   Aspect="AspectFit"/>
-        </Border>
+    <Grid>
+        <ScrollView>
+            <Grid RowDefinitions="320,*" Padding="0">
 
-        <Border Grid.Column="{OnPlatform Default=0, WinUI=1, MacCatalyst=1}"
-                Margin="16"
-                Background="White"
-                  Grid.Row="{OnPlatform Default=1, WinUI=0,MacCatalyst=0}"
-                  VerticalOptions="{OnPlatform Default=Start, WinUI=Center , MacCatalyst=Center}"
-                  Grid.ColumnSpan="{OnPlatform Default=2, WinUI=1, MacCatalyst=1}"
-                  Grid.RowSpan="{OnPlatform Default=1, WinUI=2, MacCatalyst=2}" >
-            <Border.StrokeShape>
-                <RoundRectangle CornerRadius="20"/>
-            </Border.StrokeShape>
-            <Grid IsClippedToBounds="True" RowDefinitions="90,*,*,*,*,*,*,*"
-                  Padding="16">
-                <!-- <Grid.BindingContext> -->
-                <!--     <local:DataFormViewModel/> -->
-                <!-- </Grid.BindingContext> -->
-                <Label Padding="0,10,0,0"
-                       HorizontalOptions="Center" HorizontalTextAlignment="Center" VerticalTextAlignment="Start">
-                    <Label.FormattedText>
-                        <FormattedString>
-                            <Span Text="Bem vindo de volta" FontSize="32" FontAttributes="Bold"/>
-                            <Span Text="{x:Static system:Environment.NewLine}"/>
-                            <Span Text="Faça login na sua conta" FontSize="14"/>
-                        </FormattedString>
-                    </Label.FormattedText>
-                </Label>
+                <!-- Hero -->
+                <Border Grid.Row="0" Style="{StaticResource Hero}">
+                    <Grid Padding="32,56,32,32" RowDefinitions="Auto,*,Auto">
+                        <Label Grid.Row="0"
+                               Text="SANY&amp;Z"
+                               FontFamily="LatoBlack"
+                               FontSize="14"
+                               TextColor="{StaticResource OnPrimaryColor}"
+                               Opacity="0.85"
+                               CharacterSpacing="6" />
+                        <VerticalStackLayout Grid.Row="1" VerticalOptions="Center" Spacing="6">
+                            <Label Text="Bem-vinda"
+                                   TextColor="{StaticResource OnPrimaryColor}"
+                                   FontFamily="LoraMediumItalic"
+                                   FontSize="40"
+                                   LineHeight="1.05" />
+                            <Label Text="de volta ao ateliê."
+                                   TextColor="{StaticResource OnPrimaryColor}"
+                                   FontFamily="LoraMedium"
+                                   FontSize="40"
+                                   LineHeight="1.05" />
+                        </VerticalStackLayout>
+                        <Label Grid.Row="2"
+                               Text="LEVE COM VOCÊ"
+                               FontFamily="LatoBold"
+                               FontSize="11"
+                               TextColor="{StaticResource OnPrimaryColor}"
+                               Opacity="0.8"
+                               CharacterSpacing="4" />
+                    </Grid>
+                </Border>
 
-                <Label Grid.Row="1"
-                       Text="Email"
-                       TextColor="{StaticResource Gray600}" />
-                <Entry Grid.Row="2"
-                       Text="{Binding Email}"
-                       Keyboard="Email"
-                       ReturnType="Next" />
+                <!-- Form card -->
+                <Border Grid.Row="1"
+                        Style="{StaticResource CardElevated}"
+                        Margin="20,-32,20,24"
+                        Padding="28,32">
+                    <VerticalStackLayout Spacing="20">
 
-                <Label Grid.Row="3"
-                       Text="Senha"
-                       TextColor="{StaticResource Gray600}" />
-                <Entry Grid.Row="4"
-                       Text="{Binding Password}"
-                       MaxLength="50"
-                       IsPassword="True"
-                       ReturnType="Done" />
+                        <VerticalStackLayout Spacing="6">
+                            <Label Style="{StaticResource Caps}" Text="ENTRAR" />
+                            <Label Style="{StaticResource SerifH1}" Text="Acesse sua conta" />
+                            <Label Style="{StaticResource BodyMuted}"
+                                   Text="Use seu e-mail e senha para continuar gerenciando seus catálogos." />
+                        </VerticalStackLayout>
 
-                <!-- <Grid ColumnDefinitions="0.5*,0.5*" Grid.Row="5" Padding="12,0,0,0"  VerticalOptions="Start"> -->
-                <!--     <HorizontalStackLayout VerticalOptions="Center" Padding="10,0,0,0" > -->
-                <!--         <CheckBox Color="{StaticResource Primary}"/> -->
-                <!--         <Label  Text="Lembrar login"  FontSize="12" VerticalOptions="Center" /> -->
-                <!--     </HorizontalStackLayout> -->
-                <!--     <Label Text="Esqueci minha senha" Grid.Column="1"  TextColor="{StaticResource Primary}" HorizontalTextAlignment="Center" Padding="10,0,0,0" FontSize="12"  VerticalOptions="Center" /> -->
-                <!-- </Grid> -->
+                        <VerticalStackLayout Spacing="8">
+                            <Label Style="{StaticResource FieldLabel}" Text="E-MAIL" />
+                            <Border Style="{StaticResource PillEntryHost}">
+                                <Entry Text="{Binding Email}"
+                                       Placeholder="seu@email.com"
+                                       Keyboard="Email"
+                                       ReturnType="Next"
+                                       BackgroundColor="Transparent"
+                                       Margin="14,4" />
+                            </Border>
+                        </VerticalStackLayout>
 
-                <Button Text="LOGIN" x:Name="loginButton"
-                        Grid.Row="6"
-                        VerticalOptions="End"
-                        HorizontalOptions="Fill" Margin="20,0,20,0" CornerRadius="10"
-                        Padding="0"  FontAttributes="Bold"
-                        Background="{StaticResource Primary}"
-                        IsEnabled="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}"
-                        Command="{Binding LoginCommand}" />
+                        <VerticalStackLayout Spacing="8">
+                            <Label Style="{StaticResource FieldLabel}" Text="SENHA" />
+                            <Border Style="{StaticResource PillEntryHost}">
+                                <Entry Text="{Binding Password}"
+                                       Placeholder="••••••••"
+                                       MaxLength="50"
+                                       IsPassword="True"
+                                       ReturnType="Done"
+                                       BackgroundColor="Transparent"
+                                       Margin="14,4" />
+                            </Border>
+                        </VerticalStackLayout>
 
-                <Label Grid.Row="7" Padding="0,12,0,0"
-                       HorizontalOptions="Center"
-                       HorizontalTextAlignment="Center"
-                       FontSize="14">
-                    <Label.FormattedText>
-                        <FormattedString>
-                            <Span Text="Não possui uma conta?   " />
-                            <Span Text="Cadastrar" TextDecorations="Underline" TextColor="{StaticResource Primary}"/>
-                        </FormattedString>
-                    </Label.FormattedText>
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding CreateAccountCommand}" NumberOfTapsRequired="1" />
-                    </Label.GestureRecognizers>
-                </Label>
+                        <Button x:Name="loginButton"
+                                Style="{StaticResource PrimaryButton}"
+                                Text="ENTRAR"
+                                IsEnabled="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}"
+                                Command="{Binding LoginCommand}" />
+
+                        <Label HorizontalOptions="Center"
+                               Padding="0,4,0,0"
+                               FontSize="14">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Não possui uma conta?  "
+                                          TextColor="{AppThemeBinding Light={StaticResource TextMutedColorLight}, Dark={StaticResource TextMutedColorDark}}"
+                                          FontFamily="LatoRegular" />
+                                    <Span Text="Cadastrar"
+                                          FontFamily="LatoBold"
+                                          TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}"
+                                          TextDecorations="Underline" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding CreateAccountCommand}" NumberOfTapsRequired="1" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </VerticalStackLayout>
+                </Border>
             </Grid>
-        </Border>
-        <Grid Grid.ColumnSpan="2"
-              Grid.RowSpan="2"
-              BackgroundColor="#80000000"
+        </ScrollView>
+
+        <!-- Busy overlay -->
+        <Grid BackgroundColor="#A0121212"
               IsVisible="{Binding IsBusy}">
             <VerticalStackLayout HorizontalOptions="Center"
                                  VerticalOptions="Center"
-                                 Spacing="12">
+                                 Spacing="14">
                 <ActivityIndicator IsRunning="{Binding IsBusy}"
-                                   Color="White"
+                                   Color="{StaticResource OnPrimaryColor}"
                                    WidthRequest="48"
                                    HeightRequest="48" />
                 <Label Text="{Binding BusyMessage}"
-                       TextColor="White"
+                       TextColor="{StaticResource OnPrimaryColor}"
+                       FontFamily="LatoRegular"
                        HorizontalTextAlignment="Center" />
             </VerticalStackLayout>
         </Grid>
     </Grid>
-    <!-- <ContentPage.Behaviors> -->
-    <!--     <local:LoginFormBehavior/> -->
-    <!-- </ContentPage.Behaviors> -->
 </ContentPage>

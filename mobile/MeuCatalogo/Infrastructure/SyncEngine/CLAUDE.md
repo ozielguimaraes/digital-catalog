@@ -1,12 +1,12 @@
 # SyncEngine
 
-Offline-first sync engine. Queues operations into a SQLite `SyncQueue` table and dispatches them to registered `ISyncHandler` implementations when the device is online. Drives offline behavior for `Catalogo` and `Produto`.
+Offline-first sync engine. Queues operations into a SQLite `SyncQueue` table and dispatches them to registered `ISyncHandler` implementations when the device is online. Drives offline behavior for `Catalogo`, `Categoria`, and `Produto`.
 
 ## Files
 
 - **`ISyncEngine.cs`**: Contract — `QueueSyncAsync(entityType, entityId, operation, payload)`, `ProcessQueueAsync()`.
 - **`ISyncHandler.cs`**: Per-entity handler contract — `bool CanHandle(string entityType, SyncOperation op)` and `Task HandleAsync(SyncQueueItem item)`.
-- **`SyncEntityTypes.cs`**: String constants — `"Catalogos"`, `"ProdutosByCatalogo"`. Matches the `CanHandle` predicate on each handler.
+- **`SyncEntityTypes.cs`**: String constants — `"Catalogos"`, `"CategoriasByCatalogo"`, `"ProdutosByCatalogo"`. Matches the `CanHandle` predicate on each handler.
 - **`SyncEngineService.cs`**: The implementation. Queue + processing loop + retry.
 
 ## Architecture
@@ -35,6 +35,7 @@ Handlers are registered with `AddTransient<ISyncHandler, SomeHandler>()`. Multip
 
 ```
 ISyncHandler → CatalogoPullSyncHandler      (Catalogos, Pull)
+ISyncHandler → CategoriaPullSyncHandler     (CategoriasByCatalogo, Pull)
 ISyncHandler → ProdutoPullSyncHandler       (ProdutosByCatalogo, Pull)
 ISyncHandler → ProdutoUpsertSyncHandler     (ProdutoEntity, Create|Update)
 ISyncHandler → ProdutoDeleteSyncHandler     (ProdutoEntity, Delete)

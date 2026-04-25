@@ -7,123 +7,189 @@
              xmlns:domain="clr-namespace:MeuCatalogo.Features.Catalogo.Domain"
              x:DataType="catalogo:CatalogoListaPageViewModel">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="30,0" Spacing="25">
-            <Button
-                Text="Adicionar Novo"
-                IsVisible="{Binding HasCatalogos}"
-                SemanticProperties.Hint="Navega para tela de adicionar novo catálogo"
-                HorizontalOptions="Fill"
-                Command="{Binding AdicionarCommand}" />
-                <Grid RowDefinitions="Auto,Auto">
-                    <VerticalStackLayout IsVisible="{Binding IsSyncing}"
-                                         VerticalOptions="Center"
-                                         HorizontalOptions="Center">
-                        <ActivityIndicator IsRunning="{Binding IsSyncing}"
-                                           Color="{StaticResource Primary}"
-                                           WidthRequest="48"
-                                           HeightRequest="48" />
-                        <Label Text="Carregando…"
-                               HorizontalTextAlignment="Center" />
-                    </VerticalStackLayout>
+    <Grid RowDefinitions="Auto,*">
 
-                    <VerticalStackLayout IsVisible="{Binding ShowEmptyState}">
-                    <Image
-                        Source="ic_x_mark_circle_thin.png"
-                        HeightRequest="85"
-                        Margin="0,32,0,0"
-                        Aspect="AspectFit">
-                        <Image.Behaviors>
-                            <toolkit:IconTintColorBehavior TintColor="{StaticResource Primary}" />
-                        </Image.Behaviors>
-                    </Image>
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Padding="24,24,24,12" Spacing="6">
+            <Label Style="{StaticResource Caps}" Text="ATELIÊ" />
+            <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                <Label Grid.Column="0"
+                       Style="{StaticResource SerifH1}"
+                       Text="Seus catálogos" />
+                <Border Grid.Column="1"
+                        Style="{StaticResource IconCircle}"
+                        IsVisible="{Binding HasCatalogos}">
+                    <Label Text="+"
+                           FontFamily="LoraMedium"
+                           FontSize="24"
+                           TextColor="{StaticResource OnPrimaryColor}"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding AdicionarCommand}" />
+                    </Border.GestureRecognizers>
+                </Border>
+            </Grid>
+        </VerticalStackLayout>
 
-                    <Label
-                        Text="Nenhum adicionado ainda!"
-                        Style="{StaticResource Headline}"
-                        SemanticProperties.HeadingLevel="Level1" />
+        <ScrollView Grid.Row="1">
+            <Grid Padding="24,8,24,32" RowDefinitions="Auto,Auto">
 
-                    <Label
-                        Text="Clique no botão abaixo para adicionar"
-                        Style="{StaticResource SubHeadline}"
-                        SemanticProperties.HeadingLevel="Level2" />
-
-                    <Button
-                        Text="Adicionar Novo"
-                        Margin="0,16,0,0"
-                        SemanticProperties.Hint="Navega para tela de adicionar novo catálogo"
-                        HorizontalOptions="Fill"
-                        Command="{Binding AdicionarCommand}"/>
+                <!-- Loading -->
+                <VerticalStackLayout Grid.Row="0"
+                                     IsVisible="{Binding IsSyncing}"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Center"
+                                     Padding="0,48"
+                                     Spacing="12">
+                    <ActivityIndicator IsRunning="{Binding IsSyncing}"
+                                       WidthRequest="36"
+                                       HeightRequest="36" />
+                    <Label Style="{StaticResource BodyMuted}"
+                           HorizontalTextAlignment="Center"
+                           Text="Carregando seus catálogos…" />
                 </VerticalStackLayout>
+
+                <!-- Empty state -->
+                <VerticalStackLayout Grid.Row="0"
+                                     IsVisible="{Binding ShowEmptyState}"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Center"
+                                     Padding="0,48"
+                                     Spacing="12">
+                    <Border Style="{StaticResource IconCircleSurface}"
+                            HeightRequest="92"
+                            WidthRequest="92"
+                            HorizontalOptions="Center">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="46" />
+                        </Border.StrokeShape>
+                        <Image Source="ic_x_mark_circle_thin.png"
+                               HeightRequest="44"
+                               Aspect="AspectFit">
+                            <Image.Behaviors>
+                                <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}" />
+                            </Image.Behaviors>
+                        </Image>
+                    </Border>
+
+                    <Label Style="{StaticResource SerifH2}"
+                           HorizontalTextAlignment="Center"
+                           Text="Nenhum catálogo ainda" />
+                    <Label Style="{StaticResource BodyMuted}"
+                           HorizontalTextAlignment="Center"
+                           Text="Crie seu primeiro catálogo para começar a organizar produtos." />
+                    <Button Style="{StaticResource PrimaryButton}"
+                            Text="CRIAR CATÁLOGO"
+                            HorizontalOptions="Center"
+                            Margin="0,8,0,0"
+                            Padding="32,14"
+                            Command="{Binding AdicionarCommand}" />
+                </VerticalStackLayout>
+
+                <!-- Catalog list -->
                 <CollectionView Grid.Row="1"
-                    ItemsSource="{Binding Catalogos}"
-                    Margin="0,20,0,0"
-                    SelectionMode="None">
+                                ItemsSource="{Binding Catalogos}"
+                                SelectionMode="None">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="14" />
+                    </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="domain:CatalogoInfo">
                             <SwipeView>
                                 <SwipeView.LeftItems>
-                                    <SwipeItems>
-                                        <SwipeItemView>
-                                            <VerticalStackLayout Padding="8"
-                                                        HorizontalOptions="Fill"
-                                                        BackgroundColor="Gold">
-                                                <Image Margin="0,8,0,0"
-                                                       Source="ic_star_outlined.svg"
-                                                       WidthRequest="24"
-                                                       HeightRequest="24">
-                                                    <Image.Behaviors>
-                                                        <toolkit:IconTintColorBehavior TintColor="{StaticResource White}" />
-                                                    </Image.Behaviors>
-                                                    <Image.GestureRecognizers>
-                                                        <TapGestureRecognizer Command="{Binding BindingContext.FavoritarCommand, Source={RelativeSource AncestorType={x:Type catalogo:CatalogoListaPage}}}"
-                                                                              CommandParameter="{Binding .}"></TapGestureRecognizer>
-                                                    </Image.GestureRecognizers>
-                                                </Image>
-                                                <Label Margin="0,8,0,0"
-                                                       Text="Favoritar"
-                                                       TextColor="{StaticResource Gray900}" />
-                                            </VerticalStackLayout>
+                                    <SwipeItems Mode="Reveal">
+                                        <SwipeItemView WidthRequest="92">
+                                            <Border Style="{StaticResource SwipeActionWarning}">
+                                                <VerticalStackLayout Padding="8"
+                                                                     HorizontalOptions="Center"
+                                                                     VerticalOptions="Center"
+                                                                     Spacing="4">
+                                                    <Image Source="ic_star_outlined.svg"
+                                                           HorizontalOptions="Center"
+                                                           WidthRequest="22"
+                                                           HeightRequest="22">
+                                                        <Image.Behaviors>
+                                                            <toolkit:IconTintColorBehavior TintColor="{StaticResource OnPrimaryColor}" />
+                                                        </Image.Behaviors>
+                                                    </Image>
+                                                    <Label Text="Favoritar"
+                                                           FontFamily="LatoBold"
+                                                           FontSize="11"
+                                                           TextColor="{StaticResource OnPrimaryColor}"
+                                                           HorizontalTextAlignment="Center" />
+                                                </VerticalStackLayout>
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding BindingContext.FavoritarCommand, Source={RelativeSource AncestorType={x:Type catalogo:CatalogoListaPage}}}"
+                                                                          CommandParameter="{Binding .}" />
+                                                </Border.GestureRecognizers>
+                                            </Border>
                                         </SwipeItemView>
                                     </SwipeItems>
                                 </SwipeView.LeftItems>
                                 <SwipeView.RightItems>
-                                    <SwipeItems>
-                                        <SwipeItemView>
-                                            <VerticalStackLayout Padding="10" BackgroundColor="#ff4500">
-                                                <Image Source="ic_trash_can_outlined.svg"
-                                                       WidthRequest="24"
-                                                       HeightRequest="24">
-                                                    <Image.Behaviors>
-                                                        <toolkit:IconTintColorBehavior TintColor="{StaticResource Gray950}" />
-                                                    </Image.Behaviors>
-                                                    <Image.GestureRecognizers>
-                                                        <TapGestureRecognizer Command="{Binding BindingContext.ExcluirCommand, Source={RelativeSource AncestorType={x:Type catalogo:CatalogoListaPage}}}"
-                                                            CommandParameter="{Binding .}"></TapGestureRecognizer>
-                                                    </Image.GestureRecognizers>
-                                                </Image>
-                                                <Label Margin="0,8,0,0"
-                                                       Text="Excluir"
-                                                       TextColor="{StaticResource  Gray950}" />
-                                            </VerticalStackLayout>
+                                    <SwipeItems Mode="Reveal">
+                                        <SwipeItemView WidthRequest="92">
+                                            <Border Style="{StaticResource SwipeActionDanger}">
+                                                <VerticalStackLayout Padding="8"
+                                                                     HorizontalOptions="Center"
+                                                                     VerticalOptions="Center"
+                                                                     Spacing="4">
+                                                    <Image Source="ic_trash_can_outlined.svg"
+                                                           HorizontalOptions="Center"
+                                                           WidthRequest="22"
+                                                           HeightRequest="22">
+                                                        <Image.Behaviors>
+                                                            <toolkit:IconTintColorBehavior TintColor="{StaticResource OnPrimaryColor}" />
+                                                        </Image.Behaviors>
+                                                    </Image>
+                                                    <Label Text="Excluir"
+                                                           FontFamily="LatoBold"
+                                                           FontSize="11"
+                                                           TextColor="{StaticResource OnPrimaryColor}"
+                                                           HorizontalTextAlignment="Center" />
+                                                </VerticalStackLayout>
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding BindingContext.ExcluirCommand, Source={RelativeSource AncestorType={x:Type catalogo:CatalogoListaPage}}}"
+                                                                          CommandParameter="{Binding .}" />
+                                                </Border.GestureRecognizers>
+                                            </Border>
                                         </SwipeItemView>
                                     </SwipeItems>
                                 </SwipeView.RightItems>
-                                <Border Padding="10" Margin="0,5" BackgroundColor="{StaticResource Gray200}">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="8" />
-                                    </Border.StrokeShape>
-                                    <VerticalStackLayout>
-                                        <Label Text="{Binding Nome}" FontAttributes="Bold" FontSize="Medium"/>
-                                        <Label Text="{Binding Email}" FontSize="Small" TextColor="Gray"/>
-                                        <Label Text="{Binding NumeroWhatsapp}" FontSize="Small" TextColor="Gray"/>
-                                    </VerticalStackLayout>
+
+                                <Border Style="{StaticResource CardElevated}" Padding="0">
+                                    <Grid ColumnDefinitions="6,*" RowDefinitions="*">
+                                        <BoxView Grid.Column="0"
+                                                 BackgroundColor="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}" />
+                                        <VerticalStackLayout Grid.Column="1"
+                                                             Padding="18,16"
+                                                             Spacing="6">
+                                            <Label Style="{StaticResource Caps}"
+                                                   Text="{Binding NomeCurto}"
+                                                   IsVisible="{Binding NomeCurto, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+                                            <Label Style="{StaticResource SerifH3}"
+                                                   Text="{Binding Nome}"
+                                                   LineBreakMode="TailTruncation"
+                                                   MaxLines="2" />
+                                            <HorizontalStackLayout Spacing="14"
+                                                                   Margin="0,4,0,0">
+                                                <Label Style="{StaticResource BodyMuted}"
+                                                       Text="{Binding Email}"
+                                                       LineBreakMode="TailTruncation"
+                                                       IsVisible="{Binding Email, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+                                            </HorizontalStackLayout>
+                                            <Label Style="{StaticResource BodyMuted}"
+                                                   Text="{Binding NumeroWhatsapp, StringFormat='WhatsApp · {0}'}"
+                                                   IsVisible="{Binding NumeroWhatsapp, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+                                        </VerticalStackLayout>
+                                    </Grid>
                                 </Border>
                             </SwipeView>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
             </Grid>
-        </VerticalStackLayout>
-    </ScrollView>
+        </ScrollView>
+    </Grid>
 </ContentPage>

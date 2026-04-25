@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!--
+    ════════════════════════════════════════════════════════════════════════
+    SECTION A — Raw brand palette
+    ════════════════════════════════════════════════════════════════════════
+    Sany&Z official tokens (see docs/brand.md). DO NOT consume directly in
+    pages or styles. Only this file maps these onto the semantic tokens.
+    To change the brand (e.g. copper → green), edit ONLY this section and
+    the mapping below. Page-level XAML stays untouched.
+    -->
+
+    <!-- Accent (copper family) -->
+    <Color x:Key="BrandCopperSany">#c06647</Color>
+    <Color x:Key="BrandCopperZ">#df8252</Color>
+    <Color x:Key="BrandCopperBrown">#8a472a</Color>
+
+    <!-- Neutrals -->
+    <Color x:Key="BrandAlabaster">#ede8e2</Color>
+    <Color x:Key="BrandQuartz">#dfd5ce</Color>
+    <Color x:Key="BrandAntracito">#332a27</Color>
+    <Color x:Key="BrandOnyx">#121212</Color>
+
+    <!-- Derived neutrals (consistent with the Sany&Z aesthetic) -->
+    <Color x:Key="BrandPaper">#f5efe8</Color>
+    <Color x:Key="BrandPaper2">#faf6f1</Color>
+    <Color x:Key="BrandLine">#e0d4c6</Color>
+    <Color x:Key="BrandLineSoft">#ebe2d6</Color>
+    <Color x:Key="BrandMuted">#7a6a60</Color>
+    <Color x:Key="BrandAntracitoSoft">#3d322e</Color>
+    <Color x:Key="BrandOnyxSoft">#1a1614</Color>
+    <Color x:Key="BrandMutedDark">#a89a8e</Color>
+    <Color x:Key="BrandLineDark">#3d322e</Color>
+
+    <!-- Status -->
+    <Color x:Key="BrandSuccess">#4a6638</Color>
+    <Color x:Key="BrandWarning">#b08740</Color>
+    <Color x:Key="BrandDanger">#8a3a3a</Color>
+
+
+    <!--
+    ════════════════════════════════════════════════════════════════════════
+    SECTION B — Semantic Color tokens (one per theme)
+    ════════════════════════════════════════════════════════════════════════
+    Use these in styles where a `Color` value is required and you can use
+    AppThemeBinding (e.g. Setter Property="TextColor").
+    Naming is brand-agnostic on purpose — if the brand ever swaps to blue
+    or green, only the values below change, names stay.
+    -->
+
+    <!-- Primary (CTAs, accents) -->
+    <Color x:Key="PrimaryColorLight">#c06647</Color>
+    <Color x:Key="PrimaryColorDark">#df8252</Color>
+    <Color x:Key="PrimaryHoverColorLight">#8a472a</Color>
+    <Color x:Key="PrimaryHoverColorDark">#c06647</Color>
+    <Color x:Key="PrimarySoftColorLight">#f1ddd0</Color>
+    <Color x:Key="PrimarySoftColorDark">#3a2620</Color>
+    <Color x:Key="OnPrimaryColor">#ffffff</Color>
+
+    <!-- Secondary (less saturated accent for support roles) -->
+    <Color x:Key="SecondaryColorLight">#df8252</Color>
+    <Color x:Key="SecondaryColorDark">#c06647</Color>
+
+    <!-- Backgrounds & surfaces -->
+    <Color x:Key="BackgroundColorLight">#f5efe8</Color>
+    <Color x:Key="BackgroundColorDark">#121212</Color>
+    <Color x:Key="SurfaceColorLight">#ffffff</Color>
+    <Color x:Key="SurfaceColorDark">#332a27</Color>
+    <Color x:Key="SurfaceMutedColorLight">#ede8e2</Color>
+    <Color x:Key="SurfaceMutedColorDark">#3d322e</Color>
+
+    <!-- Text -->
+    <Color x:Key="TextColorLight">#332a27</Color>
+    <Color x:Key="TextColorDark">#ede8e2</Color>
+    <Color x:Key="TextMutedColorLight">#7a6a60</Color>
+    <Color x:Key="TextMutedColorDark">#a89a8e</Color>
+
+    <!-- Borders -->
+    <Color x:Key="BorderColorLight">#e0d4c6</Color>
+    <Color x:Key="BorderColorDark">#3d322e</Color>
+    <Color x:Key="BorderSubtleColorLight">#ebe2d6</Color>
+    <Color x:Key="BorderSubtleColorDark">#3d322e</Color>
+
+    <!-- Status (single value — same in light & dark) -->
+    <Color x:Key="SuccessColor">#4a6638</Color>
+    <Color x:Key="WarningColor">#b08740</Color>
+    <Color x:Key="DangerColor">#8a3a3a</Color>
+    <Color x:Key="SuccessSoftColor">#e4eddb</Color>
+    <Color x:Key="WarningSoftColor">#f2e6c6</Color>
+    <Color x:Key="DangerSoftColor">#f2dada</Color>
+
+
+    <!--
+    ════════════════════════════════════════════════════════════════════════
+    SECTION C — Semantic Brushes (theme-aware)
+    ════════════════════════════════════════════════════════════════════════
+    Use these for properties that take a Brush (e.g. Background, Stroke,
+    Border.Stroke, Shape.Fill). They internally pick the right color per
+    theme — consumers don't need AppThemeBinding at the call site.
+    -->
+
+    <SolidColorBrush x:Key="PrimaryBrush"
+                     Color="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}" />
+    <SolidColorBrush x:Key="PrimaryHoverBrush"
+                     Color="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryHoverColorDark}}" />
+    <SolidColorBrush x:Key="PrimarySoftBrush"
+                     Color="{AppThemeBinding Light={StaticResource PrimarySoftColorLight}, Dark={StaticResource PrimarySoftColorDark}}" />
+    <SolidColorBrush x:Key="OnPrimaryBrush" Color="{StaticResource OnPrimaryColor}" />
+
+    <SolidColorBrush x:Key="SecondaryBrush"
+                     Color="{AppThemeBinding Light={StaticResource SecondaryColorLight}, Dark={StaticResource SecondaryColorDark}}" />
+
+    <SolidColorBrush x:Key="BackgroundBrush"
+                     Color="{AppThemeBinding Light={StaticResource BackgroundColorLight}, Dark={StaticResource BackgroundColorDark}}" />
+    <SolidColorBrush x:Key="SurfaceBrush"
+                     Color="{AppThemeBinding Light={StaticResource SurfaceColorLight}, Dark={StaticResource SurfaceColorDark}}" />
+    <SolidColorBrush x:Key="SurfaceMutedBrush"
+                     Color="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource SurfaceMutedColorDark}}" />
+
+    <SolidColorBrush x:Key="TextBrush"
+                     Color="{AppThemeBinding Light={StaticResource TextColorLight}, Dark={StaticResource TextColorDark}}" />
+    <SolidColorBrush x:Key="TextMutedBrush"
+                     Color="{AppThemeBinding Light={StaticResource TextMutedColorLight}, Dark={StaticResource TextMutedColorDark}}" />
+
+    <SolidColorBrush x:Key="BorderBrush"
+                     Color="{AppThemeBinding Light={StaticResource BorderColorLight}, Dark={StaticResource BorderColorDark}}" />
+    <SolidColorBrush x:Key="BorderSubtleBrush"
+                     Color="{AppThemeBinding Light={StaticResource BorderSubtleColorLight}, Dark={StaticResource BorderSubtleColorDark}}" />
+
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+    <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
+    <SolidColorBrush x:Key="SuccessSoftBrush" Color="{StaticResource SuccessSoftColor}" />
+    <SolidColorBrush x:Key="WarningSoftBrush" Color="{StaticResource WarningSoftColor}" />
+    <SolidColorBrush x:Key="DangerSoftBrush" Color="{StaticResource DangerSoftColor}" />
+
+
+    <!--
+    ════════════════════════════════════════════════════════════════════════
+    SECTION D — Gradients
+    ════════════════════════════════════════════════════════════════════════
+    -->
+
+    <LinearGradientBrush x:Key="PrimaryGradientBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="{StaticResource BrandCopperZ}" Offset="0.0" />
+        <GradientStop Color="{StaticResource BrandCopperSany}" Offset="0.5" />
+        <GradientStop Color="{StaticResource BrandCopperBrown}" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="PrimaryGradientVerticalBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="{StaticResource BrandCopperZ}" Offset="0.0" />
+        <GradientStop Color="{StaticResource BrandCopperBrown}" Offset="1.0" />
+    </LinearGradientBrush>
+</ResourceDictionary>

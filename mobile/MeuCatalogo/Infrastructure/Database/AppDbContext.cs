@@ -3,6 +3,7 @@ using System.Threading;
 using MeuCatalogo.Domain.Entities;
 using MeuCatalogo.Features.Auth.Domain;
 using MeuCatalogo.Features.Catalogo.Domain;
+using MeuCatalogo.Features.Categoria.Domain;
 using MeuCatalogo.Features.Produto.Domain;
 using SQLite;
 
@@ -77,6 +78,7 @@ public class AppDbContext
         await _database.CreateTableAsync<SyncQueue>();
         await _database.CreateTableAsync<UserEntity>();
         await _database.CreateTableAsync<CatalogoEntity>();
+        await _database.CreateTableAsync<CategoriaEntity>();
         await _database.CreateTableAsync<ProdutoEntity>();
         await _database.CreateTableAsync<ProdutoImagemEntity>();
     }
@@ -85,6 +87,9 @@ public class AppDbContext
     {
         if (_database == null)
             return;
+
+        await _database.ExecuteAsync(
+            "CREATE INDEX IF NOT EXISTS idx_categoria_catalogo ON Categorias (CatalogoId)");
 
         await _database.ExecuteAsync(
             "CREATE INDEX IF NOT EXISTS idx_produto_catalogo ON Produtos (CatalogoId)");

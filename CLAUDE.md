@@ -50,6 +50,7 @@ Other root files:
 - Não refatore código que funciona sem pedido explícito.
 - Comentários apenas quando estritamente necessários.
 - Rode testes antes e depois de qualquer mudança; nada é "pronto" sem testes passando.
+- **Commits/PRs: nunca incluir trailer `Co-Authored-By: Claude…` nem `🤖 Generated with Claude Code`.** A mensagem termina na última linha do conteúdo real.
 
 ## When Adding Code
 

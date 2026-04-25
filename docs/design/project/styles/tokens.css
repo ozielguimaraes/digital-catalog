@@ -1,0 +1,154 @@
+/* Sany&Z Design System — Catálogo Digital (hex oficiais do manual) */
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Lato:wght@300;400;700;900&display=swap');
+
+:root {
+  /* Copper palette — exatos do manual */
+  --copper-sany: #c06647;     /* RGB 192,102,71 */
+  --copper-z: #df8252;        /* RGB 223,130,82 */
+  --copper-brown: #8a472a;    /* RGB 138,71,42 */
+
+  /* Neutros do manual */
+  --alabaster: #ede8e2;       /* RGB 237,232,226 */
+  --quartz: #dfd5ce;          /* RGB 223,213,206 */
+  --antracito: #332a27;       /* RGB 51,42,39 */
+  --onix: #121212;            /* RGB 18,18,18 */
+
+  /* Derivados p/ UI */
+  --paper: #f5efe8;           /* alabaster mais claro */
+  --paper-2: #faf6f1;
+  --ink: var(--antracito);
+  --muted: #7a6a60;
+  --line: #e0d4c6;
+  --line-soft: #ebe2d6;
+  --success: #4a6638;
+  --danger: #8a3a3a;
+
+  /* Gradientes */
+  --copper-grad: linear-gradient(135deg, #df8252 0%, #c06647 50%, #8a472a 100%);
+  --copper-grad-v: linear-gradient(180deg, #c06647 0%, #8a472a 100%);
+
+  /* Tipografia */
+  --serif: 'Lora', Georgia, serif;
+  --sans: 'Lato', -apple-system, system-ui, sans-serif;
+
+  /* Shadows */
+  --sh-xs: 0 1px 2px rgba(51, 42, 39, 0.05);
+  --sh-sm: 0 2px 8px rgba(51, 42, 39, 0.06), 0 1px 2px rgba(51, 42, 39, 0.04);
+  --sh-md: 0 8px 24px rgba(51, 42, 39, 0.08), 0 2px 4px rgba(51, 42, 39, 0.04);
+  --sh-lg: 0 24px 48px rgba(51, 42, 39, 0.12), 0 4px 8px rgba(51, 42, 39, 0.05);
+
+  /* Radii */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 { font-family: var(--serif); font-weight: 500; margin: 0; color: var(--ink); letter-spacing: -0.01em; }
+
+/* Monograma Sany&Z — simplificado, inspirado na identidade (bolsa + Z) */
+.sz-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-style: italic; font-weight: 600; color: var(--copper-sany);
+}
+
+/* Placeholder p/ imagens de produto (bolsas) */
+.img-placeholder {
+  background-image:
+    repeating-linear-gradient(45deg, rgba(192,102,71,0.05) 0px, rgba(192,102,71,0.05) 1px, transparent 1px, transparent 10px),
+    linear-gradient(180deg, #efe4d7, #e0d0bd);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Botões */
+.btn {
+  font-family: var(--sans); font-weight: 700; font-size: 13px;
+  letter-spacing: 0.04em;
+  border: none; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: var(--r-sm); padding: 12px 18px;
+  transition: all 0.15s ease; white-space: nowrap;
+}
+.btn-primary { background: var(--copper-sany); color: #fff; }
+.btn-primary:hover { background: var(--copper-brown); }
+.btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.btn-ghost:hover { background: var(--alabaster); }
+.btn-dark { background: var(--antracito); color: #fff; }
+.btn-dark:hover { background: var(--onix); }
+.btn-sm { padding: 8px 12px; font-size: 11px; }
+.btn-lg { padding: 14px 24px; font-size: 14px; }
+.btn-icon {
+  width: 40px; height: 40px; padding: 0; border-radius: 50%;
+  background: #fff; border: 1px solid var(--line); color: var(--ink);
+}
+
+/* Inputs */
+.input, input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"], input[type="date"], textarea, select {
+  font-family: var(--sans); font-size: 15px; color: var(--ink);
+  background: var(--alabaster); border: 1px solid transparent; border-radius: 12px;
+  padding: 14px 16px; width: 100%; outline: none;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none; appearance: none;
+  font-weight: 500;
+}
+.input::placeholder, input::placeholder, textarea::placeholder {
+  color: var(--muted); font-weight: 400; opacity: 1;
+}
+.input:hover, input:hover, textarea:hover, select:hover {
+  background: #efe9e3;
+}
+.input:focus, input:focus, textarea:focus, select:focus {
+  background: #fff;
+  border-color: var(--copper-sany);
+  box-shadow: 0 0 0 4px rgba(192,102,71,0.10);
+}
+label {
+  display: block; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 8px;
+}
+textarea { resize: vertical; min-height: 96px; font-family: var(--sans); line-height: 1.5; }
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23938376' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 16px center;
+  padding-right: 42px; cursor: pointer;
+}
+
+/* Chips / badges */
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 4px 9px; border-radius: 99px;
+  background: var(--alabaster); color: var(--antracito);
+}
+.chip-copper { background: rgba(192,102,71,0.14); color: var(--copper-brown); }
+.chip-green { background: #e4eddb; color: var(--success); }
+.chip-red { background: #f2dada; color: var(--danger); }
+.chip-dark { background: var(--antracito); color: #fff; }
+.chip-yellow { background: #f2e6c6; color: #7a5e1c; }
+
+/* Utility */
+.serif { font-family: var(--serif); }
+.muted { color: var(--muted); }
+.caps { text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; font-size: 11px; color: var(--muted); }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }

@@ -17,6 +17,7 @@ using MeuCatalogo.Features.Settings.Services;
 using MeuCatalogo.Features.Produto.UseCases;
 using MeuCatalogo.Infrastructure;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Plugin.Maui.BottomSheet.Navigation;
 
 namespace MeuCatalogo.Features.Produto;
@@ -24,16 +25,25 @@ namespace MeuCatalogo.Features.Produto;
 public sealed partial class ProdutoAdicionarPageViewModel(
     ILogger<ProdutoAdicionarPageViewModel> logger,
     UpsertProdutoOfflineFirstUseCase upsertProdutoOfflineFirstUseCase,
-    UploadProdutoImageUseCase uploadProdutoImageUseCase,
     GetCategoriasByCatalogoUseCase getCategoriasByCatalogoUseCase,
-    IImageProcessor imageProcessor,
     ISettingsService settingsService,
     IBottomSheetNavigationService bottomSheetNavigationService,
+    IServiceProvider serviceProvider,
     INavigationService navigationService)
     : BasePageViewModel, INavigationAware, IQueryAttributable
 {
     private CancellationTokenSource? _ctsCategorias;
     private Task<ApiResponse<List<CategoriaModel>>>? _taskCarregaCategorias;
+    private Guid? _categoriasCatalogoId;
+
+    private UploadProdutoImageUseCase? _uploadProdutoImageUseCase;
+    private IImageProcessor? _imageProcessor;
+
+    private UploadProdutoImageUseCase UploadProdutoImageUseCase =>
+        _uploadProdutoImageUseCase ??= serviceProvider.GetRequiredService<UploadProdutoImageUseCase>();
+
+    private IImageProcessor ImageProcessor =>
+        _imageProcessor ??= serviceProvider.GetRequiredService<IImageProcessor>();
 
     private INavigationService NavigationService { get; } = navigationService;
 
@@ -235,7 +245,12 @@ public sealed partial class ProdutoAdicionarPageViewModel(
     {
         try
         {
-            Debug.Assert(_taskCarregaCategorias != null, nameof(_taskCarregaCategorias) + " != null");
+            if (_taskCarregaCategorias == null)
+                await CarregarCategoriasCommand.ExecuteAsync(null);
+
+            if (_taskCarregaCategorias == null)
+                return;
+
             var categoriasResponse = await _taskCarregaCategorias;
 
             if (categoriasResponse.RetornouComErro)
@@ -278,10 +293,17 @@ public sealed partial class ProdutoAdicionarPageViewModel(
             return;
         }
 
+        var catalogoId = settingsService.CatalogoFavorito.Id;
+        if (_taskCarregaCategorias != null && _categoriasCatalogoId == catalogoId)
+            return;
+
+        CancelarCarregamentoCategorias();
+        _categoriasCatalogoId = catalogoId;
+
         _ctsCategorias = new CancellationTokenSource();
         var ct = _ctsCategorias.Token;
 
-        _taskCarregaCategorias = CarregarCategoriasInternoAsync(settingsService.CatalogoFavorito.Id, ct);
+        _taskCarregaCategorias = CarregarCategoriasInternoAsync(catalogoId, ct);
     }
 
     private async Task<ApiResponse<List<CategoriaModel>>> CarregarCategoriasInternoAsync(Guid catalogoId, CancellationToken ct)
@@ -306,6 +328,7 @@ public sealed partial class ProdutoAdicionarPageViewModel(
         }
         _ctsCategorias = null;
         _taskCarregaCategorias = null;
+        _categoriasCatalogoId = null;
     }
     #endregion
 
@@ -474,7 +497,7 @@ public sealed partial class ProdutoAdicionarPageViewModel(
         var caminhoLocal = Path.Combine(FileSystem.AppDataDirectory, nomeArquivo);
 
         await using (var origem = await file.OpenReadAsync())
-        await using (var fluxoComprimido = await imageProcessor.CompressAsync(origem))
+        await using (var fluxoComprimido = await ImageProcessor.CompressAsync(origem))
         await using (var destino = File.Create(caminhoLocal))
         {
             await fluxoComprimido.CopyToAsync(destino);
@@ -517,7 +540,7 @@ public sealed partial class ProdutoAdicionarPageViewModel(
                 continue;
 
             var fileResult = new FileResult(imagem.Url);
-            var uploadResponse = await uploadProdutoImageUseCase.ExecuteAsync((produtoId, fileResult, imagem.IsPrincipal, imagem.Ordem));
+            var uploadResponse = await UploadProdutoImageUseCase.ExecuteAsync((produtoId, fileResult, imagem.IsPrincipal, imagem.Ordem));
 
             if (uploadResponse is { RetornouComSucesso: true, Dados: not null })
             {
