@@ -1,0 +1,89 @@
+# Pipeline de CI - Build e Testes
+# Executa em todas as branches para validar código
+
+trigger:
+  branches:
+    include:
+      - '*'
+  paths:
+    include:
+      - backend/*
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - backend/*
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  dotNetVersion: '6.x'
+
+steps:
+- task: UseDotNet@2
+  displayName: 'Instalar .NET SDK $(dotNetVersion)'
+  inputs:
+    packageType: 'sdk'
+    version: '$(dotNetVersion)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Restaurar Dependências'
+  inputs:
+    command: 'restore'
+    projects: 'backend/**/*.csproj'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build do Projeto'
+  inputs:
+    command: 'build'
+    projects: 'backend/**/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --no-restore --verbosity normal'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Executar Testes Unitários'
+  inputs:
+    command: 'test'
+    projects: 'backend/**/*Tests.csproj'
+    arguments: '--configuration $(buildConfiguration) --no-build --collect:"XPlat Code Coverage" --logger trx --results-directory $(Agent.TempDirectory)/TestResults'
+    publishTestResults: true
+  continueOnError: true
+
+- task: PublishTestResults@2
+  displayName: 'Publicar Resultados dos Testes'
+  inputs:
+    testResultsFormat: 'VSTest'
+    testResultsFiles: '**/*.trx'
+    searchFolder: '$(Agent.TempDirectory)/TestResults'
+    failTaskOnFailedTests: true
+  condition: always()
+
+- task: PublishCodeCoverageResults@1
+  displayName: 'Publicar Cobertura de Código'
+  inputs:
+    codeCoverageTool: 'Cobertura'
+    summaryFileLocation: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
+  condition: always()
+
+- task: DotNetCoreCLI@2
+  displayName: 'Publicar Artefatos de Build'
+  inputs:
+    command: 'publish'
+    projects: 'backend/MeuCatalogo.API/MeuCatalogo.API.csproj'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/api'
+    publishWebProjects: true
+    zipAfterPublish: true
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publicar Artefatos'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))

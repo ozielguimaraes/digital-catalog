@@ -1,0 +1,66 @@
+# Pipeline de CD - Deploy para Azure App Service
+# Executa apenas após CI bem-sucedido na branch main
+
+trigger: none  # Não executa por trigger, apenas por completion do CI
+
+pr: none  # Não executa em PRs
+
+resources:
+  pipelines:
+  - pipeline: CI_PIPELINE  # Referência à pipeline de CI
+    source: 'CI-MeuCatalogo'  # Nome da pipeline de CI
+    trigger:
+      branches:
+        include:
+        - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  azureSubscription: 'GTech(b42a60f5-3c02-4a26-851c-36d2273fb56a)'
+  appName: 'catalogo-api'
+  resourceGroupName: 'Catalogo'
+  slotName: 'production'
+  runtimeStack: 'DOTNETCORE|6.0'
+
+stages:
+- stage: Deploy
+  displayName: 'Deploy para Azure App Service'
+  condition: and(succeeded(), eq(variables['resources.pipeline.CI_PIPELINE.sourceBranch'], 'refs/heads/main'))
+  
+  jobs:
+  - deployment: DeployToAzure
+    displayName: 'Deploy para Azure'
+    environment: 'production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: CI_PIPELINE
+            artifact: drop
+            displayName: 'Download artefatos do CI'
+
+          - task: AzureWebApp@1
+            displayName: 'Deploy para Azure App Service'
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              appType: 'webAppLinux'
+              appName: '$(appName)'
+              deployToSlotOrASE: true
+              resourceGroupName: '$(resourceGroupName)'
+              slotName: '$(slotName)'
+              package: '$(Pipeline.Workspace)/CI_PIPELINE/drop/api/*.zip'
+              runtimeStack: '$(runtimeStack)'
+              
+          - task: AzureAppServiceManage@0
+            displayName: 'Verificar saúde do App Service'
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              appType: 'webAppLinux'
+              WebAppName: '$(appName)'
+              ResourceGroupName: '$(resourceGroupName)'
+              CustomAction: 'Swap Slots'
+              SourceSlot: 'staging'
+              SwapWithProduction: true
+            continueOnError: true
