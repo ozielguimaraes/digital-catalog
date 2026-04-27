@@ -130,7 +130,11 @@
                         <CollectionView.EmptyView>
                             <Border Style="{StaticResource Card}"
                                     Padding="16"
-                                    HeightRequest="120">
+                                    HeightRequest="120"
+                                    IsEnabled="{Binding IsProcessandoImagem, Converter={toolkit:InvertedBoolConverter}}">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding AdicionarImagemCommand}" />
+                                </Border.GestureRecognizers>
                                 <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="6">
                                     <Label Style="{StaticResource Caps}" Text="SEM IMAGENS" HorizontalTextAlignment="Center" />
                                     <Label Style="{StaticResource BodyMuted}" Text="Toque em adicionar para enviar fotos do produto." HorizontalTextAlignment="Center" />

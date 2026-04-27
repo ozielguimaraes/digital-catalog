@@ -102,7 +102,7 @@ export class DateUtils {
 
     const diffInMonths = Math.floor(diffInDays / 30);
     if (diffInMonths < 12) {
-      return `há ${diffInMonths} mês${diffInMonths > 1 ? 'es' : ''}`;
+      return `há ${diffInMonths} ${diffInMonths > 1 ? 'meses' : 'mês'}`;
     }
 
     const diffInYears = Math.floor(diffInMonths / 12);

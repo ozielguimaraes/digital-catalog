@@ -11,7 +11,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace MeuCatalogo.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Authorize]
 [SwaggerTag("Gerenciamento de categorias de produtos")]
 public class CategoriasController : BaseApiController

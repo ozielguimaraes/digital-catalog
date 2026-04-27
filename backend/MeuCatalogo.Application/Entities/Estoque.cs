@@ -15,6 +15,7 @@ public class Estoque : BaseEntity
 
     public Estoque()
     {
+        Disponivel = true;
     }
 
     public Estoque(Guid produtoId, int quantidade, int? quantidadeMinima = null, int? quantidadeMaxima = null) : this()

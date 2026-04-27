@@ -194,6 +194,25 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
     }
 
     [RelayCommand]
+    private async Task VerDetalhe(ProdutoEntity produto)
+    {
+        if (IsBusy)
+            return;
+
+        try
+        {
+            IsBusy = true;
+            await Task.Yield();
+            await _navigationService.NavigateToAsync(nameof(ProdutoDetalhePage),
+                new Dictionary<string, object> { { "Produto", produto } });
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
     private async Task Editar(ProdutoEntity produto)
     {
         if (IsBusy)

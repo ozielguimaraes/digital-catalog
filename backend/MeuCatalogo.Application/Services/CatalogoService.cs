@@ -142,7 +142,7 @@ public sealed class CatalogoService : ICatalogoService
     {
         Guid? id = await _dbContext.Catalogos
             .Where(x => x.UserId == userId && x.Produtos.Any(produto => produto.Id == produtoId))
-            .Select(x => x.Id)
+            .Select(x => (Guid?)x.Id)
             .FirstOrDefaultAsync();
 
         if (id == null)

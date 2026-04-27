@@ -1,6 +1,6 @@
 # Backend
 
-ASP.NET Core 8 backend. Two projects:
+ASP.NET Core 6 backend. Two projects:
 
 - **`MeuCatalogo.API/`** — host, HTTP surface, middlewares, JWT auth, Swagger, Serilog + Sentry, and EF Core migrations. See `MeuCatalogo.API/CLAUDE.md`.
 - **`MeuCatalogo.Application/`** — entities, business services, DTOs, mappers, DbContext, storage adapters. No ASP.NET Core dependency. See `MeuCatalogo.Application/CLAUDE.md`.

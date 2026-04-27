@@ -16,6 +16,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 using Sentry;
+using Asp.Versioning;
+using AspNetCoreRateLimit;
+using MeuCatalogo.API.Infrastructure.RateLimiting;
 
 try
 {
@@ -216,9 +219,59 @@ try
     builder.Services.AddAuthorization();
     builder.Services.AddMemoryCache();
 
+    builder.Services.AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion = new ApiVersion(1, 0);
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ReportApiVersions = true;
+        options.ApiVersionReader = new UrlSegmentApiVersionReader();
+    })
+    .AddMvc()
+    .AddApiExplorer(options =>
+    {
+        options.GroupNameFormat = "'v'VVV";
+        options.SubstituteApiVersionInUrl = true;
+    });
+
+    builder.Services.AddOptions();
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.Configure<IpRateLimitOptions>(options =>
+    {
+        options.EnableEndpointRateLimiting = true;
+        options.StackBlockedRequests = false;
+        options.HttpStatusCode = 429;
+        options.RealIpHeader = "X-Forwarded-For";
+        options.GeneralRules = new List<RateLimitRule>
+        {
+            new RateLimitRule { Endpoint = "*", Period = "1m", Limit = 300 },
+            new RateLimitRule { Endpoint = "*:/api/v1/auth/login", Period = "1m", Limit = 5 },
+            new RateLimitRule { Endpoint = "*:/api/v1/auth/register", Period = "1m", Limit = 5 },
+            new RateLimitRule { Endpoint = "*:/api/v1/auth/refresh-token", Period = "1m", Limit = 10 },
+            new RateLimitRule { Endpoint = "*:/api/v1/auth/forgot-password", Period = "1m", Limit = 3 },
+            new RateLimitRule { Endpoint = "*:/api/v1/auth/reset-password", Period = "1m", Limit = 5 }
+        };
+    });
+    builder.Services.Configure<ClientRateLimitOptions>(options =>
+    {
+        options.EnableEndpointRateLimiting = true;
+        options.StackBlockedRequests = false;
+        options.HttpStatusCode = 429;
+        options.ClientWhitelist = new List<string> { JwtUserClientResolveContributor.AnonymousClientId };
+        options.GeneralRules = new List<RateLimitRule>
+        {
+            new RateLimitRule { Endpoint = "*", Period = "1m", Limit = 120 }
+        };
+    });
+    builder.Services.AddInMemoryRateLimiting();
+    builder.Services.AddSingleton<IRateLimitConfiguration, JwtRateLimitConfiguration>();
+
     builder.Services.AddScoped<ICatalogoService, CatalogoService>();
     builder.Services.AddScoped<IProdutoService, ProdutoService>();
     builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+    builder.Services.AddScoped<IClienteService, ClienteService>();
+    builder.Services.AddScoped<IPedidoService, PedidoService>();
+    builder.Services.AddScoped<IFornecedorService, FornecedorService>();
+    builder.Services.AddScoped<IFinanceiroService, FinanceiroService>();
     builder.Services.AddScoped<IPlanoAssinaturaService, PlanoAssinaturaService>();
     builder.Services.AddScoped<IRefreshTokenService, MeuCatalogo.API.Services.RefreshTokenService>();
 
@@ -348,6 +401,14 @@ try
         }
     }
 
+    var forwardedHeadersOptions = new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
+    };
+    forwardedHeadersOptions.KnownNetworks.Clear();
+    forwardedHeadersOptions.KnownProxies.Clear();
+    app.UseForwardedHeaders(forwardedHeadersOptions);
+
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
@@ -356,11 +417,6 @@ try
     });
 
     app.UseSentryTracing();
-
-    app.UseForwardedHeaders(new ForwardedHeadersOptions
-    {
-        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
-    });
 
     var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "Uploads");
 
@@ -382,14 +438,17 @@ try
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseMiddleware<ProblemDetailsStatusCodeMiddleware>();
 
+    app.UseIpRateLimiting();
 
     app.UseAuthentication();
     app.UseAuthorization();
 
+    app.UseClientRateLimiting();
+
     // Add health check endpoint
     app.MapHealthChecks("/health");
 
-    app.MapGet("/", () => Results.Redirect("/swagger"));
+    app.MapGet("/", () => Results.Redirect("/swagger/index.html", permanent: false));
     app.MapControllers();
 
     Console.WriteLine("✓ Application configured successfully.");

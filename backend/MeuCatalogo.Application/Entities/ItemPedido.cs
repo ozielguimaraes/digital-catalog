@@ -7,10 +7,15 @@ public class ItemPedido : BaseEntity
     public Guid ProdutoId { get; set; }
     public Produto Produto { get; set; }
     public Guid? VariacaoId { get; set; }
-    public Variacao Variacao { get; set; }
+    public Variacao? Variacao { get; set; }
     public int Quantidade { get; set; }
     public decimal PrecoUnitario { get; set; }
     public decimal Subtotal { get; set; }
+
+    // Snapshot — preserva o que o cliente comprou no momento do pedido.
+    // Produto/variação podem ser renomeados, ter preço alterado ou serem removidos depois.
+    public string ProdutoNome { get; set; } = string.Empty;
+    public string? VariacaoDescricao { get; set; }
 
     public ItemPedido()
     {

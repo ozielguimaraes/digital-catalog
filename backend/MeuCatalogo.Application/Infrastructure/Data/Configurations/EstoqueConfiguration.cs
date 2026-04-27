@@ -16,7 +16,7 @@ public class EstoqueConfiguration : IEntityTypeConfiguration<Estoque>
         builder.Property(x => x.Quantidade).HasPrecision(18, 2);
         builder.Property(x => x.QuantidadeMinima).HasPrecision(18, 2);
         builder.Property(x => x.QuantidadeMaxima).HasPrecision(18, 2);
-        builder.Property(x => x.Disponivel).IsRequired().HasDefaultValue(true);
+        builder.Property(x => x.Disponivel).IsRequired();
         builder.Property(x => x.DataCriacao).IsRequired();
         builder.Property(x => x.DataAtualizacao);
 

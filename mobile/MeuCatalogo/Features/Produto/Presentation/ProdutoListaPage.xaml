@@ -148,7 +148,7 @@
 
                                     <Border Style="{StaticResource CardElevated}" Padding="0">
                                         <Border.GestureRecognizers>
-                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type produto:ProdutoListaPageViewModel}}, Path=EditarCommand}"
+                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type produto:ProdutoListaPageViewModel}}, Path=VerDetalheCommand}"
                                                                   CommandParameter="{Binding .}" />
                                         </Border.GestureRecognizers>
 

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:financeiro="clr-namespace:MeuCatalogo.Features.Financeiro"
+             xmlns:domain="clr-namespace:MeuCatalogo.Features.Financeiro.Domain"
+             x:Class="MeuCatalogo.Features.Financeiro.LancamentoListView"
+             x:Name="LancamentoListRoot">
+    <CollectionView ItemsSource="{Binding Source={x:Reference LancamentoListRoot}, Path=Lancamentos}"
+                    SelectionMode="None">
+        <CollectionView.ItemsLayout>
+            <LinearItemsLayout Orientation="Vertical" ItemSpacing="12" />
+        </CollectionView.ItemsLayout>
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="domain:LancamentoInfo">
+                <Border Style="{StaticResource CardElevated}" Padding="18">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <VerticalStackLayout Grid.Column="0" Spacing="6">
+                            <Label Style="{StaticResource SerifH3}"
+                                   Text="{Binding Descricao}"
+                                   LineBreakMode="TailTruncation" />
+                            <Label Style="{StaticResource BodyMuted}"
+                                   Text="{Binding VencimentoLabel}" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1"
+                                             HorizontalOptions="End"
+                                             VerticalOptions="Center"
+                                             Spacing="4">
+                            <Label Text="{Binding Valor, StringFormat='{0:C}'}"
+                                   FontFamily="LatoBold"
+                                   FontSize="15"
+                                   HorizontalTextAlignment="End"
+                                   TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}" />
+                            <Border Style="{StaticResource ChipNeutral}"
+                                    HorizontalOptions="End">
+                                <Border.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding Status}" Value="{x:Static domain:LancamentoStatus.Pago}">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource SuccessSoftColor}" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Border" Binding="{Binding Status}" Value="{x:Static domain:LancamentoStatus.Atrasado}">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource DangerSoftColor}" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+                                <Label Text="{Binding Status, Converter={x:Static financeiro:LancamentoStatusLabelConverter.Instance}}"
+                                       FontFamily="LatoBold"
+                                       FontSize="10"
+                                       CharacterSpacing="2">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding Status}" Value="{x:Static domain:LancamentoStatus.Pago}">
+                                            <Setter Property="TextColor" Value="{StaticResource SuccessColor}" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Label" Binding="{Binding Status}" Value="{x:Static domain:LancamentoStatus.Atrasado}">
+                                            <Setter Property="TextColor" Value="{StaticResource DangerColor}" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Label" Binding="{Binding Status}" Value="{x:Static domain:LancamentoStatus.Pendente}">
+                                            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextMutedColorLight}, Dark={StaticResource TextMutedColorDark}}" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                            </Border>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+</ContentView>

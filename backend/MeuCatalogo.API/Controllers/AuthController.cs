@@ -18,7 +18,7 @@ using Microsoft.EntityFrameworkCore;
 namespace MeuCatalogo.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [SwaggerTag("Autenticação e autorização de usuários")]
 public class AuthController : BaseApiController
 {

@@ -65,6 +65,20 @@ public sealed class PedidoService : IPedidoService
                 if (!estoque.TemEstoqueSuficiente(itemRequest.Quantidade))
                     return ApiResponse<PedidoResponse>.Error($"Quantidade insuficiente do produto {produto.Nome} em estoque");
 
+                string? variacaoDescricao = null;
+                if (itemRequest.VariacaoId.HasValue)
+                {
+                    var variacao = await _dbContext.Variacoes
+                        .Include(v => v.TipoVariacao)
+                        .Include(v => v.OpcaoVariacao)
+                        .FirstOrDefaultAsync(v => v.Id == itemRequest.VariacaoId.Value && v.ProdutoId == produto.Id);
+
+                    if (variacao == null)
+                        return ApiResponse<PedidoResponse>.Error($"Variação {itemRequest.VariacaoId} não encontrada para o produto {produto.Nome}");
+
+                    variacaoDescricao = $"{variacao.TipoVariacao?.Nome}: {variacao.OpcaoVariacao?.Valor}";
+                }
+
                 decimal precoUnitario = produto.ObterPrecoUnitario();
 
                 var item = new ItemPedido(
@@ -72,8 +86,12 @@ public sealed class PedidoService : IPedidoService
                     produtoId: itemRequest.ProdutoId,
                     quantidade: itemRequest.Quantidade,
                     precoUnitario: precoUnitario,
-                    variacaoId: null
-                );
+                    variacaoId: itemRequest.VariacaoId
+                )
+                {
+                    ProdutoNome = produto.Nome,
+                    VariacaoDescricao = variacaoDescricao
+                };
 
                 await _dbContext.ItensPedido.AddAsync(item);
 

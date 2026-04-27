@@ -13,6 +13,8 @@ public static class PedidoMapper
             ClienteId = pedido.ClienteId,
             ClienteNome = pedido.Cliente!.Nome,
             ValorTotal = pedido.ValorTotal,
+            Status = pedido.Status,
+            FormaPagamento = pedido.FormaPagamento,
             CreatedAt = pedido.DataCriacao,
             UpdatedAt = pedido.DataAtualizacao,
             Itens = new List<ItemPedidoResponse>()
@@ -24,7 +26,9 @@ public static class PedidoMapper
             {
                 Id = item.Id,
                 ProdutoId = item.ProdutoId,
-                ProdutoNome = item.Produto.Nome,
+                ProdutoNome = item.ProdutoNome,
+                VariacaoId = item.VariacaoId,
+                VariacaoDescricao = item.VariacaoDescricao,
                 Quantidade = item.Quantidade,
                 ValorUnitario = item.PrecoUnitario,
                 Subtotal = item.Subtotal

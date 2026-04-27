@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:mais="clr-namespace:MeuCatalogo.Features.Mais"
+             x:Class="MeuCatalogo.Features.Mais.MaisPage"
+             x:Name="MaisPageRoot"
+             x:DataType="mais:MaisPageViewModel">
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            BindingContext="{Binding Source={x:Reference MaisPageRoot}, Path=BindingContext}"
+            EventName="Appearing"
+            Command="{Binding CarregarCommand}" />
+    </ContentPage.Behaviors>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="0" Spacing="0">
+
+            <!-- Hero perfil -->
+            <Border Style="{StaticResource Hero}" HeightRequest="220">
+                <Grid Padding="24,52,24,24" RowDefinitions="Auto,*">
+                    <Label Grid.Row="0"
+                           Text="MAIS"
+                           FontFamily="LatoBlack"
+                           FontSize="11"
+                           CharacterSpacing="6"
+                           TextColor="{StaticResource OnPrimaryColor}"
+                           Opacity="0.85" />
+                    <Grid Grid.Row="1" ColumnDefinitions="64,*" ColumnSpacing="14" VerticalOptions="End">
+                        <Border Grid.Column="0"
+                                StrokeThickness="0"
+                                BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource BrandAlabaster}}"
+                                HeightRequest="64"
+                                WidthRequest="64">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="32" />
+                            </Border.StrokeShape>
+                            <Label Text="{Binding Iniciais}"
+                                   FontFamily="LoraSemiBold"
+                                   FontSize="22"
+                                   TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                            <Label Text="{Binding NomeUsuario}"
+                                   FontFamily="LoraSemiBold"
+                                   FontSize="22"
+                                   TextColor="{StaticResource OnPrimaryColor}"
+                                   LineBreakMode="TailTruncation" />
+                            <Label Text="{Binding Email}"
+                                   FontFamily="LatoRegular"
+                                   FontSize="13"
+                                   TextColor="{StaticResource OnPrimaryColor}"
+                                   Opacity="0.85"
+                                   LineBreakMode="TailTruncation" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <VerticalStackLayout Padding="20,-32,20,32" Spacing="14">
+
+                <!-- CRM section -->
+                <Border Style="{StaticResource Card}" Padding="0">
+                    <VerticalStackLayout Spacing="0">
+                        <Label Style="{StaticResource Caps}" Text="CRM" Padding="20,16,20,0" />
+
+                        <Grid ColumnDefinitions="*,Auto" Padding="20,12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding IrClientesCommand}" />
+                            </Grid.GestureRecognizers>
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Style="{StaticResource SerifH3}" Text="Clientes" />
+                                <Label Style="{StaticResource BodyMuted}" Text="Lista, contatos e histórico" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="1"
+                                   Text="›"
+                                   FontFamily="LoraMedium"
+                                   FontSize="22"
+                                   VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextMutedColorLight}, Dark={StaticResource TextMutedColorDark}}" />
+                        </Grid>
+
+                        <BoxView Style="{StaticResource Divider}" Margin="20,0" />
+
+                        <Grid ColumnDefinitions="*,Auto" Padding="20,12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding IrFornecedoresCommand}" />
+                            </Grid.GestureRecognizers>
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Style="{StaticResource SerifH3}" Text="Fornecedores" />
+                                <Label Style="{StaticResource BodyMuted}" Text="Couros, ferragens e parceiros" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="1"
+                                   Text="›"
+                                   FontFamily="LoraMedium"
+                                   FontSize="22"
+                                   VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextMutedColorLight}, Dark={StaticResource TextMutedColorDark}}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Financeiro section -->
+                <Border Style="{StaticResource Card}" Padding="0">
+                    <VerticalStackLayout Spacing="0">
+                        <Label Style="{StaticResource Caps}" Text="GESTÃO" Padding="20,16,20,0" />
+
+                        <Grid ColumnDefinitions="*,Auto" Padding="20,12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding IrFinanceiroCommand}" />
+                            </Grid.GestureRecognizers>
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Style="{StaticResource SerifH3}" Text="Financeiro" />
+                                <Label Style="{StaticResource BodyMuted}" Text="Fluxo de caixa, a receber, a pagar" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="1"
+                                   Text="›"
+                                   FontFamily="LoraMedium"
+                                   FontSize="22"
+                                   VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextMutedColorLight}, Dark={StaticResource TextMutedColorDark}}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Conta -->
+                <Border Style="{StaticResource Card}" Padding="20">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Style="{StaticResource Caps}" Text="CONTA" />
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Label Grid.Column="0" Style="{StaticResource Caps}" Text="VERSÃO" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding VersionName}"
+                                   Style="{StaticResource BodyMuted}"
+                                   HorizontalOptions="End" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Logout -->
+                <Border StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource SurfaceMutedColorDark}}"
+                        Padding="18,14">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding LogoutCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label Text="Sair"
+                           FontFamily="LatoBold"
+                           FontSize="14"
+                           HorizontalTextAlignment="Center"
+                           TextColor="{StaticResource DangerColor}" />
+                </Border>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

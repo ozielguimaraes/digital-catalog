@@ -12,7 +12,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace MeuCatalogo.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Authorize]
 [SwaggerTag("Gerenciamento de planos de assinatura e assinaturas de usuários")]
 public class PlanoAssinaturaController : BaseApiController

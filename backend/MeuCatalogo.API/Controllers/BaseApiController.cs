@@ -1,4 +1,5 @@
 using System.Net;
+using Asp.Versioning;
 using MeuCatalogo.Application.DTOs.Responses;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -6,7 +7,8 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 namespace MeuCatalogo.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public abstract class BaseApiController : ControllerBase
 {
     protected IActionResult OkResponse<T>(T data) => Ok(data);

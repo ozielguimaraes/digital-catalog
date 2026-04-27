@@ -9,7 +9,7 @@ using MeuCatalogo.Application.DTOs.Responses;
 namespace MeuCatalogo.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Authorize]
 [SwaggerTag("Gerenciamento de produtos")]
 public class ProdutosController : BaseApiController

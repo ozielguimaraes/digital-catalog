@@ -17,12 +17,31 @@ using MeuCatalogo.Features.Categoria.Data.Local;
 using MeuCatalogo.Features.Categoria.Data.Remote;
 using MeuCatalogo.Features.Categoria.Data.Sync;
 using MeuCatalogo.Features.Categoria.UseCases;
+using MeuCatalogo.Features.Cliente;
+using MeuCatalogo.Features.Cliente.Data;
+using MeuCatalogo.Features.Cliente.Data.Remote;
+using MeuCatalogo.Features.Cliente.UseCases;
 using MeuCatalogo.Features.Estoque;
+using MeuCatalogo.Features.Financeiro;
+using MeuCatalogo.Features.Financeiro.Data;
+using MeuCatalogo.Features.Financeiro.Data.Remote;
+using MeuCatalogo.Features.Financeiro.UseCases;
+using MeuCatalogo.Features.Fornecedor;
+using MeuCatalogo.Features.Fornecedor.Data;
+using MeuCatalogo.Features.Fornecedor.Data.Remote;
+using MeuCatalogo.Features.Fornecedor.UseCases;
+using MeuCatalogo.Features.Home;
+using MeuCatalogo.Features.Mais;
+using MeuCatalogo.Features.Pedido;
+using MeuCatalogo.Features.Pedido.Data;
+using MeuCatalogo.Features.Pedido.Data.Remote;
+using MeuCatalogo.Features.Pedido.UseCases;
 using MeuCatalogo.Features.Produto;
 using MeuCatalogo.Features.Produto.Data;
 using MeuCatalogo.Features.Produto.Data.Local;
 using MeuCatalogo.Features.Produto.Data.Remote;
 using MeuCatalogo.Features.Produto.Data.Sync;
+using MeuCatalogo.Features.Produto.Presentation;
 using MeuCatalogo.Features.Produto.UseCases;
 using MeuCatalogo.Features.Settings.Services;
 using MeuCatalogo.Core.Abstractions.Imaging;
@@ -30,6 +49,7 @@ using MeuCatalogo.Infrastructure;
 using MeuCatalogo.Infrastructure.Database;
 using MeuCatalogo.Infrastructure.Imaging;
 using MeuCatalogo.Infrastructure.SyncEngine;
+using System.Net;
 using Plugin.Maui.BottomSheet.Hosting;
 using Polly;
 using Polly.Extensions.Http;
@@ -52,7 +72,24 @@ public static class ServiceCollectionExtension
 
         var retryPolicy = HttpPolicyExtensions
             .HandleTransientHttpError()
-            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+            .OrResult(msg => msg.StatusCode == HttpStatusCode.TooManyRequests)
+            .WaitAndRetryAsync(
+                retryCount: 3,
+                sleepDurationProvider: (retryAttempt, response, _) =>
+                {
+                    var retryAfter = response.Result?.Headers?.RetryAfter;
+                    if (retryAfter is not null)
+                    {
+                        if (retryAfter.Delta.HasValue) return retryAfter.Delta.Value;
+                        if (retryAfter.Date.HasValue)
+                        {
+                            var delay = retryAfter.Date.Value - DateTimeOffset.UtcNow;
+                            if (delay > TimeSpan.Zero) return delay;
+                        }
+                    }
+                    return TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
+                },
+                onRetryAsync: (_, _, _, _) => Task.CompletedTask);
 
         // Register Refit with Polly and IHttpClientFactory
         builder.Services
@@ -81,6 +118,34 @@ public static class ServiceCollectionExtension
 
         builder.Services
             .AddRefitClient<IProdutoApi>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseUrl))
+            .AddHttpMessageHandler<AuthenticationHandler>()
+            .AddHttpMessageHandler<LoggingHttpClientHandler>()
+            .AddPolicyHandler(retryPolicy);
+
+        builder.Services
+            .AddRefitClient<IPedidoApi>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseUrl))
+            .AddHttpMessageHandler<AuthenticationHandler>()
+            .AddHttpMessageHandler<LoggingHttpClientHandler>()
+            .AddPolicyHandler(retryPolicy);
+
+        builder.Services
+            .AddRefitClient<IClienteApi>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseUrl))
+            .AddHttpMessageHandler<AuthenticationHandler>()
+            .AddHttpMessageHandler<LoggingHttpClientHandler>()
+            .AddPolicyHandler(retryPolicy);
+
+        builder.Services
+            .AddRefitClient<IFornecedorApi>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseUrl))
+            .AddHttpMessageHandler<AuthenticationHandler>()
+            .AddHttpMessageHandler<LoggingHttpClientHandler>()
+            .AddPolicyHandler(retryPolicy);
+
+        builder.Services
+            .AddRefitClient<IFinanceiroApi>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseUrl))
             .AddHttpMessageHandler<AuthenticationHandler>()
             .AddHttpMessageHandler<LoggingHttpClientHandler>()
@@ -140,6 +205,22 @@ public static class ServiceCollectionExtension
         builder.Services.AddTransient<GetProdutosUseCase>();
         builder.Services.AddTransient<CreateProdutoUseCase>();
         builder.Services.AddTransient<SyncProdutosByCatalogoUseCase>();
+        builder.Services.AddTransient<IPedidoRemoteDataSource, PedidoRemoteDataSource>();
+        builder.Services.AddTransient<IPedidoRepository, PedidoRepository>();
+        builder.Services.AddTransient<GetPedidosUseCase>();
+        builder.Services.AddTransient<DeletePedidoUseCase>();
+
+        builder.Services.AddTransient<IClienteRemoteDataSource, ClienteRemoteDataSource>();
+        builder.Services.AddTransient<IClienteRepository, ClienteRepository>();
+        builder.Services.AddTransient<GetClientesUseCase>();
+
+        builder.Services.AddTransient<IFornecedorRepository, FornecedorRepository>();
+        builder.Services.AddTransient<GetFornecedoresUseCase>();
+
+        builder.Services.AddTransient<IFinanceiroRepository, FinanceiroRepository>();
+        builder.Services.AddTransient<GetFinanceiroResumoUseCase>();
+        builder.Services.AddTransient<GetLancamentosUseCase>();
+
         builder.Services.AddTransient<ISyncHandler, CatalogoPullSyncHandler>();
         builder.Services.AddTransient<ISyncHandler, CategoriaPullSyncHandler>();
         builder.Services.AddTransient<ISyncHandler, ProdutoPullSyncHandler>();
@@ -165,17 +246,51 @@ public static class ServiceCollectionExtension
         //Feature Categoria
         builder.Services.AddBottomSheet<EstoqueBottomSheet, EstoqueBottomSheetViewModel>(BottomSheetKeys.Estoque);
 
+        //Feature Home
+        builder.Services.AddTransient<HomePage>();
+        builder.Services.AddTransient<HomePageViewModel>();
+
         //Feature Catalogos
         builder.Services.AddTransient<CatalogoListaPage>();
         builder.Services.AddTransient<CatalogoListaPageViewModel>();
         builder.Services.AddTransient<CatalogoAdicionarPage>();
         builder.Services.AddTransient<CatalogoAdicionarPageViewModel>();
+        builder.Services.AddTransient<CatalogoDetalhePage>();
+        builder.Services.AddTransient<CatalogoDetalhePageViewModel>();
+        builder.Services.AddTransient<CatalogoPublicaPage>();
+        builder.Services.AddTransient<CatalogoPublicaPageViewModel>();
 
         //Feature Produtos
         builder.Services.AddTransient<ProdutoListaPage>();
         builder.Services.AddTransient<ProdutoListaPageViewModel>();
         builder.Services.AddTransient<ProdutoAdicionarPage>();
         builder.Services.AddTransient<ProdutoAdicionarPageViewModel>();
+        builder.Services.AddTransient<ProdutoDetalhePage>();
+        builder.Services.AddTransient<ProdutoDetalhePageViewModel>();
+
+        //Feature Pedido
+        builder.Services.AddTransient<PedidoListaPage>();
+        builder.Services.AddTransient<PedidoListaPageViewModel>();
+
+        //Feature Cliente
+        builder.Services.AddTransient<ClienteListaPage>();
+        builder.Services.AddTransient<ClienteListaPageViewModel>();
+
+        //Feature Fornecedor (mock)
+        builder.Services.AddTransient<FornecedorListaPage>();
+        builder.Services.AddTransient<FornecedorListaPageViewModel>();
+
+        //Feature Financeiro (mock)
+        builder.Services.AddTransient<FinanceiroPage>();
+        builder.Services.AddTransient<FinanceiroPageViewModel>();
+        builder.Services.AddTransient<ReceberPage>();
+        builder.Services.AddTransient<ReceberPageViewModel>();
+        builder.Services.AddTransient<PagarPage>();
+        builder.Services.AddTransient<PagarPageViewModel>();
+
+        //Feature Mais
+        builder.Services.AddTransient<MaisPage>();
+        builder.Services.AddTransient<MaisPageViewModel>();
 
         //Feature Settings
 

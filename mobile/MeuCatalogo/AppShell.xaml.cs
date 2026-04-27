@@ -1,6 +1,13 @@
-﻿using MeuCatalogo.Features.Auth;
+using MeuCatalogo.Features.Auth;
 using MeuCatalogo.Features.Catalogo;
+using MeuCatalogo.Features.Cliente;
+using MeuCatalogo.Features.Financeiro;
+using MeuCatalogo.Features.Fornecedor;
+using MeuCatalogo.Features.Home;
+using MeuCatalogo.Features.Mais;
+using MeuCatalogo.Features.Pedido;
 using MeuCatalogo.Features.Produto;
+using MeuCatalogo.Features.Produto.Presentation;
 
 namespace MeuCatalogo;
 
@@ -22,21 +29,8 @@ public partial class AppShell : Shell
         try
         {
             await _appShellViewModel.UpdateUserInfo();
-            //tentando navegar para listaproduto ao invés da primeira no appshell
-            // string targetPage = _appShellViewModel.ObterPaginaInicial();
-            //
-            // string produtoAdicionarPage = nameof(ProdutoAdicionarPage);
-            // if (produtoAdicionarPage != targetPage)
-            // {
-            //     return;
-            // }
-            //
-            // var page = Items.FirstOrDefault(x => x.CurrentItem.Items.Any(i => i.Route.Equals(produtoAdicionarPage)));
-            //
-            // if (page is not null)
-            //     CurrentItem = page;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             throw;
         }
@@ -44,10 +38,23 @@ public partial class AppShell : Shell
 
     private static void RegisterRoutes()
     {
+        Routing.RegisterRoute(nameof(HomePage), typeof(HomePage));
+        Routing.RegisterRoute(nameof(MaisPage), typeof(MaisPage));
+
         Routing.RegisterRoute(nameof(CatalogoListaPage), typeof(CatalogoListaPage));
         Routing.RegisterRoute(nameof(CatalogoAdicionarPage), typeof(CatalogoAdicionarPage));
+        Routing.RegisterRoute(nameof(CatalogoDetalhePage), typeof(CatalogoDetalhePage));
+        Routing.RegisterRoute(nameof(CatalogoPublicaPage), typeof(CatalogoPublicaPage));
 
         Routing.RegisterRoute(nameof(ProdutoListaPage), typeof(ProdutoListaPage));
         Routing.RegisterRoute(nameof(ProdutoAdicionarPage), typeof(ProdutoAdicionarPage));
+        Routing.RegisterRoute(nameof(ProdutoDetalhePage), typeof(ProdutoDetalhePage));
+
+        Routing.RegisterRoute(nameof(PedidoListaPage), typeof(PedidoListaPage));
+        Routing.RegisterRoute(nameof(ClienteListaPage), typeof(ClienteListaPage));
+        Routing.RegisterRoute(nameof(FornecedorListaPage), typeof(FornecedorListaPage));
+        Routing.RegisterRoute(nameof(FinanceiroPage), typeof(FinanceiroPage));
+        Routing.RegisterRoute(nameof(ReceberPage), typeof(ReceberPage));
+        Routing.RegisterRoute(nameof(PagarPage), typeof(PagarPage));
     }
 }

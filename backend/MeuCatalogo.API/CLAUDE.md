@@ -1,6 +1,6 @@
 # MeuCatalogo.API
 
-ASP.NET Core 8 host project. Owns the HTTP surface, middleware pipeline, JWT auth, Swagger, Serilog + Sentry, and EF Core migrations. Business logic lives in `../MeuCatalogo.Application`.
+ASP.NET Core 6 host project. Owns the HTTP surface, middleware pipeline, JWT auth, Swagger, Serilog + Sentry, and EF Core migrations. Business logic lives in `../MeuCatalogo.Application`.
 
 ## Entry Point
 

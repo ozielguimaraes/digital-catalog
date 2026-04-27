@@ -16,6 +16,7 @@ BUILD_CONFIG="Release"
 BACKEND_DIR="."
 SOLUTION_FILE="$BACKEND_DIR/MeuCatalogo.sln"
 API_PROJECT="$BACKEND_DIR/MeuCatalogo.API/MeuCatalogo.API.csproj"
+TEST_PROJECT="$BACKEND_DIR/MeuCatalogo.Application.Tests/MeuCatalogo.Application.Tests.csproj"
 
 echo -e "${YELLOW}📁 Diretório do backend: $BACKEND_DIR${NC}"
 echo -e "${YELLOW}🔧 Configuração de build: $BUILD_CONFIG${NC}"
@@ -43,9 +44,10 @@ check_result "Build do projeto"
 
 # 3. Executar testes (se existirem)
 if find "$BACKEND_DIR" -name "*Tests.csproj" -type f | grep -q .; then
-    echo -e "${YELLOW}🧪 Executando testes unitários...${NC}"
-    dotnet test "$SOLUTION_FILE" --configuration "$BUILD_CONFIG" --no-build --logger "console;verbosity=detailed"
-    check_result "Testes unitários"
+ # 3. Executar testes
+echo -e "${YELLOW}🧪 Executando testes unitários...${NC}"
+dotnet test "$TEST_PROJECT" --configuration "$BUILD_CONFIG" --no-build
+check_result "Testes unitários"
 else
     echo -e "${YELLOW}⚠️  Nenhum projeto de teste encontrado, pulando testes${NC}"
 fi

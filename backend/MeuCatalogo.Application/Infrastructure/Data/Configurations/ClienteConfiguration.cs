@@ -15,6 +15,7 @@ public class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
         builder.Property(x => x.Nome).IsRequired().HasMaxLength(100);
         builder.Property(x => x.Email).IsRequired().HasMaxLength(100);
         builder.Property(x => x.Telefone).HasMaxLength(20);
+        builder.Property(x => x.Endereco).HasMaxLength(100);
         builder.Property(x => x.InformacoesAdicionais).HasMaxLength(500);
         builder.Property(x => x.DataCriacao).IsRequired();
         builder.Property(x => x.DataAtualizacao);

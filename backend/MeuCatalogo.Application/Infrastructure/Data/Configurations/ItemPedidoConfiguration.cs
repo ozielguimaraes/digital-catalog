@@ -14,9 +14,12 @@ public class ItemPedidoConfiguration : IEntityTypeConfiguration<ItemPedido>
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.PedidoId).IsRequired();
         builder.Property(x => x.ProdutoId).IsRequired();
+        builder.Property(x => x.VariacaoId).IsRequired(false);
         builder.Property(x => x.Quantidade).IsRequired();
         builder.Property(x => x.PrecoUnitario).IsRequired().HasPrecision(18, 2);
         builder.Property(x => x.Subtotal).IsRequired().HasPrecision(18, 2);
+        builder.Property(x => x.ProdutoNome).IsRequired().HasMaxLength(200);
+        builder.Property(x => x.VariacaoDescricao).HasMaxLength(200);
         builder.Property(x => x.DataCriacao).IsRequired();
         builder.Property(x => x.DataAtualizacao);
 

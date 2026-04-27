@@ -159,6 +159,10 @@
                                 </SwipeView.RightItems>
 
                                 <Border Style="{StaticResource CardElevated}" Padding="0">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding BindingContext.VerDetalheCommand, Source={RelativeSource AncestorType={x:Type catalogo:CatalogoListaPage}}}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
                                     <Grid ColumnDefinitions="6,*" RowDefinitions="*">
                                         <BoxView Grid.Column="0"
                                                  BackgroundColor="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}" />

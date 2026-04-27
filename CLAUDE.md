@@ -4,7 +4,7 @@ Multi-tenant digital catalog platform. A user (catalog owner) creates catalogs c
 
 ## Monorepo Layout
 
-- **`backend/`** — ASP.NET Core 8 API + Application layers. JWT auth, EF Core, Azure Blob / local storage, Serilog + Sentry. See `backend/CLAUDE.md`.
+- **`backend/`** — ASP.NET Core 6 API + Application layers. JWT auth, EF Core, Azure Blob / local storage, Serilog + Sentry. See `backend/CLAUDE.md`.
 - **`frontend/`** — Angular 20 storefront + admin dashboard. Tailwind v4, mixed standalone/NgModule, BehaviorSubject state. See `frontend/CLAUDE.md`.
 - **`mobile/`** — .NET MAUI cross-platform app. Clean architecture + MVVM, offline-first for catalogs and products, SQLite local store. See `mobile/CLAUDE.md`.
 - **`tests/`** — k6 load tests against the deployed API. See `tests/CLAUDE.md`.

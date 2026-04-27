@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:pedido="clr-namespace:MeuCatalogo.Features.Pedido"
+             xmlns:domain="clr-namespace:MeuCatalogo.Features.Pedido.Domain"
+             x:Class="MeuCatalogo.Features.Pedido.PedidoListaPage"
+             x:Name="PedidoListaPageRoot"
+             x:DataType="pedido:PedidoListaPageViewModel">
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            BindingContext="{Binding Source={x:Reference PedidoListaPageRoot}, Path=BindingContext}"
+            EventName="Appearing"
+            Command="{Binding CarregarCommand}" />
+    </ContentPage.Behaviors>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Padding="24,24,24,12" Spacing="6">
+            <Label Style="{StaticResource Caps}" Text="ATELIÊ · CRM" />
+            <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                <Label Grid.Column="0"
+                       Style="{StaticResource SerifH1}"
+                       Text="Pedidos" />
+                <Border Grid.Column="1" Style="{StaticResource IconCircle}">
+                    <Label Text="+"
+                           FontFamily="LoraMedium"
+                           FontSize="24"
+                           TextColor="{StaticResource OnPrimaryColor}"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding NovoPedidoCommand}" />
+                    </Border.GestureRecognizers>
+                </Border>
+            </Grid>
+        </VerticalStackLayout>
+
+        <ScrollView Grid.Row="1">
+            <Grid Padding="24,8,24,32" RowDefinitions="Auto,Auto">
+
+                <!-- Loading -->
+                <VerticalStackLayout Grid.Row="0"
+                                     IsVisible="{Binding IsLoading}"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Center"
+                                     Padding="0,48"
+                                     Spacing="12">
+                    <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                       WidthRequest="36"
+                                       HeightRequest="36" />
+                    <Label Style="{StaticResource BodyMuted}"
+                           HorizontalTextAlignment="Center"
+                           Text="Carregando pedidos…" />
+                </VerticalStackLayout>
+
+                <!-- Empty -->
+                <VerticalStackLayout Grid.Row="0"
+                                     IsVisible="{Binding ShowEmptyState}"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Center"
+                                     Padding="0,48"
+                                     Spacing="12">
+                    <Border Style="{StaticResource IconCircleSurface}"
+                            HeightRequest="92"
+                            WidthRequest="92"
+                            HorizontalOptions="Center">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="46" />
+                        </Border.StrokeShape>
+                        <Label Text="✦"
+                               FontFamily="LoraMedium"
+                               FontSize="32"
+                               TextColor="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+                    <Label Style="{StaticResource SerifH2}"
+                           HorizontalTextAlignment="Center"
+                           Text="Nenhum pedido ainda" />
+                    <Label Style="{StaticResource BodyMuted}"
+                           HorizontalTextAlignment="Center"
+                           Text="Quando seus clientes fizerem pedidos, eles aparecem aqui." />
+                </VerticalStackLayout>
+
+                <CollectionView Grid.Row="1"
+                                ItemsSource="{Binding Pedidos}"
+                                SelectionMode="None">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="14" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="domain:PedidoInfo">
+                        <Border Style="{StaticResource CardElevated}" Padding="18">
+                            <VerticalStackLayout Spacing="8">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Grid.Column="0"
+                                           Style="{StaticResource Caps}"
+                                           Text="{Binding Numero}" />
+                                    <Label Grid.Column="1"
+                                           Style="{StaticResource Caps}"
+                                           Text="{Binding DataLabel}" />
+                                </Grid>
+                                <Label Style="{StaticResource SerifH3}"
+                                       Text="{Binding ClienteNome}"
+                                       LineBreakMode="TailTruncation" />
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                                    <HorizontalStackLayout Grid.Column="0" Spacing="14">
+                                        <Label Style="{StaticResource BodyMuted}"
+                                               Text="{Binding QuantidadeItens, StringFormat='{0} itens'}" />
+                                        <Label Text="{Binding ValorTotal, StringFormat='{0:C}'}"
+                                               FontFamily="LatoBold"
+                                               FontSize="14"
+                                               TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}" />
+                                    </HorizontalStackLayout>
+                                    <Border Grid.Column="1" Style="{StaticResource ChipPrimary}">
+                                        <Label Text="{Binding Status, Converter={x:Static pedido:PedidoStatusLabelConverter.Instance}}"
+                                               FontFamily="LatoBold"
+                                               FontSize="10"
+                                               CharacterSpacing="2"
+                                               TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}" />
+                                    </Border>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </ScrollView>
+    </Grid>
+</ContentPage>

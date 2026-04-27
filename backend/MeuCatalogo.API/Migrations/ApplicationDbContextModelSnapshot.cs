@@ -273,12 +273,10 @@ namespace MeuCatalogo.API.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Endereco")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("InformacoesAdicionais")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -316,9 +314,7 @@ namespace MeuCatalogo.API.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("Disponivel")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("ProdutoId")
                         .HasColumnType("uniqueidentifier");
@@ -341,6 +337,62 @@ namespace MeuCatalogo.API.Migrations
                         .IsUnique();
 
                     b.ToTable("Estoques", (string)null);
+                });
+
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.Fornecedor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Categoria")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTime?>("DataAtualizacao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Documento")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("NomeContato")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Observacoes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Telefone")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Fornecedores", (string)null);
                 });
 
             modelBuilder.Entity("MeuCatalogo.Application.Entities.ItemPedido", b =>
@@ -368,6 +420,11 @@ namespace MeuCatalogo.API.Migrations
                     b.Property<Guid>("ProdutoId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("ProdutoNome")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<int>("Quantidade")
                         .HasColumnType("int");
 
@@ -375,8 +432,11 @@ namespace MeuCatalogo.API.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("VariacaoDescricao")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<Guid?>("VariacaoId")
-                        .IsRequired()
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -388,6 +448,73 @@ namespace MeuCatalogo.API.Migrations
                     b.HasIndex("VariacaoId");
 
                     b.ToTable("ItensPedido", (string)null);
+                });
+
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.Lancamento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("DataAtualizacao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DataPagamento")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DataVencimento")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid?>("FornecedorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Observacoes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid?>("PedidoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<decimal>("Valor")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DataVencimento");
+
+                    b.HasIndex("FornecedorId");
+
+                    b.HasIndex("PedidoId");
+
+                    b.HasIndex("UserId", "Tipo", "Status");
+
+                    b.ToTable("Lancamentos", (string)null);
                 });
 
             modelBuilder.Entity("MeuCatalogo.Application.Entities.OpcaoVariacao", b =>
@@ -575,6 +702,11 @@ namespace MeuCatalogo.API.Migrations
                     b.Property<bool>("Ativo")
                         .HasColumnType("bit");
 
+                    b.Property<string>("BasePath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("ContentType")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -606,11 +738,6 @@ namespace MeuCatalogo.API.Migrations
 
                     b.Property<long>("Size")
                         .HasColumnType("bigint");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
 
                     b.HasKey("Id");
 
@@ -924,6 +1051,17 @@ namespace MeuCatalogo.API.Migrations
                     b.Navigation("Produto");
                 });
 
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.Fornecedor", b =>
+                {
+                    b.HasOne("MeuCatalogo.Application.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("MeuCatalogo.Application.Entities.ItemPedido", b =>
                 {
                     b.HasOne("MeuCatalogo.Application.Entities.Pedido", "Pedido")
@@ -941,14 +1079,38 @@ namespace MeuCatalogo.API.Migrations
                     b.HasOne("MeuCatalogo.Application.Entities.Variacao", "Variacao")
                         .WithMany()
                         .HasForeignKey("VariacaoId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Pedido");
 
                     b.Navigation("Produto");
 
                     b.Navigation("Variacao");
+                });
+
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.Lancamento", b =>
+                {
+                    b.HasOne("MeuCatalogo.Application.Entities.Fornecedor", "Fornecedor")
+                        .WithMany()
+                        .HasForeignKey("FornecedorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MeuCatalogo.Application.Entities.Pedido", "Pedido")
+                        .WithMany()
+                        .HasForeignKey("PedidoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MeuCatalogo.Application.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Fornecedor");
+
+                    b.Navigation("Pedido");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MeuCatalogo.Application.Entities.OpcaoVariacao", b =>

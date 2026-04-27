@@ -5,6 +5,7 @@ import * as Sentry from '@sentry/angular';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { retryInterceptor } from './core/interceptors/retry.interceptor';
 import { DateConverterInterceptor } from './core/interceptors/date-converter.interceptor';
 import { AuthGuard } from './core/guards/auth.guard';
 import { GuestGuard } from './core/guards/guest.guard';
@@ -13,7 +14,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }), 
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, retryInterceptor])),
     {
       provide: HTTP_INTERCEPTORS,
       useClass: DateConverterInterceptor,

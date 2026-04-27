@@ -23,6 +23,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<PlanoAssinatura> PlanosAssinatura { get; set; }
     public DbSet<AssinaturaUsuario> AssinaturasUsuarios { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<Fornecedor> Fornecedores { get; set; }
+    public DbSet<Lancamento> Lancamentos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

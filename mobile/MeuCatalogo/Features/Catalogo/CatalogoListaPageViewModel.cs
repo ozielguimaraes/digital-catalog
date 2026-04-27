@@ -159,4 +159,11 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
     {
         await _navigationService.NavigateToAsync($"/{nameof(CatalogoAdicionarPage)}");
     }
+
+    [RelayCommand]
+    private async Task VerDetalhe(CatalogoInfo catalogo)
+    {
+        await _navigationService.NavigateToAsync(nameof(CatalogoDetalhePage),
+            new Dictionary<string, object> { { "Catalogo", catalogo } });
+    }
 }
