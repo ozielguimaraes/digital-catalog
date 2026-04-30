@@ -1,4 +1,4 @@
-﻿using System;
+﻿    using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -246,6 +246,87 @@ namespace MeuCatalogo.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "categorias_financeiras",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    user_id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
+                    tipo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    nome = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
+                    icone_nome = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: false),
+                    cor = table.Column<string>(type: "nvarchar(9)", maxLength: 9, nullable: false),
+                    ordem = table.Column<byte>(type: "tinyint", nullable: true),
+                    data_criacao = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    data_atualizacao = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ativo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_categorias_financeiras", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_categorias_financeiras_AspNetUsers_user_id",
+                        column: x => x.user_id,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "comprovantes_financeiros",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    user_id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
+                    descricao = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    base_path = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
+                    content_type = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
+                    size = table.Column<long>(type: "bigint", nullable: false),
+                    file_name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    data_criacao = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    data_atualizacao = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ativo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_comprovantes_financeiros", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_comprovantes_financeiros_AspNetUsers_user_id",
+                        column: x => x.user_id,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "contas",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    user_id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
+                    nome = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
+                    tipo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    cor = table.Column<string>(type: "nvarchar(9)", maxLength: 9, nullable: false),
+                    ordem = table.Column<byte>(type: "tinyint", nullable: true),
+                    limite = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    dia_fechamento = table.Column<byte>(type: "tinyint", nullable: true),
+                    dia_vencimento = table.Column<byte>(type: "tinyint", nullable: true),
+                    saldo_inicial = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    data_criacao = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    data_atualizacao = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ativo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_contas", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_contas_AspNetUsers_user_id",
+                        column: x => x.user_id,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Fornecedores",
                 columns: table => new
                 {
@@ -404,45 +485,55 @@ namespace MeuCatalogo.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Lancamentos",
+                name: "subcategorias_financeiras",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Descricao = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Valor = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    DataVencimento = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DataPagamento = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Tipo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Observacoes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    PedidoId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    FornecedorId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    UserId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
-                    DataCriacao = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DataAtualizacao = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Ativo = table.Column<bool>(type: "bit", nullable: false)
+                    id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    categoria_financeira_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    nome = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
+                    icone_nome = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: true),
+                    cor = table.Column<string>(type: "nvarchar(9)", maxLength: 9, nullable: true),
+                    ordem = table.Column<byte>(type: "tinyint", nullable: true),
+                    data_criacao = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    data_atualizacao = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ativo = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Lancamentos", x => x.Id);
+                    table.PrimaryKey("PK_subcategorias_financeiras", x => x.id);
                     table.ForeignKey(
-                        name: "FK_Lancamentos_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
+                        name: "FK_subcategorias_financeiras_categorias_financeiras_categoria_financeira_id",
+                        column: x => x.categoria_financeira_id,
+                        principalTable: "categorias_financeiras",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "faturas",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    conta_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    mes = table.Column<int>(type: "int", nullable: false),
+                    ano = table.Column<int>(type: "int", nullable: false),
+                    data_inicio = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    data_fim = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    data_vencimento = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    valor_pago = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    data_criacao = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    data_atualizacao = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ativo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_faturas", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_faturas_contas_conta_id",
+                        column: x => x.conta_id,
+                        principalTable: "contas",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Lancamentos_Fornecedores_FornecedorId",
-                        column: x => x.FornecedorId,
-                        principalTable: "Fornecedores",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_Lancamentos_Pedidos_PedidoId",
-                        column: x => x.PedidoId,
-                        principalTable: "Pedidos",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -475,6 +566,57 @@ namespace MeuCatalogo.API.Migrations
                         principalTable: "Categorias",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "recorrencias",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    user_id = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
+                    tipo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    descricao = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    conta_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    categoria_financeira_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    subcategoria_financeira_id = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    valor_padrao = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    periodicidade = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    dia_do_mes = table.Column<byte>(type: "tinyint", nullable: true),
+                    dia_da_semana = table.Column<int>(type: "int", nullable: true),
+                    data_inicio = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    data_fim = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    proxima_data = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    data_criacao = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    data_atualizacao = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ativo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_recorrencias", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_recorrencias_AspNetUsers_user_id",
+                        column: x => x.user_id,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_recorrencias_categorias_financeiras_categoria_financeira_id",
+                        column: x => x.categoria_financeira_id,
+                        principalTable: "categorias_financeiras",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_recorrencias_contas_conta_id",
+                        column: x => x.conta_id,
+                        principalTable: "contas",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_recorrencias_subcategorias_financeiras_subcategoria_financeira_id",
+                        column: x => x.subcategoria_financeira_id,
+                        principalTable: "subcategorias_financeiras",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -563,6 +705,101 @@ namespace MeuCatalogo.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Lancamentos",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Descricao = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Valor = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    DataVencimento = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DataPagamento = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Tipo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Observacoes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    PedidoId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    FornecedorId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
+                    conta_id = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    categoria_financeira_id = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    subcategoria_financeira_id = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    operacao = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    tipo_transferencia = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    lancamento_transferencia_id = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    parcela_atual = table.Column<short>(type: "smallint", nullable: true),
+                    parcela_total = table.Column<short>(type: "smallint", nullable: true),
+                    fatura_id = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    recorrencia_id = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    comprovante_financeiro_id = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    realizado = table.Column<bool>(type: "bit", nullable: false),
+                    DataCriacao = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DataAtualizacao = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Ativo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Lancamentos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Lancamentos_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Lancamentos_categorias_financeiras_categoria_financeira_id",
+                        column: x => x.categoria_financeira_id,
+                        principalTable: "categorias_financeiras",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Lancamentos_comprovantes_financeiros_comprovante_financeiro_id",
+                        column: x => x.comprovante_financeiro_id,
+                        principalTable: "comprovantes_financeiros",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Lancamentos_contas_conta_id",
+                        column: x => x.conta_id,
+                        principalTable: "contas",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Lancamentos_faturas_fatura_id",
+                        column: x => x.fatura_id,
+                        principalTable: "faturas",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Lancamentos_Fornecedores_FornecedorId",
+                        column: x => x.FornecedorId,
+                        principalTable: "Fornecedores",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Lancamentos_Lancamentos_lancamento_transferencia_id",
+                        column: x => x.lancamento_transferencia_id,
+                        principalTable: "Lancamentos",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Lancamentos_Pedidos_PedidoId",
+                        column: x => x.PedidoId,
+                        principalTable: "Pedidos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Lancamentos_recorrencias_recorrencia_id",
+                        column: x => x.recorrencia_id,
+                        principalTable: "recorrencias",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Lancamentos_subcategorias_financeiras_subcategoria_financeira_id",
+                        column: x => x.subcategoria_financeira_id,
+                        principalTable: "subcategorias_financeiras",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ItensPedido",
                 columns: table => new
                 {
@@ -599,6 +836,44 @@ namespace MeuCatalogo.API.Migrations
                         column: x => x.VariacaoId,
                         principalTable: "Variacoes",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "lancamentos_baixas",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    lancamento_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    data = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    valor = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    conta_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    comprovante_financeiro_id = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    observacoes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    data_criacao = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    data_atualizacao = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ativo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_lancamentos_baixas", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_lancamentos_baixas_comprovantes_financeiros_comprovante_financeiro_id",
+                        column: x => x.comprovante_financeiro_id,
+                        principalTable: "comprovantes_financeiros",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_lancamentos_baixas_contas_conta_id",
+                        column: x => x.conta_id,
+                        principalTable: "contas",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_lancamentos_baixas_Lancamentos_lancamento_id",
+                        column: x => x.lancamento_id,
+                        principalTable: "Lancamentos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -661,16 +936,42 @@ namespace MeuCatalogo.API.Migrations
                 column: "CatalogoId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_categorias_financeiras_user_id_tipo_ativo",
+                table: "categorias_financeiras",
+                columns: new[] { "user_id", "tipo", "ativo" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Clientes_Email",
                 table: "Clientes",
                 column: "Email",
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_comprovantes_financeiros_user_id",
+                table: "comprovantes_financeiros",
+                column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_contas_user_id_ativo",
+                table: "contas",
+                columns: new[] { "user_id", "ativo" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Estoques_ProdutoId",
                 table: "Estoques",
                 column: "ProdutoId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_faturas_conta_id_ano_mes",
+                table: "faturas",
+                columns: new[] { "conta_id", "ano", "mes" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_faturas_data_vencimento",
+                table: "faturas",
+                column: "data_vencimento");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Fornecedores_UserId",
@@ -693,9 +994,29 @@ namespace MeuCatalogo.API.Migrations
                 column: "VariacaoId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Lancamentos_categoria_financeira_id",
+                table: "Lancamentos",
+                column: "categoria_financeira_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Lancamentos_comprovante_financeiro_id",
+                table: "Lancamentos",
+                column: "comprovante_financeiro_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Lancamentos_conta_id",
+                table: "Lancamentos",
+                column: "conta_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Lancamentos_DataVencimento",
                 table: "Lancamentos",
                 column: "DataVencimento");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Lancamentos_fatura_id",
+                table: "Lancamentos",
+                column: "fatura_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Lancamentos_FornecedorId",
@@ -703,14 +1024,59 @@ namespace MeuCatalogo.API.Migrations
                 column: "FornecedorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Lancamentos_lancamento_transferencia_id",
+                table: "Lancamentos",
+                column: "lancamento_transferencia_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Lancamentos_PedidoId",
                 table: "Lancamentos",
                 column: "PedidoId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Lancamentos_recorrencia_id",
+                table: "Lancamentos",
+                column: "recorrencia_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Lancamentos_subcategoria_financeira_id",
+                table: "Lancamentos",
+                column: "subcategoria_financeira_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Lancamentos_UserId_categoria_financeira_id",
+                table: "Lancamentos",
+                columns: new[] { "UserId", "categoria_financeira_id" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Lancamentos_UserId_conta_id",
+                table: "Lancamentos",
+                columns: new[] { "UserId", "conta_id" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Lancamentos_UserId_Tipo_Status",
                 table: "Lancamentos",
                 columns: new[] { "UserId", "Tipo", "Status" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_lancamentos_baixas_comprovante_financeiro_id",
+                table: "lancamentos_baixas",
+                column: "comprovante_financeiro_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_lancamentos_baixas_conta_id",
+                table: "lancamentos_baixas",
+                column: "conta_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_lancamentos_baixas_data",
+                table: "lancamentos_baixas",
+                column: "data");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_lancamentos_baixas_lancamento_id",
+                table: "lancamentos_baixas",
+                column: "lancamento_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OpcaoVariacao_TipoVariacaoId",
@@ -748,6 +1114,31 @@ namespace MeuCatalogo.API.Migrations
                 column: "CategoriaId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_recorrencias_categoria_financeira_id",
+                table: "recorrencias",
+                column: "categoria_financeira_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_recorrencias_conta_id",
+                table: "recorrencias",
+                column: "conta_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_recorrencias_proxima_data",
+                table: "recorrencias",
+                column: "proxima_data");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_recorrencias_subcategoria_financeira_id",
+                table: "recorrencias",
+                column: "subcategoria_financeira_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_recorrencias_user_id_ativo",
+                table: "recorrencias",
+                columns: new[] { "user_id", "ativo" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_Token",
                 table: "RefreshTokens",
                 column: "Token");
@@ -756,6 +1147,11 @@ namespace MeuCatalogo.API.Migrations
                 name: "IX_RefreshTokens_UserId",
                 table: "RefreshTokens",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_subcategorias_financeiras_categoria_financeira_id",
+                table: "subcategorias_financeiras",
+                column: "categoria_financeira_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Variacoes_OpcaoVariacaoId",
@@ -800,7 +1196,7 @@ namespace MeuCatalogo.API.Migrations
                 name: "ItensPedido");
 
             migrationBuilder.DropTable(
-                name: "Lancamentos");
+                name: "lancamentos_baixas");
 
             migrationBuilder.DropTable(
                 name: "ProdutoImagens");
@@ -818,10 +1214,7 @@ namespace MeuCatalogo.API.Migrations
                 name: "Variacoes");
 
             migrationBuilder.DropTable(
-                name: "Fornecedores");
-
-            migrationBuilder.DropTable(
-                name: "Pedidos");
+                name: "Lancamentos");
 
             migrationBuilder.DropTable(
                 name: "OpcaoVariacao");
@@ -830,7 +1223,19 @@ namespace MeuCatalogo.API.Migrations
                 name: "Produtos");
 
             migrationBuilder.DropTable(
-                name: "Clientes");
+                name: "comprovantes_financeiros");
+
+            migrationBuilder.DropTable(
+                name: "faturas");
+
+            migrationBuilder.DropTable(
+                name: "Fornecedores");
+
+            migrationBuilder.DropTable(
+                name: "Pedidos");
+
+            migrationBuilder.DropTable(
+                name: "recorrencias");
 
             migrationBuilder.DropTable(
                 name: "TipoVariacao");
@@ -839,7 +1244,19 @@ namespace MeuCatalogo.API.Migrations
                 name: "Categorias");
 
             migrationBuilder.DropTable(
+                name: "Clientes");
+
+            migrationBuilder.DropTable(
+                name: "contas");
+
+            migrationBuilder.DropTable(
+                name: "subcategorias_financeiras");
+
+            migrationBuilder.DropTable(
                 name: "Catalogos");
+
+            migrationBuilder.DropTable(
+                name: "categorias_financeiras");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

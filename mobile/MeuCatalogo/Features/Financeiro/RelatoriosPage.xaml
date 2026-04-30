@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:financeiro="clr-namespace:MeuCatalogo.Features.Financeiro"
+             xmlns:domain="clr-namespace:MeuCatalogo.Features.Financeiro.Domain"
+             x:Class="MeuCatalogo.Features.Financeiro.RelatoriosPage"
+             x:DataType="financeiro:RelatoriosPageViewModel"
+             Title="Relatórios">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="14">
+            <Label Text="Regime" />
+            <Picker ItemsSource="{Binding Regimes}" SelectedItem="{Binding RegimeSelecionado}" />
+            <Label Text="Mês" />
+            <Picker ItemsSource="{Binding Meses}" SelectedIndex="{Binding MesIndex}" />
+            <Label Text="Ano" />
+            <Entry Text="{Binding Ano}" Keyboard="Numeric" />
+            <Label Text="Período (meses)" />
+            <Entry Text="{Binding Quantidade}" Keyboard="Numeric" />
+            <Button Text="Gerar relatório" Command="{Binding GerarCommand}" />
+
+            <Label Text="{Binding TotalReceitas, StringFormat='Receitas: {0:C}'}" FontAttributes="Bold" Margin="0,12,0,0" />
+            <Label Text="{Binding TotalDespesas, StringFormat='Despesas: {0:C}'}" FontAttributes="Bold" />
+            <Label Text="{Binding Saldo, StringFormat='Saldo: {0:C}'}" FontAttributes="Bold" />
+
+            <Label Text="Despesas por categoria" FontAttributes="Bold" Margin="0,12,0,0" />
+            <CollectionView ItemsSource="{Binding Despesas}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="domain:RelatorioCategoriaInfo">
+                        <Grid ColumnDefinitions="*,Auto" Padding="0,4">
+                            <Label Grid.Column="0" Text="{Binding Nome}" />
+                            <Label Grid.Column="1" Text="{Binding Total, StringFormat='{0:C}'}" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label Text="Receitas por categoria" FontAttributes="Bold" Margin="0,12,0,0" />
+            <CollectionView ItemsSource="{Binding Receitas}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="domain:RelatorioCategoriaInfo">
+                        <Grid ColumnDefinitions="*,Auto" Padding="0,4">
+                            <Label Grid.Column="0" Text="{Binding Nome}" />
+                            <Label Grid.Column="1" Text="{Binding Total, StringFormat='{0:C}'}" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

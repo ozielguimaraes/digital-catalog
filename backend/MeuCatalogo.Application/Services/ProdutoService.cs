@@ -92,7 +92,7 @@ public sealed class ProdutoService : IProdutoService
     {
         _logger.LogInformation("Iniciando {Metodo} para catalogoId: {CatalogoId}, usuarioId: {UsuarioId}",
             nameof(AdicionarAsync), dto.CatalogoId, userId);
-        
+
         var catalogo = await _dbContext.ObterCatalogoPorIdAsync(dto.CatalogoId);
         if (catalogo?.UserId != userId)
             return ApiResponse<ProdutoDto>.Error(ResponseType.Forbidden, "Acesso negado.");
@@ -128,7 +128,6 @@ public sealed class ProdutoService : IProdutoService
 
         if (!user.PodeAdicionarProduto(quantidadeAtual))
             return ApiResponse<ProdutoDto>.Error(ResponseType.Validation, "Limite de produtos do seu plano atingido. Faça um upgrade para continuar.");
-
 
         await _dbContext.AdicionarAsync(produto);
         _logger.LogInformation("Produto criado com sucesso. Id: {ProdutoId}", produto.Id);
@@ -182,7 +181,7 @@ public sealed class ProdutoService : IProdutoService
         if (dto.Imagens != null)
         {
             var idsNoRequest = dto.Imagens.Select(i => i.Id).ToList();
-            
+
             // Remove as que não estão mais na lista
             var imagensParaRemover = produto.Imagens.Where(i => !idsNoRequest.Contains(i.Id)).ToList();
             foreach (var img in imagensParaRemover)
@@ -249,7 +248,7 @@ public sealed class ProdutoService : IProdutoService
 
         using var inputStream = file.OpenReadStream();
         using var image = await Image.LoadAsync(inputStream);
-        
+
         // Normalize orientation (EXIF)
         image.Mutate(x => x.AutoOrient());
 
@@ -277,7 +276,7 @@ public sealed class ProdutoService : IProdutoService
 
             await resizedImage.SaveAsWebpAsync(outputStream, new WebpEncoder { Quality = version.Quality });
             outputStream.Position = 0;
-            
+
             var blobPath = $"{basePath}{version.Name}.webp";
             await _storage.UploadAsync(blobPath, outputStream, "image/webp");
         }
@@ -412,7 +411,7 @@ public sealed class ProdutoService : IProdutoService
                 var thumbUrl = _storage.GetPresignedUrlFromPublicUrl(_storage.GetBlobUrl($"{img.BasePath}thumb.webp"), TimeSpan.FromMinutes(60));
                 var mediumUrl = _storage.GetPresignedUrlFromPublicUrl(_storage.GetBlobUrl($"{img.BasePath}medium.webp"), TimeSpan.FromMinutes(60));
                 var fullUrl = _storage.GetPresignedUrlFromPublicUrl(_storage.GetBlobUrl($"{img.BasePath}full.webp"), TimeSpan.FromMinutes(60));
-                
+
                 return new ProdutoImagemDto
                 {
                     Id = img.Id,

@@ -56,5 +56,15 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(FinanceiroPage), typeof(FinanceiroPage));
         Routing.RegisterRoute(nameof(ReceberPage), typeof(ReceberPage));
         Routing.RegisterRoute(nameof(PagarPage), typeof(PagarPage));
+        Routing.RegisterRoute(nameof(ContasListaPage), typeof(ContasListaPage));
+        Routing.RegisterRoute(nameof(ContaEdicaoPage), typeof(ContaEdicaoPage));
+        Routing.RegisterRoute(nameof(CategoriasFinanceirasPage), typeof(CategoriasFinanceirasPage));
+        Routing.RegisterRoute(nameof(CategoriaFinanceiraEdicaoPage), typeof(CategoriaFinanceiraEdicaoPage));
+        Routing.RegisterRoute(nameof(RecorrenciasPage), typeof(RecorrenciasPage));
+        Routing.RegisterRoute(nameof(TransferenciaPage), typeof(TransferenciaPage));
+        Routing.RegisterRoute(nameof(BaixaPage), typeof(BaixaPage));
+        Routing.RegisterRoute(nameof(FaturaPage), typeof(FaturaPage));
+        Routing.RegisterRoute(nameof(RelatoriosPage), typeof(RelatoriosPage));
+        Routing.RegisterRoute(nameof(ExtratoPage), typeof(ExtratoPage));
     }
 }

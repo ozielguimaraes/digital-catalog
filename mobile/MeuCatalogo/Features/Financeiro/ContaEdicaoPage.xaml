@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:financeiro="clr-namespace:MeuCatalogo.Features.Financeiro"
+             x:Class="MeuCatalogo.Features.Financeiro.ContaEdicaoPage"
+             x:DataType="financeiro:ContaEdicaoPageViewModel"
+             Title="Nova conta">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="14">
+            <Label Text="Nome" />
+            <Entry Text="{Binding Nome}" Placeholder="Ex: Nubank, Itaú" />
+
+            <Label Text="Tipo" />
+            <Picker ItemsSource="{Binding Tipos}" SelectedItem="{Binding TipoSelecionado}" />
+
+            <Label Text="Cor (hex)" />
+            <Entry Text="{Binding Cor}" Placeholder="#3F51B5" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" IsVisible="{Binding IsCartao}">
+                <VerticalStackLayout Grid.Column="0">
+                    <Label Text="Dia fechamento" />
+                    <Entry Text="{Binding DiaFechamento}" Keyboard="Numeric" />
+                </VerticalStackLayout>
+                <VerticalStackLayout Grid.Column="1">
+                    <Label Text="Dia vencimento" />
+                    <Entry Text="{Binding DiaVencimento}" Keyboard="Numeric" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <VerticalStackLayout IsVisible="{Binding IsCartao}">
+                <Label Text="Limite" />
+                <Entry Text="{Binding Limite}" Keyboard="Numeric" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout IsVisible="{Binding IsContaSaldo}">
+                <Label Text="Saldo inicial" />
+                <Entry Text="{Binding SaldoInicial}" Keyboard="Numeric" Placeholder="0,00" />
+                <Label Text="Saldo na conta antes do app começar a registrar movimentações. Pode ser negativo (cheque especial)."
+                       FontSize="11" Opacity="0.6" Margin="0,4,0,0" />
+            </VerticalStackLayout>
+
+            <Button Text="Salvar" Command="{Binding SalvarCommand}" Margin="0,16,0,0" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

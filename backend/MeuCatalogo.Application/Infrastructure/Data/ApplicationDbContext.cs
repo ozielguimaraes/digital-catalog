@@ -25,6 +25,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Fornecedor> Fornecedores { get; set; }
     public DbSet<Lancamento> Lancamentos { get; set; }
+    public DbSet<Conta> Contas { get; set; }
+    public DbSet<CategoriaFinanceira> CategoriasFinanceiras { get; set; }
+    public DbSet<SubcategoriaFinanceira> SubcategoriasFinanceiras { get; set; }
+    public DbSet<Fatura> Faturas { get; set; }
+    public DbSet<Recorrencia> Recorrencias { get; set; }
+    public DbSet<LancamentoBaixa> LancamentosBaixas { get; set; }
+    public DbSet<ComprovanteFinanceiro> ComprovantesFinanceiros { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

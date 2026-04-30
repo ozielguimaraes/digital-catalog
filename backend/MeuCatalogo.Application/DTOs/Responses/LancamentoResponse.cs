@@ -17,6 +17,32 @@ public class LancamentoResponse
     public string? FornecedorNome { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+
+    public Guid? ContaId { get; set; }
+    public string? ContaNome { get; set; }
+
+    public Guid? CategoriaFinanceiraId { get; set; }
+    public string? CategoriaFinanceiraNome { get; set; }
+    public string? CategoriaFinanceiraIcone { get; set; }
+    public string? CategoriaFinanceiraCor { get; set; }
+
+    public Guid? SubcategoriaFinanceiraId { get; set; }
+    public string? SubcategoriaFinanceiraNome { get; set; }
+
+    public LancamentoOperacao Operacao { get; set; }
+    public LancamentoTipoTransferencia? TipoTransferencia { get; set; }
+    public Guid? LancamentoTransferenciaId { get; set; }
+
+    public short? ParcelaAtual { get; set; }
+    public short? ParcelaTotal { get; set; }
+
+    public Guid? FaturaId { get; set; }
+    public Guid? RecorrenciaId { get; set; }
+    public Guid? ComprovanteFinanceiroId { get; set; }
+
+    public bool Realizado { get; set; }
+    public decimal ValorBaixado { get; set; }
+    public decimal ValorEmAberto { get; set; }
 }
 
 public class FinanceiroResumoResponse

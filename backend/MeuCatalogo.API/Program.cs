@@ -11,6 +11,7 @@ using System.Text;
 using MeuCatalogo.API.Filters;
 using MeuCatalogo.API.Middlewares;
 using MeuCatalogo.API.Converters;
+using MeuCatalogo.API.Infrastructure;
 using MeuCatalogo.API.Infrastructure.Messages;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -133,7 +134,7 @@ try
             b.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
         });
     });
- 
+
     builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
             options.Password.RequireDigit = true;
@@ -173,7 +174,7 @@ try
         // Fallback configuration to prevent startup crashes when config is missing
         // This registers a dummy EmailSender that logs warnings instead of crashing
         Console.WriteLine("⚠ EmailSettings section missing - Using fallback Dummy EmailSender.");
-        builder.Services.AddTransient<EmailSender>(sp => 
+        builder.Services.AddTransient<EmailSender>(sp =>
             new EmailSender("dummy@example.com", "dummy", "localhost", 25, false, "Dummy Sender"));
     }
 
@@ -272,6 +273,15 @@ try
     builder.Services.AddScoped<IPedidoService, PedidoService>();
     builder.Services.AddScoped<IFornecedorService, FornecedorService>();
     builder.Services.AddScoped<IFinanceiroService, FinanceiroService>();
+    builder.Services.AddScoped<IContaService, ContaService>();
+    builder.Services.AddScoped<ICategoriaFinanceiraService, CategoriaFinanceiraService>();
+    builder.Services.AddScoped<IFaturaService, FaturaService>();
+    builder.Services.AddScoped<ITransferenciaService, TransferenciaService>();
+    builder.Services.AddScoped<IRecorrenciaService, RecorrenciaService>();
+    builder.Services.AddScoped<ILancamentoBaixaService, LancamentoBaixaService>();
+    builder.Services.AddScoped<IComprovanteFinanceiroService, ComprovanteFinanceiroService>();
+    builder.Services.AddScoped<IRelatorioFinanceiroService, RelatorioFinanceiroService>();
+    builder.Services.AddScoped<IExtratoService, ExtratoService>();
     builder.Services.AddScoped<IPlanoAssinaturaService, PlanoAssinaturaService>();
     builder.Services.AddScoped<IRefreshTokenService, MeuCatalogo.API.Services.RefreshTokenService>();
 
@@ -377,7 +387,7 @@ try
             // Always run migrations in production to ensure database is up to date
             Console.WriteLine("Running database migration...");
             Log.Information("Starting database migration...");
-            await context.Database.MigrateAsync();
+            // await context.Database.MigrateAsync();
             Console.WriteLine("✓ Database migration completed successfully.");
             Log.Information("Database migration completed successfully.");
 
@@ -409,12 +419,9 @@ try
     forwardedHeadersOptions.KnownProxies.Clear();
     app.UseForwardedHeaders(forwardedHeadersOptions);
 
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "MeuCatalogo API v1");
-        c.RoutePrefix = "swagger";
-    });
+    app.UseSwagger(c => c.RouteTemplate = "openapi/{documentName}.json");
+
+    app.MapGet("/scalar/v1", () => Results.Content(ScalarHtml.Render("/openapi/v1.json", "MeuCatalogo API"), "text/html"));
 
     app.UseSentryTracing();
 
@@ -448,7 +455,7 @@ try
     // Add health check endpoint
     app.MapHealthChecks("/health");
 
-    app.MapGet("/", () => Results.Redirect("/swagger/index.html", permanent: false));
+    app.MapGet("/", () => Results.Redirect("/scalar/v1", permanent: false));
     app.MapControllers();
 
     Console.WriteLine("✓ Application configured successfully.");

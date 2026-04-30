@@ -252,6 +252,66 @@ namespace MeuCatalogo.API.Migrations
                     b.ToTable("Categorias", (string)null);
                 });
 
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.CategoriaFinanceira", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit")
+                        .HasColumnName("ativo");
+
+                    b.Property<string>("Cor")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("nvarchar(9)")
+                        .HasColumnName("cor");
+
+                    b.Property<DateTime?>("DataAtualizacao")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_atualizacao");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_criacao");
+
+                    b.Property<string>("IconeNome")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasColumnName("icone_nome");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)")
+                        .HasColumnName("nome");
+
+                    b.Property<byte?>("Ordem")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("ordem");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("tipo");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Tipo", "Ativo");
+
+                    b.ToTable("categorias_financeiras", (string)null);
+                });
+
             modelBuilder.Entity("MeuCatalogo.Application.Entities.Cliente", b =>
                 {
                     b.Property<Guid>("Id")
@@ -298,6 +358,135 @@ namespace MeuCatalogo.API.Migrations
                     b.ToTable("Clientes", (string)null);
                 });
 
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.ComprovanteFinanceiro", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit")
+                        .HasColumnName("ativo");
+
+                    b.Property<string>("BasePath")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasColumnName("base_path");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)")
+                        .HasColumnName("content_type");
+
+                    b.Property<DateTime?>("DataAtualizacao")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_atualizacao");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_criacao");
+
+                    b.Property<string>("Descricao")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("descricao");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("file_name");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint")
+                        .HasColumnName("size");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("comprovantes_financeiros", (string)null);
+                });
+
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.Conta", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit")
+                        .HasColumnName("ativo");
+
+                    b.Property<string>("Cor")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("nvarchar(9)")
+                        .HasColumnName("cor");
+
+                    b.Property<DateTime?>("DataAtualizacao")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_atualizacao");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_criacao");
+
+                    b.Property<byte?>("DiaFechamento")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("dia_fechamento");
+
+                    b.Property<byte?>("DiaVencimento")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("dia_vencimento");
+
+                    b.Property<decimal?>("Limite")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("limite");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)")
+                        .HasColumnName("nome");
+
+                    b.Property<byte?>("Ordem")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("ordem");
+
+                    b.Property<decimal>("SaldoInicial")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("saldo_inicial");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("tipo");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Ativo");
+
+                    b.ToTable("contas", (string)null);
+                });
+
             modelBuilder.Entity("MeuCatalogo.Application.Entities.Estoque", b =>
                 {
                     b.Property<Guid>("Id")
@@ -337,6 +526,63 @@ namespace MeuCatalogo.API.Migrations
                         .IsUnique();
 
                     b.ToTable("Estoques", (string)null);
+                });
+
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.Fatura", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Ano")
+                        .HasColumnType("int")
+                        .HasColumnName("ano");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit")
+                        .HasColumnName("ativo");
+
+                    b.Property<Guid>("ContaId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("conta_id");
+
+                    b.Property<DateTime?>("DataAtualizacao")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_atualizacao");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_criacao");
+
+                    b.Property<DateTime>("DataFim")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_fim");
+
+                    b.Property<DateTime>("DataInicio")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_inicio");
+
+                    b.Property<DateTime>("DataVencimento")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_vencimento");
+
+                    b.Property<int>("Mes")
+                        .HasColumnType("int")
+                        .HasColumnName("mes");
+
+                    b.Property<decimal?>("ValorPago")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("valor_pago");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DataVencimento");
+
+                    b.HasIndex("ContaId", "Ano", "Mes")
+                        .IsUnique();
+
+                    b.ToTable("faturas", (string)null);
                 });
 
             modelBuilder.Entity("MeuCatalogo.Application.Entities.Fornecedor", b =>
@@ -459,6 +705,18 @@ namespace MeuCatalogo.API.Migrations
                     b.Property<bool>("Ativo")
                         .HasColumnType("bit");
 
+                    b.Property<Guid?>("CategoriaFinanceiraId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("categoria_financeira_id");
+
+                    b.Property<Guid?>("ComprovanteFinanceiroId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("comprovante_financeiro_id");
+
+                    b.Property<Guid?>("ContaId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("conta_id");
+
                     b.Property<DateTime?>("DataAtualizacao")
                         .HasColumnType("datetime2");
 
@@ -476,25 +734,64 @@ namespace MeuCatalogo.API.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<Guid?>("FaturaId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("fatura_id");
+
                     b.Property<Guid?>("FornecedorId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("LancamentoTransferenciaId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("lancamento_transferencia_id");
 
                     b.Property<string>("Observacoes")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("Operacao")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("operacao");
+
+                    b.Property<short?>("ParcelaAtual")
+                        .HasColumnType("smallint")
+                        .HasColumnName("parcela_atual");
+
+                    b.Property<short?>("ParcelaTotal")
+                        .HasColumnType("smallint")
+                        .HasColumnName("parcela_total");
+
                     b.Property<Guid?>("PedidoId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Realizado")
+                        .HasColumnType("bit")
+                        .HasColumnName("realizado");
+
+                    b.Property<Guid?>("RecorrenciaId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("recorrencia_id");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<Guid?>("SubcategoriaFinanceiraId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("subcategoria_financeira_id");
+
                     b.Property<string>("Tipo")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("TipoTransferencia")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("tipo_transferencia");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -506,15 +803,90 @@ namespace MeuCatalogo.API.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoriaFinanceiraId");
+
+                    b.HasIndex("ComprovanteFinanceiroId");
+
+                    b.HasIndex("ContaId");
+
                     b.HasIndex("DataVencimento");
+
+                    b.HasIndex("FaturaId");
 
                     b.HasIndex("FornecedorId");
 
+                    b.HasIndex("LancamentoTransferenciaId");
+
                     b.HasIndex("PedidoId");
+
+                    b.HasIndex("RecorrenciaId");
+
+                    b.HasIndex("SubcategoriaFinanceiraId");
+
+                    b.HasIndex("UserId", "CategoriaFinanceiraId");
+
+                    b.HasIndex("UserId", "ContaId");
 
                     b.HasIndex("UserId", "Tipo", "Status");
 
                     b.ToTable("Lancamentos", (string)null);
+                });
+
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.LancamentoBaixa", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit")
+                        .HasColumnName("ativo");
+
+                    b.Property<Guid?>("ComprovanteFinanceiroId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("comprovante_financeiro_id");
+
+                    b.Property<Guid>("ContaId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("conta_id");
+
+                    b.Property<DateTime>("Data")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data");
+
+                    b.Property<DateTime?>("DataAtualizacao")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_atualizacao");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_criacao");
+
+                    b.Property<Guid>("LancamentoId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("lancamento_id");
+
+                    b.Property<string>("Observacoes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("observacoes");
+
+                    b.Property<decimal>("Valor")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("valor");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComprovanteFinanceiroId");
+
+                    b.HasIndex("ContaId");
+
+                    b.HasIndex("Data");
+
+                    b.HasIndex("LancamentoId");
+
+                    b.ToTable("lancamentos_baixas", (string)null);
                 });
 
             modelBuilder.Entity("MeuCatalogo.Application.Entities.OpcaoVariacao", b =>
@@ -750,6 +1122,100 @@ namespace MeuCatalogo.API.Migrations
                     b.ToTable("ProdutoImagens", (string)null);
                 });
 
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.Recorrencia", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit")
+                        .HasColumnName("ativo");
+
+                    b.Property<Guid>("CategoriaFinanceiraId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("categoria_financeira_id");
+
+                    b.Property<Guid>("ContaId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("conta_id");
+
+                    b.Property<DateTime?>("DataAtualizacao")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_atualizacao");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_criacao");
+
+                    b.Property<DateTime?>("DataFim")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_fim");
+
+                    b.Property<DateTime>("DataInicio")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_inicio");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnName("descricao");
+
+                    b.Property<int?>("DiaDaSemana")
+                        .HasColumnType("int")
+                        .HasColumnName("dia_da_semana");
+
+                    b.Property<byte?>("DiaDoMes")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("dia_do_mes");
+
+                    b.Property<string>("Periodicidade")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("periodicidade");
+
+                    b.Property<DateTime>("ProximaData")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("proxima_data");
+
+                    b.Property<Guid?>("SubcategoriaFinanceiraId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("subcategoria_financeira_id");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("tipo");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)")
+                        .HasColumnName("user_id");
+
+                    b.Property<decimal?>("ValorPadrao")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("valor_padrao");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoriaFinanceiraId");
+
+                    b.HasIndex("ContaId");
+
+                    b.HasIndex("ProximaData");
+
+                    b.HasIndex("SubcategoriaFinanceiraId");
+
+                    b.HasIndex("UserId", "Ativo");
+
+                    b.ToTable("recorrencias", (string)null);
+                });
+
             modelBuilder.Entity("MeuCatalogo.Application.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -793,6 +1259,56 @@ namespace MeuCatalogo.API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens", (string)null);
+                });
+
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.SubcategoriaFinanceira", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit")
+                        .HasColumnName("ativo");
+
+                    b.Property<Guid>("CategoriaFinanceiraId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("categoria_financeira_id");
+
+                    b.Property<string>("Cor")
+                        .HasMaxLength(9)
+                        .HasColumnType("nvarchar(9)")
+                        .HasColumnName("cor");
+
+                    b.Property<DateTime?>("DataAtualizacao")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_atualizacao");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data_criacao");
+
+                    b.Property<string>("IconeNome")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasColumnName("icone_nome");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)")
+                        .HasColumnName("nome");
+
+                    b.Property<byte?>("Ordem")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("ordem");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoriaFinanceiraId");
+
+                    b.ToTable("subcategorias_financeiras", (string)null);
                 });
 
             modelBuilder.Entity("MeuCatalogo.Application.Entities.TipoVariacao", b =>
@@ -1040,6 +1556,39 @@ namespace MeuCatalogo.API.Migrations
                     b.Navigation("Catalogo");
                 });
 
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.CategoriaFinanceira", b =>
+                {
+                    b.HasOne("MeuCatalogo.Application.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.ComprovanteFinanceiro", b =>
+                {
+                    b.HasOne("MeuCatalogo.Application.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.Conta", b =>
+                {
+                    b.HasOne("MeuCatalogo.Application.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("MeuCatalogo.Application.Entities.Estoque", b =>
                 {
                     b.HasOne("MeuCatalogo.Application.Entities.Produto", "Produto")
@@ -1049,6 +1598,17 @@ namespace MeuCatalogo.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Produto");
+                });
+
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.Fatura", b =>
+                {
+                    b.HasOne("MeuCatalogo.Application.Entities.Conta", "Conta")
+                        .WithMany()
+                        .HasForeignKey("ContaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Conta");
                 });
 
             modelBuilder.Entity("MeuCatalogo.Application.Entities.Fornecedor", b =>
@@ -1090,14 +1650,49 @@ namespace MeuCatalogo.API.Migrations
 
             modelBuilder.Entity("MeuCatalogo.Application.Entities.Lancamento", b =>
                 {
+                    b.HasOne("MeuCatalogo.Application.Entities.CategoriaFinanceira", "CategoriaFinanceira")
+                        .WithMany()
+                        .HasForeignKey("CategoriaFinanceiraId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("MeuCatalogo.Application.Entities.ComprovanteFinanceiro", "ComprovanteFinanceiro")
+                        .WithMany()
+                        .HasForeignKey("ComprovanteFinanceiroId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MeuCatalogo.Application.Entities.Conta", "Conta")
+                        .WithMany()
+                        .HasForeignKey("ContaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("MeuCatalogo.Application.Entities.Fatura", "Fatura")
+                        .WithMany("Lancamentos")
+                        .HasForeignKey("FaturaId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("MeuCatalogo.Application.Entities.Fornecedor", "Fornecedor")
                         .WithMany()
                         .HasForeignKey("FornecedorId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("MeuCatalogo.Application.Entities.Lancamento", "LancamentoTransferencia")
+                        .WithMany()
+                        .HasForeignKey("LancamentoTransferenciaId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("MeuCatalogo.Application.Entities.Pedido", "Pedido")
                         .WithMany()
                         .HasForeignKey("PedidoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MeuCatalogo.Application.Entities.Recorrencia", "Recorrencia")
+                        .WithMany()
+                        .HasForeignKey("RecorrenciaId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MeuCatalogo.Application.Entities.SubcategoriaFinanceira", "SubcategoriaFinanceira")
+                        .WithMany()
+                        .HasForeignKey("SubcategoriaFinanceiraId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("MeuCatalogo.Application.Entities.ApplicationUser", "User")
@@ -1106,11 +1701,51 @@ namespace MeuCatalogo.API.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("CategoriaFinanceira");
+
+                    b.Navigation("ComprovanteFinanceiro");
+
+                    b.Navigation("Conta");
+
+                    b.Navigation("Fatura");
+
                     b.Navigation("Fornecedor");
+
+                    b.Navigation("LancamentoTransferencia");
 
                     b.Navigation("Pedido");
 
+                    b.Navigation("Recorrencia");
+
+                    b.Navigation("SubcategoriaFinanceira");
+
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.LancamentoBaixa", b =>
+                {
+                    b.HasOne("MeuCatalogo.Application.Entities.ComprovanteFinanceiro", "ComprovanteFinanceiro")
+                        .WithMany()
+                        .HasForeignKey("ComprovanteFinanceiroId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MeuCatalogo.Application.Entities.Conta", "Conta")
+                        .WithMany()
+                        .HasForeignKey("ContaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MeuCatalogo.Application.Entities.Lancamento", "Lancamento")
+                        .WithMany("Baixas")
+                        .HasForeignKey("LancamentoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ComprovanteFinanceiro");
+
+                    b.Navigation("Conta");
+
+                    b.Navigation("Lancamento");
                 });
 
             modelBuilder.Entity("MeuCatalogo.Application.Entities.OpcaoVariacao", b =>
@@ -1165,6 +1800,40 @@ namespace MeuCatalogo.API.Migrations
                     b.Navigation("Produto");
                 });
 
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.Recorrencia", b =>
+                {
+                    b.HasOne("MeuCatalogo.Application.Entities.CategoriaFinanceira", "CategoriaFinanceira")
+                        .WithMany()
+                        .HasForeignKey("CategoriaFinanceiraId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MeuCatalogo.Application.Entities.Conta", "Conta")
+                        .WithMany()
+                        .HasForeignKey("ContaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MeuCatalogo.Application.Entities.SubcategoriaFinanceira", "SubcategoriaFinanceira")
+                        .WithMany()
+                        .HasForeignKey("SubcategoriaFinanceiraId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MeuCatalogo.Application.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CategoriaFinanceira");
+
+                    b.Navigation("Conta");
+
+                    b.Navigation("SubcategoriaFinanceira");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("MeuCatalogo.Application.Entities.RefreshToken", b =>
                 {
                     b.HasOne("MeuCatalogo.Application.Entities.ApplicationUser", "User")
@@ -1174,6 +1843,17 @@ namespace MeuCatalogo.API.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.SubcategoriaFinanceira", b =>
+                {
+                    b.HasOne("MeuCatalogo.Application.Entities.CategoriaFinanceira", "CategoriaFinanceira")
+                        .WithMany("Subcategorias")
+                        .HasForeignKey("CategoriaFinanceiraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CategoriaFinanceira");
                 });
 
             modelBuilder.Entity("MeuCatalogo.Application.Entities.Variacao", b =>
@@ -1271,9 +1951,24 @@ namespace MeuCatalogo.API.Migrations
                     b.Navigation("Produtos");
                 });
 
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.CategoriaFinanceira", b =>
+                {
+                    b.Navigation("Subcategorias");
+                });
+
             modelBuilder.Entity("MeuCatalogo.Application.Entities.Cliente", b =>
                 {
                     b.Navigation("Pedidos");
+                });
+
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.Fatura", b =>
+                {
+                    b.Navigation("Lancamentos");
+                });
+
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.Lancamento", b =>
+                {
+                    b.Navigation("Baixas");
                 });
 
             modelBuilder.Entity("MeuCatalogo.Application.Entities.Pedido", b =>

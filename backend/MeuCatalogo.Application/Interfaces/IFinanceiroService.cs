@@ -7,6 +7,7 @@ namespace MeuCatalogo.Application.Interfaces;
 public interface IFinanceiroService
 {
     Task<ApiResponse<List<LancamentoResponse>>> GetAllAsync(string userId, LancamentoTipo? tipo = null);
+    Task<ApiResponse<List<LancamentoResponse>>> ListarAsync(string userId, LancamentoFiltro filtro);
     Task<ApiResponse<LancamentoResponse>> GetByIdAsync(Guid id, string userId);
     Task<ApiResponse<LancamentoResponse>> CreateAsync(LancamentoRequest request, string userId);
     Task<ApiResponse<LancamentoResponse>> UpdateAsync(Guid id, LancamentoRequest request, string userId);

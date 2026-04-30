@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:financeiro="clr-namespace:MeuCatalogo.Features.Financeiro"
+             xmlns:domain="clr-namespace:MeuCatalogo.Features.Financeiro.Domain"
+             x:Class="MeuCatalogo.Features.Financeiro.CategoriasFinanceirasPage"
+             x:DataType="financeiro:CategoriasFinanceirasPageViewModel"
+             Title="Categorias">
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16">
+        <Grid Grid.Row="0" ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,0,0,12">
+            <Button Grid.Column="0" Text="Receitas" Command="{Binding ToggleTipoCommand}" CommandParameter="Receita"
+                    BackgroundColor="{Binding ReceitasBg}" />
+            <Button Grid.Column="1" Text="Despesas" Command="{Binding ToggleTipoCommand}" CommandParameter="Despesa"
+                    BackgroundColor="{Binding DespesasBg}" />
+        </Grid>
+
+        <RefreshView Grid.Row="1" Command="{Binding CarregarCommand}" IsRefreshing="{Binding IsLoading}">
+            <CollectionView ItemsSource="{Binding Categorias}" SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="domain:CategoriaFinanceiraInfo">
+                        <Border Padding="14" Margin="0,0,0,8" StrokeShape="RoundRectangle 12">
+                            <Grid ColumnDefinitions="40,*">
+                                <Frame Grid.Column="0" CornerRadius="20" HeightRequest="40" WidthRequest="40"
+                                       BackgroundColor="{Binding Cor}" Padding="0" HasShadow="False">
+                                    <Label Text="{Binding IconeNome, Converter={StaticResource IconNameToGlyphConverter}}"
+                                           FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Frame>
+                                <VerticalStackLayout Grid.Column="1" Padding="12,0,0,0" Spacing="2">
+                                    <Label Text="{Binding Nome}" FontSize="15" FontAttributes="Bold" />
+                                    <Label Text="{Binding Subcategorias.Count, StringFormat='{0} subcategoria(s)'}"
+                                           FontSize="12" Opacity="0.7" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+
+        <Button Grid.Row="2" Text="+ Nova categoria" Command="{Binding NovaCategoriaCommand}" Margin="0,12,0,0" />
+    </Grid>
+</ContentPage>

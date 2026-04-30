@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:financeiro="clr-namespace:MeuCatalogo.Features.Financeiro"
+             x:Class="MeuCatalogo.Features.Financeiro.TransferenciaPage"
+             x:DataType="financeiro:TransferenciaPageViewModel"
+             Title="Transferência">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="14">
+            <Label Text="Conta de origem" />
+            <Picker ItemsSource="{Binding ContasOrigem}" ItemDisplayBinding="{Binding Nome}" SelectedItem="{Binding ContaOrigem}" />
+            <Label Text="Conta de destino" />
+            <Picker ItemsSource="{Binding ContasDestino}" ItemDisplayBinding="{Binding Nome}" SelectedItem="{Binding ContaDestino}" />
+            <Label Text="Valor" />
+            <Entry Text="{Binding Valor}" Keyboard="Numeric" />
+            <Label Text="Data" />
+            <DatePicker Date="{Binding Data}" />
+            <Label Text="Descrição (opcional)" />
+            <Entry Text="{Binding Descricao}" />
+            <Button Text="Transferir" Command="{Binding SalvarCommand}" Margin="0,16,0,0" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

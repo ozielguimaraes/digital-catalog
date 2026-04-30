@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:financeiro="clr-namespace:MeuCatalogo.Features.Financeiro"
+             xmlns:domain="clr-namespace:MeuCatalogo.Features.Financeiro.Domain"
+             x:Class="MeuCatalogo.Features.Financeiro.FaturaPage"
+             x:DataType="financeiro:FaturaPageViewModel"
+             Title="Fatura">
+    <Grid RowDefinitions="Auto,Auto,*" Padding="16">
+        <Grid Grid.Row="0" ColumnDefinitions="*,*,Auto" ColumnSpacing="8">
+            <Picker Grid.Column="0" ItemsSource="{Binding Contas}" ItemDisplayBinding="{Binding Nome}" SelectedItem="{Binding ContaSelecionada}" Title="Cartão" />
+            <Picker Grid.Column="1" ItemsSource="{Binding Meses}" SelectedIndex="{Binding MesIndex}" />
+            <Entry Grid.Column="2" Text="{Binding Ano}" WidthRequest="80" Keyboard="Numeric" />
+        </Grid>
+
+        <VerticalStackLayout Grid.Row="1" Padding="0,12,0,0" Spacing="2">
+            <Label Text="{Binding ValorTotal, StringFormat='Total: {0:C}'}" FontAttributes="Bold" />
+            <Label Text="{Binding ValorPago, StringFormat='Pago: {0:C}'}" />
+            <Label Text="{Binding ValorEmAberto, StringFormat='Em aberto: {0:C}'}" />
+            <Label Text="{Binding DataVencimento, StringFormat='Vencimento: {0:dd/MM/yyyy}'}" Opacity="0.7" />
+        </VerticalStackLayout>
+
+        <CollectionView Grid.Row="2" ItemsSource="{Binding Lancamentos}" Margin="0,12,0,0">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="domain:LancamentoInfo">
+                    <Grid ColumnDefinitions="*,Auto" Padding="0,6">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                            <Label Text="{Binding Descricao}" FontSize="14" />
+                            <Label Text="{Binding ParcelaLabel}" FontSize="11" Opacity="0.7" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="1" Text="{Binding Valor, StringFormat='{0:C}'}" FontAttributes="Bold" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

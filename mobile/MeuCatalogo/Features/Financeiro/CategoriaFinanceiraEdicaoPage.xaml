@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:financeiro="clr-namespace:MeuCatalogo.Features.Financeiro"
+             x:Class="MeuCatalogo.Features.Financeiro.CategoriaFinanceiraEdicaoPage"
+             x:DataType="financeiro:CategoriaFinanceiraEdicaoPageViewModel"
+             Title="Nova categoria">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="14">
+            <Label Text="Tipo" />
+            <Picker ItemsSource="{Binding Tipos}" SelectedItem="{Binding TipoSelecionado}" />
+            <Label Text="Nome" />
+            <Entry Text="{Binding Nome}" Placeholder="Ex: Alimentação" />
+            <Label Text="Ícone (escolha um)" />
+            <Picker ItemsSource="{Binding Icones}" SelectedItem="{Binding IconeNome}" />
+            <Label Text="Cor (hex)" />
+            <Entry Text="{Binding Cor}" Placeholder="#FF5722" />
+            <Button Text="Salvar" Command="{Binding SalvarCommand}" Margin="0,16,0,0" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

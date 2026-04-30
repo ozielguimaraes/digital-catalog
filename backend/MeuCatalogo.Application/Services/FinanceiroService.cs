@@ -4,6 +4,7 @@ using MeuCatalogo.Application.DTOs.Responses;
 using MeuCatalogo.Application.Entities;
 using MeuCatalogo.Application.Infrastructure.Data;
 using MeuCatalogo.Application.Interfaces;
+using MeuCatalogo.Application.Services.Faturas;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeuCatalogo.Application.Services;
@@ -11,28 +12,53 @@ namespace MeuCatalogo.Application.Services;
 public sealed class FinanceiroService : IFinanceiroService
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly IRecorrenciaService? _recorrenciaService;
+    private readonly IFaturaService? _faturaService;
 
     public FinanceiroService(ApplicationDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
+    public FinanceiroService(ApplicationDbContext dbContext, IRecorrenciaService recorrenciaService, IFaturaService faturaService)
+    {
+        _dbContext = dbContext;
+        _recorrenciaService = recorrenciaService;
+        _faturaService = faturaService;
+    }
+
     public async Task<ApiResponse<List<LancamentoResponse>>> GetAllAsync(string userId, LancamentoTipo? tipo = null)
+    {
+        return await ListarAsync(userId, new LancamentoFiltro { Tipo = tipo, IncluirRecorrenciasFuturas = false });
+    }
+
+    public async Task<ApiResponse<List<LancamentoResponse>>> ListarAsync(string userId, LancamentoFiltro filtro)
     {
         try
         {
+            if (filtro.IncluirRecorrenciasFuturas && _recorrenciaService != null)
+            {
+                var ate = filtro.DataFim ?? DateTime.UtcNow.AddDays(60);
+                await _recorrenciaService.GerarPendentesAsync(userId, ate);
+            }
+
             var query = _dbContext.Lancamentos
                 .Include(l => l.Fornecedor)
+                .Include(l => l.Conta)
+                .Include(l => l.CategoriaFinanceira)
+                .Include(l => l.SubcategoriaFinanceira)
+                .Include(l => l.Baixas.Where(b => b.Ativo))
                 .Where(l => l.UserId == userId && l.Ativo);
 
-            if (tipo.HasValue)
-                query = query.Where(l => l.Tipo == tipo.Value);
+            if (filtro.Tipo.HasValue) query = query.Where(l => l.Tipo == filtro.Tipo.Value);
+            if (filtro.Status.HasValue) query = query.Where(l => l.Status == filtro.Status.Value);
+            if (filtro.ContaId.HasValue) query = query.Where(l => l.ContaId == filtro.ContaId.Value);
+            if (filtro.CategoriaFinanceiraId.HasValue) query = query.Where(l => l.CategoriaFinanceiraId == filtro.CategoriaFinanceiraId.Value);
+            if (filtro.DataInicio.HasValue) query = query.Where(l => l.DataVencimento >= filtro.DataInicio.Value);
+            if (filtro.DataFim.HasValue) query = query.Where(l => l.DataVencimento <= filtro.DataFim.Value);
 
-            var lancamentos = await query
-                .OrderBy(l => l.DataVencimento)
-                .ToListAsync();
-
-            return ApiResponse<List<LancamentoResponse>>.Success(lancamentos.Select(MapToResponse).ToList());
+            var lancamentos = await query.OrderBy(l => l.DataVencimento).ToListAsync();
+            return ApiResponse<List<LancamentoResponse>>.Success(lancamentos.Select(LancamentoMapper.MapToResponse).ToList());
         }
         catch (Exception ex)
         {
@@ -46,12 +72,16 @@ public sealed class FinanceiroService : IFinanceiroService
         {
             var lancamento = await _dbContext.Lancamentos
                 .Include(l => l.Fornecedor)
+                .Include(l => l.Conta)
+                .Include(l => l.CategoriaFinanceira)
+                .Include(l => l.SubcategoriaFinanceira)
+                .Include(l => l.Baixas.Where(b => b.Ativo))
                 .FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId);
 
             if (lancamento == null)
                 return ApiResponse<LancamentoResponse>.Error("Lançamento não encontrado");
 
-            return ApiResponse<LancamentoResponse>.Success(MapToResponse(lancamento));
+            return ApiResponse<LancamentoResponse>.Success(LancamentoMapper.MapToResponse(lancamento));
         }
         catch (Exception ex)
         {
@@ -68,28 +98,43 @@ public sealed class FinanceiroService : IFinanceiroService
             if (request.Valor <= 0)
                 return ApiResponse<LancamentoResponse>.Error("Valor deve ser maior que zero");
 
-            var lancamento = new Lancamento
+            Conta? conta = null;
+            if (request.ContaId.HasValue)
             {
-                Descricao = request.Descricao,
-                Valor = request.Valor,
-                DataVencimento = request.DataVencimento,
-                DataPagamento = request.DataPagamento,
-                Tipo = request.Tipo,
-                Status = request.Status,
-                Observacoes = request.Observacoes,
-                PedidoId = request.PedidoId,
-                FornecedorId = request.FornecedorId,
-                UserId = userId
-            };
+                conta = await _dbContext.Contas.FirstOrDefaultAsync(c => c.Id == request.ContaId.Value && c.UserId == userId);
+                if (conta == null) return ApiResponse<LancamentoResponse>.Error("Conta não encontrada");
+            }
 
-            await _dbContext.Lancamentos.AddAsync(lancamento);
+            var totalParcelas = request.ParcelaTotal.GetValueOrDefault(1);
+            if (totalParcelas < 1) totalParcelas = 1;
+            if (totalParcelas > 1 && conta == null)
+                return ApiResponse<LancamentoResponse>.Error("Conta é obrigatória para parcelamento");
+
+            var lancamentoBase = await ConstruirLancamento(request, userId, conta, parcelaAtual: 1, totalParcelas: totalParcelas, dataVenc: request.DataVencimento);
+            _dbContext.Lancamentos.Add(lancamentoBase);
+
+            if (totalParcelas > 1)
+            {
+                for (short n = 2; n <= totalParcelas; n++)
+                {
+                    var dataParcela = request.DataVencimento.AddMonths(n - 1);
+                    var parcela = await ConstruirLancamento(request, userId, conta, parcelaAtual: n, totalParcelas: totalParcelas, dataVenc: dataParcela);
+                    parcela.Descricao = $"{request.Descricao} ({n}/{totalParcelas})";
+                    _dbContext.Lancamentos.Add(parcela);
+                }
+                lancamentoBase.Descricao = $"{request.Descricao} (1/{totalParcelas})";
+            }
+
             await _dbContext.SaveChangesAsync();
 
             var created = await _dbContext.Lancamentos
                 .Include(l => l.Fornecedor)
-                .FirstAsync(l => l.Id == lancamento.Id);
+                .Include(l => l.Conta)
+                .Include(l => l.CategoriaFinanceira)
+                .Include(l => l.SubcategoriaFinanceira)
+                .FirstAsync(l => l.Id == lancamentoBase.Id);
 
-            return ApiResponse<LancamentoResponse>.Success(MapToResponse(created));
+            return ApiResponse<LancamentoResponse>.Success(ResponseType.Created, LancamentoMapper.MapToResponse(created));
         }
         catch (Exception ex)
         {
@@ -116,6 +161,11 @@ public sealed class FinanceiroService : IFinanceiroService
             lancamento.Observacoes = request.Observacoes;
             lancamento.PedidoId = request.PedidoId;
             lancamento.FornecedorId = request.FornecedorId;
+            lancamento.ContaId = request.ContaId;
+            lancamento.CategoriaFinanceiraId = request.CategoriaFinanceiraId;
+            lancamento.SubcategoriaFinanceiraId = request.SubcategoriaFinanceiraId;
+            lancamento.ComprovanteFinanceiroId = request.ComprovanteFinanceiroId;
+            lancamento.Realizado = request.Realizado;
             lancamento.DataAtualizacao = DateTime.UtcNow;
 
             _dbContext.Lancamentos.Update(lancamento);
@@ -123,9 +173,13 @@ public sealed class FinanceiroService : IFinanceiroService
 
             var updated = await _dbContext.Lancamentos
                 .Include(l => l.Fornecedor)
+                .Include(l => l.Conta)
+                .Include(l => l.CategoriaFinanceira)
+                .Include(l => l.SubcategoriaFinanceira)
+                .Include(l => l.Baixas.Where(b => b.Ativo))
                 .FirstAsync(l => l.Id == id);
 
-            return ApiResponse<LancamentoResponse>.Success(MapToResponse(updated));
+            return ApiResponse<LancamentoResponse>.Success(LancamentoMapper.MapToResponse(updated));
         }
         catch (Exception ex)
         {
@@ -200,20 +254,38 @@ public sealed class FinanceiroService : IFinanceiroService
         }
     }
 
-    private static LancamentoResponse MapToResponse(Lancamento l) => new()
+    private async Task<Lancamento> ConstruirLancamento(LancamentoRequest request, string userId, Conta? conta, short parcelaAtual, short totalParcelas, DateTime dataVenc)
     {
-        Id = l.Id,
-        Descricao = l.Descricao,
-        Valor = l.Valor,
-        DataVencimento = l.DataVencimento,
-        DataPagamento = l.DataPagamento,
-        Tipo = l.Tipo,
-        Status = l.Status,
-        Observacoes = l.Observacoes,
-        PedidoId = l.PedidoId,
-        FornecedorId = l.FornecedorId,
-        FornecedorNome = l.Fornecedor?.Nome,
-        CreatedAt = l.DataCriacao,
-        UpdatedAt = l.DataAtualizacao
-    };
+        Guid? faturaId = null;
+        if (conta != null && conta.EhCartaoCredito() && _faturaService != null
+            && conta.DiaFechamento.HasValue && conta.DiaVencimento.HasValue)
+        {
+            var (mes, ano) = FaturaCalculator.FaturaParaData(conta.DiaFechamento.Value, dataVenc);
+            var fatura = await _faturaService.ObterOuCriarAsync(conta, mes, ano);
+            faturaId = fatura.Id;
+            dataVenc = fatura.DataVencimento;
+        }
+
+        return new Lancamento
+        {
+            Descricao = request.Descricao,
+            Valor = request.Valor,
+            DataVencimento = dataVenc,
+            DataPagamento = request.DataPagamento,
+            Tipo = request.Tipo,
+            Status = request.Status,
+            Observacoes = request.Observacoes,
+            PedidoId = request.PedidoId,
+            FornecedorId = request.FornecedorId,
+            UserId = userId,
+            ContaId = request.ContaId,
+            CategoriaFinanceiraId = request.CategoriaFinanceiraId,
+            SubcategoriaFinanceiraId = request.SubcategoriaFinanceiraId,
+            ComprovanteFinanceiroId = request.ComprovanteFinanceiroId,
+            ParcelaAtual = totalParcelas > 1 ? parcelaAtual : (short?)null,
+            ParcelaTotal = totalParcelas > 1 ? totalParcelas : (short?)null,
+            FaturaId = faturaId,
+            Realizado = request.Realizado
+        };
+    }
 }

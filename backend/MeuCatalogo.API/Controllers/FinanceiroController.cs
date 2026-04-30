@@ -35,12 +35,29 @@ public class FinanceiroController : BaseApiController
     }
 
     [HttpGet("lancamentos")]
-    [SwaggerOperation(Summary = "Listar lançamentos", Description = "Filtro opcional por tipo (Receber/Pagar).")]
+    [SwaggerOperation(Summary = "Listar lançamentos", Description = "Aceita filtros por tipo, status, conta, categoria e período.")]
     [SwaggerResponse(200, "Lista retornada", typeof(IEnumerable<LancamentoResponse>))]
-    public async Task<IActionResult> Lancamentos([FromQuery] LancamentoTipo? tipo)
+    public async Task<IActionResult> Lancamentos(
+        [FromQuery] LancamentoTipo? tipo,
+        [FromQuery] LancamentoStatus? status,
+        [FromQuery] Guid? contaId,
+        [FromQuery] Guid? categoriaFinanceiraId,
+        [FromQuery] DateTime? dataInicio,
+        [FromQuery] DateTime? dataFim,
+        [FromQuery] bool incluirRecorrenciasFuturas = true)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var response = await _financeiroService.GetAllAsync(userId, tipo);
+        var filtro = new LancamentoFiltro
+        {
+            Tipo = tipo,
+            Status = status,
+            ContaId = contaId,
+            CategoriaFinanceiraId = categoriaFinanceiraId,
+            DataInicio = dataInicio,
+            DataFim = dataFim,
+            IncluirRecorrenciasFuturas = incluirRecorrenciasFuturas
+        };
+        var response = await _financeiroService.ListarAsync(userId, filtro);
         return HandleApiResponse(response);
     }
 
@@ -56,7 +73,7 @@ public class FinanceiroController : BaseApiController
     }
 
     [HttpPost("lancamentos")]
-    [SwaggerOperation(Summary = "Criar lançamento")]
+    [SwaggerOperation(Summary = "Criar lançamento", Description = "Aceita ParcelaTotal>1 para gerar parcelamento (vincula a faturas se conta for cartão de crédito).")]
     [SwaggerResponse(201, "Criado", typeof(LancamentoResponse))]
     [SwaggerResponse(400, "Dados inválidos", typeof(ProblemDetails))]
     public async Task<IActionResult> Adicionar([FromBody] LancamentoRequest request)

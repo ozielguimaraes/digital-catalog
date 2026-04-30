@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:financeiro="clr-namespace:MeuCatalogo.Features.Financeiro"
+             xmlns:domain="clr-namespace:MeuCatalogo.Features.Financeiro.Domain"
+             x:Class="MeuCatalogo.Features.Financeiro.ExtratoPage"
+             x:DataType="financeiro:ExtratoPageViewModel"
+             Title="Extrato">
+    <Grid RowDefinitions="Auto,Auto,Auto,*">
+
+        <!-- Filtros -->
+        <Border Grid.Row="0" Padding="16,12" StrokeThickness="0" BackgroundColor="#F5F5F5">
+            <VerticalStackLayout Spacing="8">
+                <Picker Title="Conta"
+                        ItemsSource="{Binding Contas}"
+                        ItemDisplayBinding="{Binding Nome}"
+                        SelectedItem="{Binding ContaSelecionada}" />
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                    <VerticalStackLayout Grid.Column="0">
+                        <Label Text="De" FontSize="11" Opacity="0.7" />
+                        <DatePicker Date="{Binding DataInicio}" Format="dd/MM/yyyy" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1">
+                        <Label Text="Até" FontSize="11" Opacity="0.7" />
+                        <DatePicker Date="{Binding DataFim}" Format="dd/MM/yyyy" />
+                    </VerticalStackLayout>
+                </Grid>
+                <Button Text="Atualizar" Command="{Binding CarregarCommand}" />
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Cards de saldo -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*,*" Padding="16,12,16,4" ColumnSpacing="8">
+            <Border Grid.Column="0" Padding="10" StrokeShape="RoundRectangle 8">
+                <VerticalStackLayout>
+                    <Label Text="SALDO INICIAL" FontSize="10" CharacterSpacing="2" Opacity="0.6" />
+                    <Label Text="{Binding SaldoInicial, StringFormat='{0:C}'}" FontSize="14" FontAttributes="Bold" />
+                </VerticalStackLayout>
+            </Border>
+            <Border Grid.Column="1" Padding="10" StrokeShape="RoundRectangle 8">
+                <VerticalStackLayout>
+                    <Label Text="ENTRADAS" FontSize="10" CharacterSpacing="2" Opacity="0.6" TextColor="#2E7D32" />
+                    <Label Text="{Binding TotalEntradas, StringFormat='{0:C}'}" FontSize="14" FontAttributes="Bold" TextColor="#2E7D32" />
+                </VerticalStackLayout>
+            </Border>
+            <Border Grid.Column="2" Padding="10" StrokeShape="RoundRectangle 8">
+                <VerticalStackLayout>
+                    <Label Text="SAÍDAS" FontSize="10" CharacterSpacing="2" Opacity="0.6" TextColor="#C62828" />
+                    <Label Text="{Binding TotalSaidas, StringFormat='{0:C}'}" FontSize="14" FontAttributes="Bold" TextColor="#C62828" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- Saldo final destacado -->
+        <Border Grid.Row="2" Padding="16,8" Margin="16,4,16,8" StrokeShape="RoundRectangle 10" BackgroundColor="#1A237E">
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Grid.Column="0" Text="Saldo final do período" FontSize="13" TextColor="White" VerticalOptions="Center" />
+                <Label Grid.Column="1" Text="{Binding SaldoFinal, StringFormat='{0:C}'}" FontSize="20" FontAttributes="Bold" TextColor="White" VerticalOptions="Center" />
+            </Grid>
+        </Border>
+
+        <!-- Lista de movimentos -->
+        <RefreshView Grid.Row="3" Command="{Binding CarregarCommand}" IsRefreshing="{Binding IsLoading}">
+            <CollectionView ItemsSource="{Binding ItensExibidos}"
+                            SelectionMode="None"
+                            EmptyView="Nenhuma movimentação no período.">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="financeiro:ExtratoListaItem">
+                        <ContentView>
+                            <Grid>
+                                <!-- Cabeçalho do dia -->
+                                <Border IsVisible="{Binding IsCabecalhoDia}"
+                                        Padding="16,8"
+                                        BackgroundColor="#FAFAFA"
+                                        StrokeThickness="0">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0" Text="{Binding DataLabel}" FontSize="12" FontAttributes="Bold" Opacity="0.7" />
+                                        <Label Grid.Column="1" Text="{Binding SaldoFinalDia, StringFormat='Saldo do dia: {0:C}'}" FontSize="11" Opacity="0.7" />
+                                    </Grid>
+                                </Border>
+
+                                <!-- Movimento -->
+                                <Grid IsVisible="{Binding IsMovimento}"
+                                      Padding="16,12"
+                                      ColumnDefinitions="6,*,Auto">
+                                    <BoxView Grid.Column="0" WidthRequest="6" Color="{Binding CorBarra}" />
+                                    <VerticalStackLayout Grid.Column="1" Padding="12,0,0,0" Spacing="2">
+                                        <Label Text="{Binding Movimento.Descricao}" FontSize="14" />
+                                        <Label Text="{Binding LegendaSecundaria}" FontSize="11" Opacity="0.6" />
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="2" HorizontalOptions="End">
+                                        <Label Text="{Binding Movimento.ValorComSinal}" FontSize="14" FontAttributes="Bold" TextColor="{Binding CorValor}" HorizontalOptions="End" />
+                                        <Label Text="{Binding Movimento.SaldoApos, StringFormat='saldo: {0:C}'}" FontSize="10" Opacity="0.5" HorizontalOptions="End" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Grid>
+                        </ContentView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

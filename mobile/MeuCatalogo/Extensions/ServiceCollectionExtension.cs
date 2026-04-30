@@ -218,8 +218,44 @@ public static class ServiceCollectionExtension
         builder.Services.AddTransient<GetFornecedoresUseCase>();
 
         builder.Services.AddTransient<IFinanceiroRepository, FinanceiroRepository>();
+        builder.Services.AddTransient<IContaRepository, ContaRepository>();
+        builder.Services.AddTransient<ICategoriaFinanceiraRepository, CategoriaFinanceiraRepository>();
+        builder.Services.AddTransient<IFaturaRepository, FaturaRepository>();
+        builder.Services.AddTransient<IRecorrenciaRepository, RecorrenciaRepository>();
+        builder.Services.AddTransient<ITransferenciaRepository, TransferenciaRepository>();
+        builder.Services.AddTransient<ILancamentoBaixaRepository, LancamentoBaixaRepository>();
+        builder.Services.AddTransient<IComprovanteFinanceiroRepository, ComprovanteFinanceiroRepository>();
+        builder.Services.AddTransient<IRelatorioFinanceiroRepository, RelatorioFinanceiroRepository>();
+        builder.Services.AddTransient<IExtratoRepository, ExtratoRepository>();
+
         builder.Services.AddTransient<GetFinanceiroResumoUseCase>();
         builder.Services.AddTransient<GetLancamentosUseCase>();
+        builder.Services.AddTransient<CriarLancamentoUseCase>();
+        builder.Services.AddTransient<AtualizarLancamentoUseCase>();
+        builder.Services.AddTransient<RemoverLancamentoUseCase>();
+        builder.Services.AddTransient<GetContasUseCase>();
+        builder.Services.AddTransient<CriarContaUseCase>();
+        builder.Services.AddTransient<AtualizarContaUseCase>();
+        builder.Services.AddTransient<RemoverContaUseCase>();
+        builder.Services.AddTransient<GetCategoriasFinanceirasUseCase>();
+        builder.Services.AddTransient<CriarCategoriaFinanceiraUseCase>();
+        builder.Services.AddTransient<AtualizarCategoriaFinanceiraUseCase>();
+        builder.Services.AddTransient<RemoverCategoriaFinanceiraUseCase>();
+        builder.Services.AddTransient<CriarSubcategoriaFinanceiraUseCase>();
+        builder.Services.AddTransient<GetFaturaUseCase>();
+        builder.Services.AddTransient<ListarFaturasPorContaUseCase>();
+        builder.Services.AddTransient<GetRecorrenciasUseCase>();
+        builder.Services.AddTransient<CriarRecorrenciaUseCase>();
+        builder.Services.AddTransient<AtualizarRecorrenciaUseCase>();
+        builder.Services.AddTransient<RemoverRecorrenciaUseCase>();
+        builder.Services.AddTransient<CriarTransferenciaUseCase>();
+        builder.Services.AddTransient<GetBaixasUseCase>();
+        builder.Services.AddTransient<RegistrarBaixaUseCase>();
+        builder.Services.AddTransient<RemoverBaixaUseCase>();
+        builder.Services.AddTransient<UploadComprovanteUseCase>();
+        builder.Services.AddTransient<GetRelatorioPorCategoriaUseCase>();
+        builder.Services.AddTransient<GetExtratoPorContaUseCase>();
+        builder.Services.AddTransient<GetExtratoConsolidadoUseCase>();
 
         builder.Services.AddTransient<ISyncHandler, CatalogoPullSyncHandler>();
         builder.Services.AddTransient<ISyncHandler, CategoriaPullSyncHandler>();
@@ -280,9 +316,29 @@ public static class ServiceCollectionExtension
         builder.Services.AddTransient<FornecedorListaPage>();
         builder.Services.AddTransient<FornecedorListaPageViewModel>();
 
-        //Feature Financeiro (mock)
+        //Feature Financeiro
         builder.Services.AddTransient<FinanceiroPage>();
         builder.Services.AddTransient<FinanceiroPageViewModel>();
+        builder.Services.AddTransient<ContasListaPage>();
+        builder.Services.AddTransient<ContasListaPageViewModel>();
+        builder.Services.AddTransient<ContaEdicaoPage>();
+        builder.Services.AddTransient<ContaEdicaoPageViewModel>();
+        builder.Services.AddTransient<CategoriasFinanceirasPage>();
+        builder.Services.AddTransient<CategoriasFinanceirasPageViewModel>();
+        builder.Services.AddTransient<CategoriaFinanceiraEdicaoPage>();
+        builder.Services.AddTransient<CategoriaFinanceiraEdicaoPageViewModel>();
+        builder.Services.AddTransient<RecorrenciasPage>();
+        builder.Services.AddTransient<RecorrenciasPageViewModel>();
+        builder.Services.AddTransient<TransferenciaPage>();
+        builder.Services.AddTransient<TransferenciaPageViewModel>();
+        builder.Services.AddTransient<BaixaPage>();
+        builder.Services.AddTransient<BaixaPageViewModel>();
+        builder.Services.AddTransient<FaturaPage>();
+        builder.Services.AddTransient<FaturaPageViewModel>();
+        builder.Services.AddTransient<RelatoriosPage>();
+        builder.Services.AddTransient<RelatoriosPageViewModel>();
+        builder.Services.AddTransient<ExtratoPage>();
+        builder.Services.AddTransient<ExtratoPageViewModel>();
         builder.Services.AddTransient<ReceberPage>();
         builder.Services.AddTransient<ReceberPageViewModel>();
         builder.Services.AddTransient<PagarPage>();

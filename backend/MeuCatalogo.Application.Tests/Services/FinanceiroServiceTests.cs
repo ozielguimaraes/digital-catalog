@@ -375,4 +375,105 @@ public class FinanceiroServiceTests
         result.Data.RecebidoNoMes.Should().Be(0m);
         result.Data.PagoNoMes.Should().Be(0m);
     }
+
+    [Fact]
+    public async Task CreateAsync_ParcelamentoEmCartao_GeraNLancamentosVinculadosAFaturas()
+    {
+        await using var test = new TestDbContext();
+        var cartao = new Conta
+        {
+            UserId = UserId,
+            Nome = "Cartão",
+            Tipo = ContaTipo.CartaoCredito,
+            Cor = "#000",
+            DiaFechamento = 15,
+            DiaVencimento = 25,
+            Limite = 5000m
+        };
+        test.Db.Contas.Add(cartao);
+        await test.Db.SaveChangesAsync();
+
+        var faturaService = new FaturaService(test.Db);
+        var recorrenciaService = new RecorrenciaService(test.Db);
+        var service = new FinanceiroService(test.Db, recorrenciaService, faturaService);
+
+        var result = await service.CreateAsync(new LancamentoRequest
+        {
+            Descricao = "TV",
+            Valor = 100m,
+            DataVencimento = new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc),
+            Tipo = LancamentoTipo.Pagar,
+            ContaId = cartao.Id,
+            ParcelaTotal = 11
+        }, UserId);
+
+        result.IsSuccess.Should().BeTrue();
+        test.Db.Lancamentos.Should().HaveCount(11);
+        test.Db.Faturas.Should().HaveCount(11);
+        test.Db.Lancamentos.Should().AllSatisfy(l =>
+        {
+            l.ParcelaTotal.Should().Be(11);
+            l.FaturaId.Should().NotBeNull();
+        });
+    }
+
+    [Fact]
+    public async Task ListarAsync_ChamaGerarPendentesAntesDeListar_QuandoIncluirRecorrenciasFuturas()
+    {
+        await using var test = new TestDbContext();
+        var conta = new Conta { UserId = UserId, Nome = "B", Tipo = ContaTipo.ContaCorrente, Cor = "#000" };
+        var cat = new CategoriaFinanceira { UserId = UserId, Nome = "Casa", Tipo = CategoriaFinanceiraTipo.Despesa, Cor = "#000", IconeNome = "home" };
+        test.Db.Contas.Add(conta);
+        test.Db.CategoriasFinanceiras.Add(cat);
+        await test.Db.SaveChangesAsync();
+
+        var recorrenciaService = new RecorrenciaService(test.Db);
+        await recorrenciaService.CreateAsync(new LancamentoRequestForRecorrencia()
+        {
+            Tipo = CategoriaFinanceiraTipo.Despesa,
+            Descricao = "Internet",
+            ContaId = conta.Id,
+            CategoriaFinanceiraId = cat.Id,
+            ValorPadrao = 100m,
+            Periodicidade = RecorrenciaPeriodicidade.Mensal,
+            DiaDoMes = 10,
+            DataInicio = new DateTime(2026, 1, 10, 0, 0, 0, DateTimeKind.Utc)
+        }.ToReq(), UserId);
+
+        var faturaService = new FaturaService(test.Db);
+        var service = new FinanceiroService(test.Db, recorrenciaService, faturaService);
+
+        var result = await service.ListarAsync(UserId, new LancamentoFiltro
+        {
+            DataFim = new DateTime(2026, 5, 31, 0, 0, 0, DateTimeKind.Utc),
+            IncluirRecorrenciasFuturas = true
+        });
+
+        result.IsSuccess.Should().BeTrue();
+        result.Data!.Count.Should().BeGreaterThan(0);
+    }
+}
+
+internal class LancamentoRequestForRecorrencia
+{
+    public CategoriaFinanceiraTipo Tipo { get; set; }
+    public string Descricao { get; set; } = string.Empty;
+    public Guid ContaId { get; set; }
+    public Guid CategoriaFinanceiraId { get; set; }
+    public decimal? ValorPadrao { get; set; }
+    public RecorrenciaPeriodicidade Periodicidade { get; set; }
+    public byte? DiaDoMes { get; set; }
+    public DateTime DataInicio { get; set; }
+
+    public RecorrenciaRequest ToReq() => new()
+    {
+        Tipo = Tipo,
+        Descricao = Descricao,
+        ContaId = ContaId,
+        CategoriaFinanceiraId = CategoriaFinanceiraId,
+        ValorPadrao = ValorPadrao,
+        Periodicidade = Periodicidade,
+        DiaDoMes = DiaDoMes,
+        DataInicio = DataInicio
+    };
 }

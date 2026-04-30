@@ -11,7 +11,20 @@ public enum LancamentoStatus
     Pendente,
     Pago,
     Atrasado,
-    Cancelado
+    Cancelado,
+    Parcial
+}
+
+public enum LancamentoOperacao
+{
+    Simples,
+    Transferencia
+}
+
+public enum LancamentoTipoTransferencia
+{
+    EntreContas,
+    PagamentoFatura
 }
 
 public class Lancamento : BaseEntity
@@ -32,4 +45,35 @@ public class Lancamento : BaseEntity
 
     public string UserId { get; set; } = string.Empty;
     public ApplicationUser? User { get; set; }
+
+    public Guid? ContaId { get; set; }
+    public Conta? Conta { get; set; }
+
+    public Guid? CategoriaFinanceiraId { get; set; }
+    public CategoriaFinanceira? CategoriaFinanceira { get; set; }
+
+    public Guid? SubcategoriaFinanceiraId { get; set; }
+    public SubcategoriaFinanceira? SubcategoriaFinanceira { get; set; }
+
+    public LancamentoOperacao Operacao { get; set; } = LancamentoOperacao.Simples;
+    public LancamentoTipoTransferencia? TipoTransferencia { get; set; }
+
+    public Guid? LancamentoTransferenciaId { get; set; }
+    public Lancamento? LancamentoTransferencia { get; set; }
+
+    public short? ParcelaAtual { get; set; }
+    public short? ParcelaTotal { get; set; }
+
+    public Guid? FaturaId { get; set; }
+    public Fatura? Fatura { get; set; }
+
+    public Guid? RecorrenciaId { get; set; }
+    public Recorrencia? Recorrencia { get; set; }
+
+    public Guid? ComprovanteFinanceiroId { get; set; }
+    public ComprovanteFinanceiro? ComprovanteFinanceiro { get; set; }
+
+    public bool Realizado { get; set; }
+
+    public ICollection<LancamentoBaixa> Baixas { get; set; } = new List<LancamentoBaixa>();
 }
