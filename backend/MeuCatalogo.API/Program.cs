@@ -348,6 +348,10 @@ try
         });
         c.DocumentFilter<LowercaseDocumentFilter>();
         c.EnableAnnotations();
+        foreach (var xml in System.IO.Directory.GetFiles(AppContext.BaseDirectory, "*.xml"))
+        {
+            c.IncludeXmlComments(xml, includeControllerXmlComments: true);
+        }
         c.AddSecurityDefinition("Bearer",
             new OpenApiSecurityScheme
             {
