@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="MeuCatalogo.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:catalogo="clr-namespace:MeuCatalogo.Features.Catalogo"
+    xmlns:produto="clr-namespace:MeuCatalogo.Features.Produto"
+    xmlns:home="clr-namespace:MeuCatalogo.Features.Home"
+    xmlns:pedido="clr-namespace:MeuCatalogo.Features.Pedido"
+    xmlns:mais="clr-namespace:MeuCatalogo.Features.Mais"
+    xmlns:fonts="clr-namespace:MeuCatalogo.Resources.Fonts"
+    xmlns:vm="clr-namespace:MeuCatalogo"
+    Shell.FlyoutBehavior="Disabled"
+    x:DataType="vm:AppShellViewModel"
+    Title="SanyZ"
+    Shell.TabBarBackgroundColor="{AppThemeBinding Light={StaticResource SurfaceColorLight}, Dark={StaticResource SurfaceColorDark}}"
+    Shell.TabBarTitleColor="{AppThemeBinding Light={StaticResource BrandCopperSany}, Dark={StaticResource BrandCopperZ}}"
+    Shell.TabBarUnselectedColor="{AppThemeBinding Light={StaticResource TextMutedColorLight}, Dark={StaticResource TextMutedColorDark}}"
+    Shell.TabBarForegroundColor="{AppThemeBinding Light={StaticResource BrandCopperSany}, Dark={StaticResource BrandCopperZ}}">
+
+    <TabBar>
+        <ShellContent Title="Início"
+                      ContentTemplate="{DataTemplate home:HomePage}"
+                      Route="HomePage">
+            <ShellContent.Icon>
+                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}" Glyph="{x:Static fonts:FluentUI.home_24_regular}" />
+            </ShellContent.Icon>
+        </ShellContent>
+        <ShellContent Title="Produtos"
+                      ContentTemplate="{DataTemplate produto:ProdutoListaPage}"
+                      Route="ProdutoListaPage">
+            <ShellContent.Icon>
+                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}" Glyph="{x:Static fonts:FluentUI.tag_24_regular}" />
+            </ShellContent.Icon>
+        </ShellContent>
+        <ShellContent Title="Catálogos"
+                      ContentTemplate="{DataTemplate catalogo:CatalogoListaPage}"
+                      Route="CatalogoListaPage">
+            <ShellContent.Icon>
+                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}" Glyph="{x:Static fonts:FluentUI.book_24_regular}" />
+            </ShellContent.Icon>
+        </ShellContent>
+        <ShellContent Title="Pedidos"
+                      ContentTemplate="{DataTemplate pedido:PedidoListaPage}"
+                      Route="PedidoListaPage">
+            <ShellContent.Icon>
+                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}" Glyph="{x:Static fonts:FluentUI.receipt_24_regular}" />
+            </ShellContent.Icon>
+        </ShellContent>
+        <ShellContent Title="Mais"
+                      ContentTemplate="{DataTemplate mais:MaisPage}"
+                      Route="MaisPage">
+            <ShellContent.Icon>
+                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}" Glyph="{x:Static fonts:FluentUI.more_horizontal_24_regular}" />
+            </ShellContent.Icon>
+        </ShellContent>
+    </TabBar>
+</Shell>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:fornecedor="clr-namespace:MeuCatalogo.Features.Fornecedor"
+             xmlns:domain="clr-namespace:MeuCatalogo.Features.Fornecedor.Domain"
+             x:Class="MeuCatalogo.Features.Fornecedor.FornecedorListaPage"
+             x:Name="FornecedorListaPageRoot"
+             x:DataType="fornecedor:FornecedorListaPageViewModel">
+
+    <Shell.TitleView>
+        <VerticalStackLayout VerticalOptions="Center" Spacing="0">
+            <Label Style="{StaticResource Caps}" Text="ATELIÊ · OPERAÇÃO" />
+            <Label Text="Fornecedores" FontFamily="LoraMedium" FontSize="18" />
+        </VerticalStackLayout>
+    </Shell.TitleView>
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            BindingContext="{Binding Source={x:Reference FornecedorListaPageRoot}, Path=BindingContext}"
+            EventName="Appearing"
+            Command="{Binding CarregarCommand}" />
+    </ContentPage.Behaviors>
+
+    <Grid RowDefinitions="*">
+
+        <ScrollView Grid.Row="0">
+            <Grid Padding="24,16,24,32" RowDefinitions="Auto,Auto">
+
+                <VerticalStackLayout Grid.Row="0"
+                                     IsVisible="{Binding IsLoading}"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Center"
+                                     Padding="0,48"
+                                     Spacing="12">
+                    <ActivityIndicator IsRunning="{Binding IsLoading}" WidthRequest="36" HeightRequest="36" />
+                    <Label Style="{StaticResource BodyMuted}" HorizontalTextAlignment="Center" Text="Carregando fornecedores…" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Grid.Row="0"
+                                     IsVisible="{Binding ShowEmptyState}"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Center"
+                                     Padding="0,48"
+                                     Spacing="12">
+                    <Border Style="{StaticResource IconCircleSurface}" HeightRequest="92" WidthRequest="92" HorizontalOptions="Center">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="46" />
+                        </Border.StrokeShape>
+                        <Label Text="✦"
+                               FontFamily="LoraMedium"
+                               FontSize="32"
+                               TextColor="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+                    <Label Style="{StaticResource SerifH2}" HorizontalTextAlignment="Center" Text="Nenhum fornecedor cadastrado" />
+                    <Label Style="{StaticResource BodyMuted}" HorizontalTextAlignment="Center" Text="Cadastre fornecedores pra registrar contatos e contas a pagar." />
+                </VerticalStackLayout>
+
+                <CollectionView Grid.Row="1"
+                                ItemsSource="{Binding Fornecedores}"
+                                SelectionMode="None">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="12" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="domain:FornecedorInfo">
+                            <Border Style="{StaticResource CardElevated}" Padding="18">
+                                <VerticalStackLayout Spacing="6">
+                                    <Label Style="{StaticResource Caps}" Text="{Binding Categoria}" />
+                                    <Label Style="{StaticResource SerifH3}" Text="{Binding Nome}" LineBreakMode="TailTruncation" />
+                                    <VerticalStackLayout Spacing="2" Margin="0,4,0,0">
+                                        <Label Style="{StaticResource BodyMuted}" Text="{Binding NomeContato}" />
+                                        <Label Style="{StaticResource BodyMuted}" Text="{Binding Telefone}" />
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </ScrollView>
+    </Grid>
+</ContentPage>

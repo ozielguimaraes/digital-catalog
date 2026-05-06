@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<bottomsheet:BottomSheet
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:bottomsheet="http://pluginmauibottomsheet.com"
+    xmlns:components="clr-namespace:MeuCatalogo.Components"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:fonts="clr-namespace:MeuCatalogo.Resources.Fonts"
+    x:Class="MeuCatalogo.Features.Categoria.CategoriaBottomSheet"
+    xmlns:viewmodel="clr-namespace:MeuCatalogo.Features.Categoria"
+    xmlns:models="clr-namespace:MeuCatalogo.Features.Categoria.Models"
+    x:DataType="viewmodel:CategoriaBottomSheetViewModel"
+    BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceColorLight}, Dark={StaticResource SurfaceColorDark}}"
+    States="Peek,Medium"
+    CurrentState="Medium"
+    HasHandle="True"
+    IsModal="True"
+    IsCancelable="False"
+    IsDraggable="True">
+    <bottomsheet:BottomSheet.Content>
+        <bottomsheet:BottomSheetContent>
+            <Grid RowDefinitions="Auto,Auto,*" Padding="24,8,24,16">
+
+                <VerticalStackLayout Grid.Row="0" Spacing="4" Margin="0,8,0,0">
+                    <Label Style="{StaticResource Caps}" Text="ATELIÊ · CATEGORIAS" />
+                    <Label Style="{StaticResource SerifH2}" Text="{Binding Titulo}" />
+                </VerticalStackLayout>
+
+                <Grid Grid.Row="1"
+                      Margin="0,16,0,0"
+                      ColumnDefinitions="*,Auto"
+                      ColumnSpacing="12"
+                      VerticalOptions="Center">
+                    <components:CustomEntry Grid.Column="0"
+                                            Title="NOVA CATEGORIA"
+                                            Placeholder="Ex.: Bolsas de couro"
+                                            Text="{Binding NovaCategoria}"
+                                            MaxLength="60"
+                                            ErrorMessage="{Binding NovaCategoriaErrorMessage}"
+                                            HasError="{Binding NovaCategoriaErrorMessage, Converter={toolkit:IsNotNullConverter}}" />
+                    <Border Grid.Column="1"
+                            HeightRequest="44"
+                            WidthRequest="44"
+                            StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource BrandCopperSany}, Dark={StaticResource BrandCopperZ}}"
+                            VerticalOptions="Center">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="22" />
+                        </Border.StrokeShape>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding IsEditing}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{StaticResource BrandCopperBrown}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <Label HorizontalOptions="Center"
+                               VerticalOptions="Center"
+                               FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                               FontSize="22"
+                               TextColor="{StaticResource OnPrimaryColor}">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsEditing}" Value="True">
+                                    <Setter Property="Text" Value="{x:Static fonts:FluentUI.checkmark_24_regular}" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsEditing}" Value="False">
+                                    <Setter Property="Text" Value="{x:Static fonts:FluentUI.add_24_regular}" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SalvarCommand}" />
+                        </Border.GestureRecognizers>
+                    </Border>
+                </Grid>
+
+                <CollectionView Grid.Row="2"
+                                ItemsSource="{Binding Categorias}"
+                                Margin="0,16,0,0">
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout VerticalOptions="Center"
+                                             HorizontalOptions="Center"
+                                             Padding="0,32"
+                                             Spacing="10">
+                            <Border Style="{StaticResource IconCircleSurface}"
+                                    HeightRequest="72"
+                                    WidthRequest="72"
+                                    HorizontalOptions="Center">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="36" />
+                                </Border.StrokeShape>
+                                <Label Text="{x:Static fonts:FluentUI.tag_24_regular}"
+                                       FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                       FontSize="28"
+                                       TextColor="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center" />
+                            </Border>
+                            <Label Style="{StaticResource SerifH3}"
+                                   HorizontalTextAlignment="Center"
+                                   Text="Nenhuma categoria ainda" />
+                            <Label Style="{StaticResource BodyMuted}"
+                                   HorizontalTextAlignment="Center"
+                                   Text="Crie a primeira categoria no campo acima." />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:CategoriaModel">
+                            <SwipeView>
+                                <SwipeView.RightItems>
+                                    <SwipeItems Mode="Reveal">
+                                        <SwipeItemView WidthRequest="92">
+                                            <Border Style="{StaticResource SwipeActionWarning}">
+                                                <VerticalStackLayout Padding="8"
+                                                                     HorizontalOptions="Center"
+                                                                     VerticalOptions="Center"
+                                                                     Spacing="4">
+                                                    <Label Text="{x:Static fonts:FluentUI.edit_24_regular}"
+                                                           FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                           FontSize="22"
+                                                           TextColor="{StaticResource OnPrimaryColor}"
+                                                           HorizontalOptions="Center"
+                                                           VerticalOptions="Center" />
+                                                    <Label Text="Editar"
+                                                           FontFamily="LatoBold"
+                                                           FontSize="11"
+                                                           TextColor="{StaticResource OnPrimaryColor}"
+                                                           HorizontalTextAlignment="Center" />
+                                                </VerticalStackLayout>
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:CategoriaBottomSheetViewModel}}, Path=EditarCategoriaCommand}"
+                                                                          CommandParameter="{Binding .}" />
+                                                </Border.GestureRecognizers>
+                                            </Border>
+                                        </SwipeItemView>
+                                    </SwipeItems>
+                                </SwipeView.RightItems>
+
+                                <Border Padding="16,14" StrokeThickness="0">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource SurfaceMutedColorDark}}" />
+                                            <Style.Triggers>
+                                                <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource BrandCopperSany}, Dark={StaticResource BrandCopperZ}}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="12" />
+                                    </Border.StrokeShape>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:CategoriaBottomSheetViewModel}}, Path=SelecionarCategoriaCommand}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <Label Text="{Binding Nome}"
+                                           FontFamily="LatoBold"
+                                           FontSize="15">
+                                        <Label.Style>
+                                            <Style TargetType="Label">
+                                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextColorLight}, Dark={StaticResource TextColorDark}}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter Property="TextColor" Value="{StaticResource OnPrimaryColor}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Label.Style>
+                                    </Label>
+                                </Border>
+                            </SwipeView>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </bottomsheet:BottomSheetContent>
+    </bottomsheet:BottomSheet.Content>
+</bottomsheet:BottomSheet>

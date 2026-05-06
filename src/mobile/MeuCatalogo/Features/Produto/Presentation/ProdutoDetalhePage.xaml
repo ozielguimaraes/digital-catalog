@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:produto="clr-namespace:MeuCatalogo.Features.Produto.Presentation"
+             xmlns:catalogo="clr-namespace:MeuCatalogo.Features.Catalogo"
+             xmlns:contracts="clr-namespace:MeuCatalogo.Features.Produto.Data.Remote.Contracts.Responses"
+             x:Class="MeuCatalogo.Features.Produto.Presentation.ProdutoDetalhePage"
+             x:DataType="produto:ProdutoDetalhePageViewModel">
+
+    <Shell.TitleView>
+        <VerticalStackLayout VerticalOptions="Center" Spacing="0">
+            <Label Style="{StaticResource Caps}" Text="{Binding CategoriaNome}" IsVisible="{Binding TemCategoria}" />
+            <Label Text="{Binding Nome}" FontFamily="LoraMedium" FontSize="18" LineBreakMode="TailTruncation" />
+        </VerticalStackLayout>
+    </Shell.TitleView>
+
+    <Grid RowDefinitions="*,Auto">
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Spacing="0">
+
+                <!-- Cover -->
+                <Grid HeightRequest="320">
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource SurfaceMutedColorDark}}"
+                            StrokeThickness="0">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="0,0,32,32" />
+                        </Border.StrokeShape>
+                        <Image Aspect="AspectFill"
+                               IsVisible="{Binding CapaUrl, Converter={x:Static catalogo:NotNullOrEmptyConverter.Instance}}">
+                            <Image.Source>
+                                <UriImageSource Uri="{Binding CapaUrl}" CacheValidity="1.00:00:00" />
+                            </Image.Source>
+                        </Image>
+                    </Border>
+                </Grid>
+
+                <VerticalStackLayout Padding="20,-32,20,24" Spacing="14">
+
+                    <!-- Header card -->
+                    <Border Style="{StaticResource CardElevated}" Padding="20">
+                        <VerticalStackLayout Spacing="6">
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="{Binding PrecoComDesconto, StringFormat='{0:C}'}"
+                                       FontFamily="LatoBold"
+                                       FontSize="22"
+                                       TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}"
+                                       IsVisible="{Binding TemDesconto}" />
+                                <Label Text="{Binding Preco, StringFormat='{0:C}'}"
+                                       FontFamily="LatoBold"
+                                       FontSize="22"
+                                       TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding TemDesconto}" Value="True">
+                                            <Setter Property="IsVisible" Value="False" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                                <Label Text="{Binding Preco, StringFormat='{0:C}'}"
+                                       FontFamily="LatoRegular"
+                                       FontSize="14"
+                                       VerticalOptions="Center"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextMutedColorLight}, Dark={StaticResource TextMutedColorDark}}"
+                                       TextDecorations="Strikethrough"
+                                       IsVisible="{Binding TemDesconto}" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Galeria -->
+                    <VerticalStackLayout Spacing="8" IsVisible="{Binding TemGaleria}">
+                        <Label Style="{StaticResource Caps}" Text="GALERIA" Margin="4,0,0,0" />
+                        <CollectionView ItemsSource="{Binding Imagens}"
+                                        HeightRequest="124"
+                                        SelectionMode="None">
+                            <CollectionView.ItemsLayout>
+                                <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10" />
+                            </CollectionView.ItemsLayout>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="contracts:ProdutoImagemResponse">
+                                    <Border StrokeThickness="0"
+                                            HeightRequest="120"
+                                            WidthRequest="120"
+                                            BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource SurfaceMutedColorDark}}">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="14" />
+                                        </Border.StrokeShape>
+                                        <Image Aspect="AspectFill" Source="{Binding Images.Medium}" />
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+
+                    <!-- Informações adicionais -->
+                    <Border Style="{StaticResource Card}" Padding="20"
+                            IsVisible="{Binding TemInformacoes}">
+                        <VerticalStackLayout Spacing="8">
+                            <Label Style="{StaticResource Caps}" Text="DESCRIÇÃO" />
+                            <Label Text="{Binding InformacoesAdicionais}"
+                                   FontFamily="LatoRegular"
+                                   FontSize="14"
+                                   LineHeight="1.5" />
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Sticky CTA -->
+        <Border Grid.Row="1"
+                StrokeThickness="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceColorLight}, Dark={StaticResource SurfaceColorDark}}"
+                Padding="20,12,20,18">
+            <Border.Shadow>
+                <Shadow Brush="Black" Offset="0,-4" Radius="12" Opacity="0.06" />
+            </Border.Shadow>
+            <Button Style="{StaticResource PrimaryButton}"
+                    Text="EDITAR PRODUTO"
+                    Command="{Binding EditarCommand}" />
+        </Border>
+    </Grid>
+</ContentPage>

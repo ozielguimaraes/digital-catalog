@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<bottomsheet:BottomSheet
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:bottomsheet="http://pluginmauibottomsheet.com"
+    xmlns:components="clr-namespace:MeuCatalogo.Components"
+    xmlns:viewmodel="clr-namespace:MeuCatalogo.Features.Pedido.Bottom"
+    xmlns:domain="clr-namespace:MeuCatalogo.Features.Cliente.Domain"
+    x:Class="MeuCatalogo.Features.Pedido.Bottom.PedidoClienteBottomSheet"
+    x:DataType="viewmodel:PedidoClienteBottomSheetViewModel"
+    BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceColorLight}, Dark={StaticResource SurfaceColorDark}}"
+    States="Medium,Large"
+    CurrentState="Large"
+    HasHandle="True"
+    IsModal="True"
+    IsCancelable="False"
+    IsDraggable="True">
+    <bottomsheet:BottomSheet.Content>
+        <bottomsheet:BottomSheetContent>
+            <Grid RowDefinitions="Auto,Auto,*" Padding="24,8,24,16">
+
+                <VerticalStackLayout Grid.Row="0" Spacing="4" Margin="0,8,0,0">
+                    <Label Style="{StaticResource Caps}" Text="ATELIÊ · CRM" />
+                    <Label Style="{StaticResource SerifH2}" Text="Selecione o cliente" />
+                </VerticalStackLayout>
+
+                <components:CustomEntry Grid.Row="1"
+                                        Title="BUSCAR"
+                                        Placeholder="Nome, e-mail ou telefone"
+                                        Text="{Binding Filtro}" />
+
+                <CollectionView Grid.Row="2"
+                                ItemsSource="{Binding Filtrados}"
+                                Margin="0,12,0,0">
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout VerticalOptions="Center"
+                                             HorizontalOptions="Center"
+                                             Padding="0,32"
+                                             Spacing="6">
+                            <Label Style="{StaticResource SerifH3}"
+                                   HorizontalTextAlignment="Center"
+                                   Text="Nenhum cliente" />
+                            <Label Style="{StaticResource BodyMuted}"
+                                   HorizontalTextAlignment="Center"
+                                   Text="Cadastre clientes na tela de CRM." />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="8" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="domain:ClienteInfo">
+                            <Border Padding="14,12" StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource SurfaceMutedColorDark}}">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:PedidoClienteBottomSheetViewModel}}, Path=SelecionarCommand}"
+                                                          CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="40,*" ColumnSpacing="12">
+                                    <Border Grid.Column="0"
+                                            Style="{StaticResource IconCircleSurface}"
+                                            HeightRequest="40"
+                                            WidthRequest="40"
+                                            VerticalOptions="Center">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="20" />
+                                        </Border.StrokeShape>
+                                        <Label Text="{Binding Iniciais}"
+                                               FontFamily="LoraSemiBold"
+                                               FontSize="14"
+                                               TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center" />
+                                    </Border>
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                        <Label FontFamily="LoraMedium"
+                                               FontSize="15"
+                                               Text="{Binding Nome}"
+                                               LineBreakMode="TailTruncation" />
+                                        <Label Style="{StaticResource BodyMuted}"
+                                               FontSize="12"
+                                               Text="{Binding Telefone}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </bottomsheet:BottomSheetContent>
+    </bottomsheet:BottomSheet.Content>
+</bottomsheet:BottomSheet>

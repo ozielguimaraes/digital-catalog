@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<bottomsheet:BottomSheet
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:bottomsheet="http://pluginmauibottomsheet.com"
+    xmlns:viewmodel="clr-namespace:MeuCatalogo.Features.Catalogo"
+    xmlns:domain="clr-namespace:MeuCatalogo.Features.Catalogo.Domain"
+    x:Class="MeuCatalogo.Features.Catalogo.CatalogoEmUsoBottomSheet"
+    x:DataType="viewmodel:CatalogoEmUsoBottomSheetViewModel"
+    BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceColorLight}, Dark={StaticResource SurfaceColorDark}}"
+    States="Medium,Large"
+    CurrentState="Medium"
+    HasHandle="True"
+    IsModal="True"
+    IsCancelable="False"
+    IsDraggable="True">
+    <bottomsheet:BottomSheet.Content>
+        <bottomsheet:BottomSheetContent>
+            <Grid RowDefinitions="Auto,*" Padding="24,8,24,16">
+
+                <VerticalStackLayout Grid.Row="0" Spacing="4" Margin="0,8,0,0">
+                    <Label Style="{StaticResource Caps}" Text="ATELIÊ · CATÁLOGO" />
+                    <Label Style="{StaticResource SerifH2}" Text="Selecione o catálogo" />
+                    <Label Style="{StaticResource BodyMuted}"
+                           Text="Defina o catálogo em uso nesta sessão." />
+                </VerticalStackLayout>
+
+                <CollectionView Grid.Row="1"
+                                ItemsSource="{Binding Catalogos}"
+                                Margin="0,16,0,0">
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout VerticalOptions="Center"
+                                             HorizontalOptions="Center"
+                                             Padding="0,32"
+                                             Spacing="10">
+                            <Label Style="{StaticResource SerifH3}"
+                                   HorizontalTextAlignment="Center"
+                                   Text="Nenhum catálogo disponível" />
+                            <Label Style="{StaticResource BodyMuted}"
+                                   HorizontalTextAlignment="Center"
+                                   Text="Crie um catálogo antes de gerar um pedido." />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="domain:CatalogoInfo">
+                            <Border Padding="16,14" StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource SurfaceMutedColorDark}}">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:CatalogoEmUsoBottomSheetViewModel}}, Path=SelecionarCommand}"
+                                                          CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Style="{StaticResource Caps}" Text="{Binding NomeCurto}" />
+                                    <Label FontFamily="LoraMedium"
+                                           FontSize="16"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextColorLight}, Dark={StaticResource TextColorDark}}"
+                                           Text="{Binding Nome}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </bottomsheet:BottomSheetContent>
+    </bottomsheet:BottomSheet.Content>
+</bottomsheet:BottomSheet>

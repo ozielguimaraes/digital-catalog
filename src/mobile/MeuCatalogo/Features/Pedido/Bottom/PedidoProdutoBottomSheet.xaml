@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<bottomsheet:BottomSheet
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:bottomsheet="http://pluginmauibottomsheet.com"
+    xmlns:components="clr-namespace:MeuCatalogo.Components"
+    xmlns:viewmodel="clr-namespace:MeuCatalogo.Features.Pedido.Bottom"
+    xmlns:contracts="clr-namespace:MeuCatalogo.Features.Produto.Data.Remote.Contracts.Responses"
+    x:Class="MeuCatalogo.Features.Pedido.Bottom.PedidoProdutoBottomSheet"
+    x:DataType="viewmodel:PedidoProdutoBottomSheetViewModel"
+    BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceColorLight}, Dark={StaticResource SurfaceColorDark}}"
+    States="Medium,Large"
+    CurrentState="Large"
+    HasHandle="True"
+    IsModal="True"
+    IsCancelable="False"
+    IsDraggable="True">
+    <bottomsheet:BottomSheet.Content>
+        <bottomsheet:BottomSheetContent>
+            <Grid RowDefinitions="Auto,Auto,*" Padding="24,8,24,16">
+
+                <VerticalStackLayout Grid.Row="0" Spacing="4" Margin="0,8,0,0">
+                    <Label Style="{StaticResource Caps}" Text="ATELIÊ · CATÁLOGO" />
+                    <Label Style="{StaticResource SerifH2}" Text="Selecione o produto" />
+                </VerticalStackLayout>
+
+                <components:CustomEntry Grid.Row="1"
+                                        Title="BUSCAR"
+                                        Placeholder="Nome do produto ou categoria"
+                                        Text="{Binding Filtro}" />
+
+                <CollectionView Grid.Row="2"
+                                ItemsSource="{Binding Filtrados}"
+                                Margin="0,12,0,0">
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout VerticalOptions="Center"
+                                             HorizontalOptions="Center"
+                                             Padding="0,32"
+                                             Spacing="6">
+                            <Label Style="{StaticResource SerifH3}"
+                                   HorizontalTextAlignment="Center"
+                                   Text="Nenhum produto" />
+                            <Label Style="{StaticResource BodyMuted}"
+                                   HorizontalTextAlignment="Center"
+                                   Text="Cadastre produtos no catálogo selecionado." />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="8" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="contracts:ProdutoResponse">
+                            <Border Padding="14,12" StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource SurfaceMutedColorDark}}">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:PedidoProdutoBottomSheetViewModel}}, Path=SelecionarCommand}"
+                                                          CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
+                                        <Label Style="{StaticResource Caps}" Text="{Binding CategoriaNome}" />
+                                        <Label FontFamily="LoraMedium"
+                                               FontSize="15"
+                                               Text="{Binding Nome}"
+                                               LineBreakMode="TailTruncation" />
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="1"
+                                           VerticalOptions="Center"
+                                           FontFamily="LatoBold"
+                                           FontSize="14"
+                                           TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}"
+                                           Text="{Binding Preco, StringFormat='{0:C}'}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </bottomsheet:BottomSheetContent>
+    </bottomsheet:BottomSheet.Content>
+</bottomsheet:BottomSheet>

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:catalogo="clr-namespace:MeuCatalogo.Features.Catalogo"
+             xmlns:domain="clr-namespace:MeuCatalogo.Features.Produto.Domain"
+             x:Class="MeuCatalogo.Features.Catalogo.CatalogoPublicaPage"
+             x:DataType="catalogo:CatalogoPublicaPageViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource BackgroundColorDark}}">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Header strip simulating storefront -->
+        <Border Grid.Row="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceColorLight}, Dark={StaticResource SurfaceColorDark}}"
+                StrokeThickness="0"
+                Padding="20,48,20,20">
+            <Border.Shadow>
+                <Shadow Brush="Black" Offset="0,2" Radius="10" Opacity="0.05" />
+            </Border.Shadow>
+            <Grid ColumnDefinitions="40,*,40">
+                <Border Grid.Column="0"
+                        Style="{StaticResource IconCircleSurface}"
+                        HeightRequest="40"
+                        WidthRequest="40">
+                    <Label Text="‹"
+                           FontSize="22"
+                           FontFamily="LoraMedium"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding VoltarCommand}" />
+                    </Border.GestureRecognizers>
+                </Border>
+                <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" Spacing="0">
+                    <Label Text="VITRINE"
+                           FontFamily="LatoBold"
+                           FontSize="9"
+                           CharacterSpacing="3"
+                           HorizontalTextAlignment="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}" />
+                    <Label Text="{Binding Nome}"
+                           Style="{StaticResource SerifH3}"
+                           HorizontalTextAlignment="Center"
+                           LineBreakMode="TailTruncation" />
+                </VerticalStackLayout>
+                <Border Grid.Column="2"
+                        Style="{StaticResource ChipPrimary}"
+                        VerticalOptions="Center">
+                    <Label Text="PRÉVIA"
+                           FontFamily="LatoBold"
+                           FontSize="9"
+                           CharacterSpacing="2"
+                           TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}" />
+                </Border>
+            </Grid>
+        </Border>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,20,16,32" Spacing="14">
+
+                <!-- Hero (storefront-style) -->
+                <Border Style="{StaticResource Hero}" HeightRequest="180">
+                    <Grid Padding="24,20" RowDefinitions="*,Auto">
+                        <VerticalStackLayout Grid.Row="0" VerticalOptions="Center" Spacing="6">
+                            <Label Text="LEVE COM VOCÊ"
+                                   FontFamily="LatoBold"
+                                   FontSize="10"
+                                   CharacterSpacing="4"
+                                   TextColor="{StaticResource OnPrimaryColor}"
+                                   Opacity="0.85" />
+                            <Label Text="{Binding Nome}"
+                                   FontFamily="LoraMediumItalic"
+                                   FontSize="28"
+                                   LineHeight="1.05"
+                                   TextColor="{StaticResource OnPrimaryColor}"
+                                   LineBreakMode="WordWrap"
+                                   MaxLines="2" />
+                        </VerticalStackLayout>
+                        <Label Grid.Row="1"
+                               Text="SanyZ"
+                               TextTransform="Uppercase"
+                               FontFamily="LatoBlack"
+                               FontSize="11"
+                               CharacterSpacing="6"
+                               TextColor="{StaticResource OnPrimaryColor}"
+                               Opacity="0.85"
+                               HorizontalOptions="End" />
+                    </Grid>
+                </Border>
+
+                <!-- Loading -->
+                <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                   IsVisible="{Binding IsLoading}"
+                                   HeightRequest="36"
+                                   HorizontalOptions="Center"
+                                   Margin="0,16" />
+
+                <!-- Empty -->
+                <Border Style="{StaticResource Card}"
+                        Padding="24"
+                        IsVisible="{Binding IsEmpty}">
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="6">
+                        <Label Style="{StaticResource SerifH3}"
+                               HorizontalTextAlignment="Center"
+                               Text="A vitrine ainda está vazia." />
+                        <Label Style="{StaticResource BodyMuted}"
+                               HorizontalTextAlignment="Center"
+                               Text="Adicione produtos para ver como o catálogo aparecerá pra seus clientes." />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Produtos grid (2 colunas) -->
+                <CollectionView ItemsSource="{Binding Produtos}"
+                                SelectionMode="None">
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Orientation="Vertical"
+                                         Span="2"
+                                         HorizontalItemSpacing="10"
+                                         VerticalItemSpacing="14" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="domain:ProdutoEntity">
+                            <Border Style="{StaticResource CardElevated}" Padding="0">
+                                <VerticalStackLayout Spacing="0">
+                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource SurfaceMutedColorDark}}"
+                                            StrokeThickness="0"
+                                            HeightRequest="160">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="18,18,0,0" />
+                                        </Border.StrokeShape>
+                                        <Image Aspect="AspectFill"
+                                               IsVisible="{Binding ThumbnailUrl, Converter={x:Static catalogo:NotNullOrEmptyConverter.Instance}}">
+                                            <Image.Source>
+                                                <UriImageSource Uri="{Binding ThumbnailUrl}" CacheValidity="1.00:00:00" />
+                                            </Image.Source>
+                                        </Image>
+                                    </Border>
+                                    <VerticalStackLayout Padding="14,12" Spacing="4">
+                                        <Label Style="{StaticResource Caps}"
+                                               Text="{Binding CategoriaNome}"
+                                               IsVisible="{Binding CategoriaNome, Converter={x:Static catalogo:NotNullOrEmptyConverter.Instance}}" />
+                                        <Label Style="{StaticResource SerifH3}"
+                                               Text="{Binding Nome}"
+                                               LineBreakMode="TailTruncation"
+                                               MaxLines="2" />
+                                        <HorizontalStackLayout Spacing="6" Margin="0,4,0,0">
+                                            <Label Text="{Binding PrecoComDesconto, StringFormat='{0:C}'}"
+                                                   FontFamily="LatoBold"
+                                                   FontSize="14"
+                                                   TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding PrecoComDesconto}" Value="{x:Null}">
+                                                        <Setter Property="IsVisible" Value="False" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding PrecoComDesconto}" Value="0">
+                                                        <Setter Property="IsVisible" Value="False" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                            <Label Text="{Binding Preco, StringFormat='{0:C}'}"
+                                                   FontFamily="LatoBold"
+                                                   FontSize="14"
+                                                   TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}"
+                                                   IsVisible="False">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding PrecoComDesconto}" Value="{x:Null}">
+                                                        <Setter Property="IsVisible" Value="True" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding PrecoComDesconto}" Value="0">
+                                                        <Setter Property="IsVisible" Value="True" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

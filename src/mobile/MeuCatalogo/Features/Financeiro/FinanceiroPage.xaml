@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:financeiro="clr-namespace:MeuCatalogo.Features.Financeiro"
+             x:Class="MeuCatalogo.Features.Financeiro.FinanceiroPage"
+             x:DataType="financeiro:FinanceiroPageViewModel">
+
+    <Shell.TitleView>
+        <VerticalStackLayout VerticalOptions="Center" Spacing="0">
+            <Label Style="{StaticResource Caps}" Text="ATELIÊ · FINANCEIRO" />
+            <Label Text="Visão geral" FontFamily="LoraMedium" FontSize="18" />
+        </VerticalStackLayout>
+    </Shell.TitleView>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="0" Spacing="0">
+
+            <!-- Hero -->
+            <Border Style="{StaticResource Hero}" HeightRequest="200">
+                <Grid Padding="24,24,24,24" RowDefinitions="*,Auto">
+                    <VerticalStackLayout Grid.Row="0" VerticalOptions="End" Spacing="2">
+                        <Label Text="Saldo do mês"
+                               FontFamily="LoraMediumItalic"
+                               FontSize="22"
+                               TextColor="{StaticResource OnPrimaryColor}" />
+                        <Label Text="{Binding SaldoMes, StringFormat='{0:C}'}"
+                               FontFamily="LoraSemiBold"
+                               FontSize="36"
+                               TextColor="{StaticResource OnPrimaryColor}" />
+                    </VerticalStackLayout>
+                    <Label Grid.Row="1"
+                           Text="{Binding PeriodoLabel}"
+                           FontFamily="LatoBold"
+                           FontSize="11"
+                           CharacterSpacing="3"
+                           TextColor="{StaticResource OnPrimaryColor}"
+                           Opacity="0.75" />
+                </Grid>
+            </Border>
+
+            <VerticalStackLayout Padding="20,-32,20,32" Spacing="14">
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <Border Grid.Column="0" Style="{StaticResource CardElevated}" Padding="18">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding VerReceberCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="6">
+                            <Label Style="{StaticResource Caps}" Text="A RECEBER" />
+                            <Label Text="{Binding TotalAReceber, StringFormat='{0:C}'}"
+                                   FontFamily="LoraSemiBold"
+                                   FontSize="22"
+                                   TextColor="{StaticResource SuccessColor}" />
+                            <Label Style="{StaticResource BodyMuted}" Text="ver detalhes" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1" Style="{StaticResource CardElevated}" Padding="18">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding VerPagarCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="6">
+                            <Label Style="{StaticResource Caps}" Text="A PAGAR" />
+                            <Label Text="{Binding TotalAPagar, StringFormat='{0:C}'}"
+                                   FontFamily="LoraSemiBold"
+                                   FontSize="22"
+                                   TextColor="{StaticResource DangerColor}" />
+                            <Label Style="{StaticResource BodyMuted}" Text="ver detalhes" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <Border Style="{StaticResource Card}" Padding="20">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Style="{StaticResource Caps}" Text="ATENÇÃO" />
+                        <Label Style="{StaticResource SerifH3}" Text="Pré-visualização" Margin="0,-2,0,0" />
+                        <Label Style="{StaticResource BodyMuted}"
+                               Text="O módulo financeiro ainda não tem backend. Os números acima são mock para validação visual." />
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

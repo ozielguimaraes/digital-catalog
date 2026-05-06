@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:financeiro="clr-namespace:MeuCatalogo.Features.Financeiro"
+             x:Class="MeuCatalogo.Features.Financeiro.ReceberPage"
+             x:DataType="financeiro:ReceberPageViewModel">
+
+    <Shell.TitleView>
+        <VerticalStackLayout VerticalOptions="Center" Spacing="0">
+            <Label Style="{StaticResource Caps}" Text="FINANCEIRO" />
+            <Label Text="A receber" FontFamily="LoraMedium" FontSize="18" />
+        </VerticalStackLayout>
+    </Shell.TitleView>
+
+    <ScrollView>
+        <financeiro:LancamentoListView Margin="24,16,24,32"
+                                       Lancamentos="{Binding Lancamentos}" />
+    </ScrollView>
+</ContentPage>

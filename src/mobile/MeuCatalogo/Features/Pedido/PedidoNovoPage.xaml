@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:components="clr-namespace:MeuCatalogo.Components"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:fonts="clr-namespace:MeuCatalogo.Resources.Fonts"
+             xmlns:pedido="clr-namespace:MeuCatalogo.Features.Pedido"
+             x:Class="MeuCatalogo.Features.Pedido.PedidoNovoPage"
+             x:Name="PedidoNovoPageRoot"
+             x:DataType="pedido:PedidoNovoPageViewModel">
+
+    <Shell.TitleView>
+        <VerticalStackLayout VerticalOptions="Center" Spacing="0">
+            <Label Style="{StaticResource Caps}" Text="ATELIÊ · CRM" />
+            <Label Text="Novo pedido" FontFamily="LoraMedium" FontSize="18" />
+        </VerticalStackLayout>
+    </Shell.TitleView>
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            BindingContext="{Binding Source={x:Reference PedidoNovoPageRoot}, Path=BindingContext}"
+            EventName="Appearing"
+            Command="{Binding InicializarCommand}" />
+    </ContentPage.Behaviors>
+
+    <Grid RowDefinitions="*,Auto">
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="24,16,24,24" Spacing="20">
+
+                <!-- Catálogo -->
+                <Border Style="{StaticResource Card}" Padding="20">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                            <Label Style="{StaticResource Caps}" Text="CATÁLOGO" />
+                            <Label FontFamily="LoraMedium"
+                                   FontSize="16"
+                                   Text="{Binding CatalogoEmUsoNome}"
+                                   LineBreakMode="TailTruncation" />
+                        </VerticalStackLayout>
+                        <Button Grid.Column="1"
+                                Style="{StaticResource SecondaryButton}"
+                                Text="TROCAR"
+                                FontSize="11"
+                                Padding="14,0"
+                                HeightRequest="36"
+                                Command="{Binding TrocarCatalogoCommand}" />
+                    </Grid>
+                </Border>
+
+                <!-- Cliente -->
+                <Border Style="{StaticResource Card}" Padding="20">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Style="{StaticResource Caps}" Text="CLIENTE" />
+                        <Border Padding="14,14" StrokeThickness="0"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource SurfaceMutedColorDark}}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="12" />
+                            </Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelecionarClienteCommand}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
+                                    <Label FontFamily="LoraMedium"
+                                           FontSize="15"
+                                           LineBreakMode="TailTruncation">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding ClienteSelecionado}" Value="{x:Null}">
+                                                <Setter Property="Text" Value="Selecione o cliente" />
+                                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextMutedColorLight}, Dark={StaticResource TextMutedColorDark}}" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                        <Label.Text>
+                                            <Binding Path="ClienteSelecionado.Nome" />
+                                        </Label.Text>
+                                    </Label>
+                                    <Label Style="{StaticResource BodyMuted}"
+                                           FontSize="12"
+                                           Text="{Binding ClienteSelecionado.Telefone}"
+                                           IsVisible="{Binding ClienteSelecionado.Telefone, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="1"
+                                       VerticalOptions="Center"
+                                       FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                       FontSize="20"
+                                       TextColor="{AppThemeBinding Light={StaticResource BrandCopperSany}, Dark={StaticResource BrandCopperZ}}"
+                                       Text="{x:Static fonts:FluentUI.chevron_right_24_regular}" />
+                            </Grid>
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Itens -->
+                <Border Style="{StaticResource Card}" Padding="20">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" Style="{StaticResource Caps}" Text="ITENS" VerticalOptions="Center" />
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Text="ADICIONAR"
+                                    FontSize="11"
+                                    Padding="14,0"
+                                    HeightRequest="36"
+                                    Command="{Binding AdicionarItemCommand}" />
+                        </Grid>
+
+                        <Label Style="{StaticResource BodyMuted}"
+                               Text="Nenhum item ainda. Toque em ADICIONAR para incluir produtos."
+                               IsVisible="{Binding HasItens, Converter={toolkit:InvertedBoolConverter}}" />
+
+                        <CollectionView ItemsSource="{Binding Itens}" SelectionMode="None">
+                            <CollectionView.ItemsLayout>
+                                <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                            </CollectionView.ItemsLayout>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="pedido:PedidoNovoItemModel">
+                                    <Border Padding="14,12" StrokeThickness="0"
+                                            BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource SurfaceMutedColorDark}}">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="12" />
+                                        </Border.StrokeShape>
+                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" RowDefinitions="Auto,Auto" RowSpacing="6">
+                                            <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="2">
+                                                <Label Style="{StaticResource Caps}" Text="{Binding Produto.CategoriaNome}" />
+                                                <Label FontFamily="LoraMedium"
+                                                       FontSize="14"
+                                                       Text="{Binding Produto.Nome}"
+                                                       LineBreakMode="TailTruncation" />
+                                                <Label Style="{StaticResource BodyMuted}"
+                                                       FontSize="12"
+                                                       Text="{Binding PrecoUnitario, StringFormat='Unit. {0:C}'}" />
+                                            </VerticalStackLayout>
+
+                                            <Label Grid.Row="0" Grid.Column="1"
+                                                   FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                   FontSize="20"
+                                                   TextColor="{StaticResource DangerColor}"
+                                                   Text="{x:Static fonts:FluentUI.delete_24_regular}"
+                                                   VerticalOptions="Start"
+                                                   Padding="6">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type pedido:PedidoNovoPageViewModel}}, Path=RemoverItemCommand}"
+                                                                          CommandParameter="{Binding .}" />
+                                                </Label.GestureRecognizers>
+                                            </Label>
+
+                                            <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                                                  ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="6"
+                                                  Margin="0,4,0,0">
+                                                <Border Grid.Column="0"
+                                                        HeightRequest="32" WidthRequest="32"
+                                                        StrokeThickness="0"
+                                                        BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceColorLight}, Dark={StaticResource SurfaceColorDark}}">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="16" />
+                                                    </Border.StrokeShape>
+                                                    <Label Text="−"
+                                                           FontFamily="LoraMedium"
+                                                           FontSize="20"
+                                                           HorizontalOptions="Center"
+                                                           VerticalOptions="Center" />
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type pedido:PedidoNovoPageViewModel}}, Path=DecrementarItemCommand}"
+                                                                              CommandParameter="{Binding .}" />
+                                                    </Border.GestureRecognizers>
+                                                </Border>
+                                                <Label Grid.Column="1"
+                                                       VerticalOptions="Center"
+                                                       FontFamily="LatoBold"
+                                                       FontSize="14"
+                                                       MinimumWidthRequest="22"
+                                                       HorizontalTextAlignment="Center"
+                                                       Text="{Binding Quantidade}" />
+                                                <Border Grid.Column="2"
+                                                        HeightRequest="32" WidthRequest="32"
+                                                        StrokeThickness="0"
+                                                        BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceColorLight}, Dark={StaticResource SurfaceColorDark}}">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="16" />
+                                                    </Border.StrokeShape>
+                                                    <Label Text="+"
+                                                           FontFamily="LoraMedium"
+                                                           FontSize="20"
+                                                           HorizontalOptions="Center"
+                                                           VerticalOptions="Center" />
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type pedido:PedidoNovoPageViewModel}}, Path=IncrementarItemCommand}"
+                                                                              CommandParameter="{Binding .}" />
+                                                    </Border.GestureRecognizers>
+                                                </Border>
+                                                <Label Grid.Column="4"
+                                                       VerticalOptions="Center"
+                                                       FontFamily="LatoBold"
+                                                       FontSize="14"
+                                                       TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}"
+                                                       Text="{Binding Subtotal, StringFormat='{0:C}'}" />
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                        <BoxView HeightRequest="1"
+                                 Color="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource SurfaceMutedColorDark}}"
+                                 Margin="0,4,0,0"
+                                 IsVisible="{Binding HasItens}" />
+
+                        <Grid ColumnDefinitions="*,Auto"
+                              IsVisible="{Binding HasItens}">
+                            <Label Grid.Column="0" Style="{StaticResource Caps}" Text="TOTAL" VerticalOptions="Center" />
+                            <Label Grid.Column="1"
+                                   FontFamily="LoraSemiBold"
+                                   FontSize="22"
+                                   TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}"
+                                   Text="{Binding Total, StringFormat='{0:C}'}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label TextColor="{StaticResource DangerColor}"
+                       FontFamily="LatoRegular"
+                       FontSize="13"
+                       Text="{Binding Erro}"
+                       IsVisible="{Binding Erro, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Border Grid.Row="1"
+                StrokeThickness="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceColorLight}, Dark={StaticResource SurfaceColorDark}}"
+                Padding="24,12,24,18">
+            <Border.Shadow>
+                <Shadow Brush="Black" Offset="0,-4" Radius="12" Opacity="0.06" />
+            </Border.Shadow>
+            <Button Style="{StaticResource PrimaryButton}"
+                    Text="SALVAR PEDIDO"
+                    IsEnabled="{Binding IsSaving, Converter={toolkit:InvertedBoolConverter}}"
+                    Command="{Binding SalvarCommand}" />
+        </Border>
+
+        <Grid Grid.Row="0" Grid.RowSpan="2"
+              BackgroundColor="#A0121212"
+              IsVisible="{Binding IsSaving}">
+            <ActivityIndicator IsRunning="{Binding IsSaving}"
+                               Color="{StaticResource OnPrimaryColor}"
+                               WidthRequest="48"
+                               HeightRequest="48"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+        </Grid>
+    </Grid>
+</ContentPage>

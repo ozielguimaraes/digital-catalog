@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:cliente="clr-namespace:MeuCatalogo.Features.Cliente"
+             xmlns:domain="clr-namespace:MeuCatalogo.Features.Cliente.Domain"
+             xmlns:fonts="clr-namespace:MeuCatalogo.Resources.Fonts"
+             x:Class="MeuCatalogo.Features.Cliente.ClienteListaPage"
+             x:Name="ClienteListaPageRoot"
+             x:DataType="cliente:ClienteListaPageViewModel">
+
+    <Shell.TitleView>
+        <VerticalStackLayout VerticalOptions="Center" Spacing="0">
+            <Label Style="{StaticResource Caps}" Text="ATELIÊ · CRM" />
+            <Label Text="Clientes" FontFamily="LoraMedium" FontSize="18" />
+        </VerticalStackLayout>
+    </Shell.TitleView>
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Command="{Binding AdicionarCommand}">
+            <ToolbarItem.IconImageSource>
+                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                 Glyph="{x:Static fonts:FluentUI.add_24_regular}"
+                                 Color="{AppThemeBinding Light={StaticResource BrandCopperSany}, Dark={StaticResource BrandCopperZ}}" />
+            </ToolbarItem.IconImageSource>
+        </ToolbarItem>
+    </ContentPage.ToolbarItems>
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            BindingContext="{Binding Source={x:Reference ClienteListaPageRoot}, Path=BindingContext}"
+            EventName="Appearing"
+            Command="{Binding CarregarCommand}" />
+    </ContentPage.Behaviors>
+
+    <Grid RowDefinitions="*">
+
+        <ScrollView Grid.Row="0">
+            <Grid Padding="24,16,24,32" RowDefinitions="Auto,Auto">
+
+                <VerticalStackLayout Grid.Row="0"
+                                     IsVisible="{Binding IsLoading}"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Center"
+                                     Padding="0,48"
+                                     Spacing="12">
+                    <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                       WidthRequest="36"
+                                       HeightRequest="36" />
+                    <Label Style="{StaticResource BodyMuted}"
+                           HorizontalTextAlignment="Center"
+                           Text="Carregando clientes…" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Grid.Row="0"
+                                     IsVisible="{Binding ShowEmptyState}"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Center"
+                                     Padding="0,48"
+                                     Spacing="12">
+                    <Border Style="{StaticResource IconCircleSurface}"
+                            HeightRequest="92"
+                            WidthRequest="92"
+                            HorizontalOptions="Center">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="46" />
+                        </Border.StrokeShape>
+                        <Label Text="✦"
+                               FontFamily="LoraMedium"
+                               FontSize="32"
+                               TextColor="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+                    <Label Style="{StaticResource SerifH2}"
+                           HorizontalTextAlignment="Center"
+                           Text="Nenhum cliente cadastrado" />
+                    <Label Style="{StaticResource BodyMuted}"
+                           HorizontalTextAlignment="Center"
+                           Text="Os clientes aparecem aqui assim que forem cadastrados." />
+                    <Button Style="{StaticResource PrimaryButton}"
+                            Text="ADICIONAR CLIENTE"
+                            HorizontalOptions="Center"
+                            Margin="0,8,0,0"
+                            Padding="32,14"
+                            Command="{Binding AdicionarCommand}" />
+                </VerticalStackLayout>
+
+                <CollectionView Grid.Row="1"
+                                ItemsSource="{Binding Clientes}"
+                                SelectionMode="None">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="12" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="domain:ClienteInfo">
+                            <SwipeView>
+                                <SwipeView.RightItems>
+                                    <SwipeItems Mode="Reveal">
+                                        <SwipeItemView WidthRequest="92">
+                                            <Border Style="{StaticResource SwipeActionDanger}">
+                                                <VerticalStackLayout Padding="8"
+                                                                     HorizontalOptions="Center"
+                                                                     VerticalOptions="Center"
+                                                                     Spacing="4">
+                                                    <Label Text="{x:Static fonts:FluentUI.delete_24_regular}"
+                                                           FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                           FontSize="22"
+                                                           TextColor="{StaticResource OnPrimaryColor}"
+                                                           HorizontalOptions="Center"
+                                                           VerticalOptions="Center" />
+                                                    <Label Text="Excluir"
+                                                           FontFamily="LatoBold"
+                                                           FontSize="11"
+                                                           TextColor="{StaticResource OnPrimaryColor}"
+                                                           HorizontalTextAlignment="Center" />
+                                                </VerticalStackLayout>
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding BindingContext.ExcluirCommand, Source={RelativeSource AncestorType={x:Type cliente:ClienteListaPage}}}"
+                                                                          CommandParameter="{Binding .}" />
+                                                </Border.GestureRecognizers>
+                                            </Border>
+                                        </SwipeItemView>
+                                    </SwipeItems>
+                                </SwipeView.RightItems>
+
+                                <Border Style="{StaticResource CardElevated}" Padding="16">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding BindingContext.EditarCommand, Source={RelativeSource AncestorType={x:Type cliente:ClienteListaPage}}}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <Grid ColumnDefinitions="48,*" ColumnSpacing="14">
+                                        <Border Grid.Column="0"
+                                                Style="{StaticResource IconCircleSurface}"
+                                                HeightRequest="48"
+                                                WidthRequest="48"
+                                                VerticalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="24" />
+                                            </Border.StrokeShape>
+                                            <Label Text="{Binding Iniciais}"
+                                                   FontFamily="LoraSemiBold"
+                                                   FontSize="16"
+                                                   TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}"
+                                                   HorizontalOptions="Center"
+                                                   VerticalOptions="Center" />
+                                        </Border>
+                                        <VerticalStackLayout Grid.Column="1"
+                                                             VerticalOptions="Center"
+                                                             Spacing="2">
+                                            <Label Style="{StaticResource SerifH3}"
+                                                   Text="{Binding Nome}"
+                                                   LineBreakMode="TailTruncation" />
+                                            <Label Style="{StaticResource BodyMuted}"
+                                                   Text="{Binding Email}"
+                                                   LineBreakMode="TailTruncation"
+                                                   IsVisible="{Binding Email, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+                                            <Label Style="{StaticResource BodyMuted}"
+                                                   Text="{Binding Telefone}"
+                                                   IsVisible="{Binding Telefone, Converter={toolkit:IsStringNotNullOrEmptyConverter}}" />
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </SwipeView>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </ScrollView>
+    </Grid>
+</ContentPage>
