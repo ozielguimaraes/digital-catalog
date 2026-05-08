@@ -27,7 +27,44 @@ public abstract class BaseApiService
     protected static ProblemDetails? GetProblemDetails(ApiException apiEx)
     {
         string? content = apiEx.Content;
-        return string.IsNullOrWhiteSpace(content) ? GetProblemDetailsForStatusCode(apiEx.StatusCode) : JsonSerializer.Deserialize<ProblemDetails>(content, JsonOptions);
+        if (string.IsNullOrWhiteSpace(content))
+            return GetProblemDetailsForStatusCode(apiEx.StatusCode);
+
+        try
+        {
+            return JsonSerializer.Deserialize<ProblemDetails>(content, JsonOptions);
+        }
+        catch (JsonException)
+        {
+            // O backend pode devolver `errors` em formatos incompatíveis com
+            // Refit.ProblemDetails (ex.: array de strings em vez de
+            // Dictionary<string, string[]>). Como só consumimos title/detail/status,
+            // fazemos parse defensivo desses campos.
+            return TryParseProblemDetailsLoose(content) ?? GetProblemDetailsForStatusCode(apiEx.StatusCode);
+        }
+    }
+
+    private static ProblemDetails? TryParseProblemDetailsLoose(string content)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(content);
+            var root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object) return null;
+
+            var problem = new ProblemDetails();
+            if (root.TryGetProperty("title", out var title) && title.ValueKind == JsonValueKind.String)
+                problem.Title = title.GetString();
+            if (root.TryGetProperty("detail", out var detail) && detail.ValueKind == JsonValueKind.String)
+                problem.Detail = detail.GetString();
+            if (root.TryGetProperty("status", out var status) && status.ValueKind == JsonValueKind.Number && status.TryGetInt32(out var statusValue))
+                problem.Status = statusValue;
+            return problem;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     private static ProblemDetails GetProblemDetailsForStatusCode(HttpStatusCode statusCode)

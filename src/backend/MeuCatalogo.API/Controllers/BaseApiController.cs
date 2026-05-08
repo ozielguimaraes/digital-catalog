@@ -36,7 +36,7 @@ public abstract class BaseApiController : ControllerBase
         => ProblemResponse(StatusCodes.Status400BadRequest,
             "Requisição inválida",
             detail,
-            errors);
+            NormalizeErrors(errors));
 
     protected ActionResult NotFoundResponse(string detail = "Recurso não encontrado")
         => ProblemResponse(StatusCodes.Status404NotFound,
@@ -56,14 +56,21 @@ public abstract class BaseApiController : ControllerBase
     protected ActionResult ProblemResponse(int statusCode,
         string title,
         string detail,
-        object? errors = null)
+        IDictionary<string, string[]>? errors = null)
     {
         var problem = CreateProblemDetails(statusCode, title, detail);
 
-        if (errors is not null)
-            problem.Extensions.Add("errors", errors);
+        if (errors is not null && errors.Count > 0)
+            problem.Extensions["errors"] = errors;
 
         return new ObjectResult(problem) { StatusCode = statusCode, ContentTypes = { "application/problem+json" } };
+    }
+
+    private static IDictionary<string, string[]>? NormalizeErrors(IEnumerable<string>? errors)
+    {
+        if (errors is null) return null;
+        var array = errors.Where(e => !string.IsNullOrWhiteSpace(e)).ToArray();
+        return array.Length == 0 ? null : new Dictionary<string, string[]> { [""] = array };
     }
 
     protected IActionResult HandleApiResponse<T>(ApiResponse<T> response)
@@ -89,7 +96,7 @@ public abstract class BaseApiController : ControllerBase
             _ => ProblemResponse(StatusCodes.Status400BadRequest,
                 "Erro",
                 response.Message ?? "Erro na operação",
-                response.Errors)
+                NormalizeErrors(response.Errors))
         };
     }
 
