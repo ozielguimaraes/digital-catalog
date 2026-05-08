@@ -1,0 +1,99 @@
+name: Deploy API to HostAzul
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/backend/**'
+      - '.github/workflows/deploy-api.yml'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '6.0.x'
+  PROJECT_PATH: src/backend/MeuCatalogo.API/MeuCatalogo.API.csproj
+  PUBLISH_DIR: ./publish
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-api-hostazul
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Publish
+        run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o ${{ env.PUBLISH_DIR }} --no-restore
+
+      - name: Generate app_offline.htm
+        run: |
+          mkdir -p offline
+          cat > offline/app_offline.htm <<'EOF'
+          <!doctype html>
+          <html lang="pt-BR">
+          <head>
+            <meta charset="utf-8">
+            <title>Atualizando…</title>
+            <style>
+              body{font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f5f5f5;color:#333}
+              .box{text-align:center;max-width:420px;padding:2rem}
+              h1{margin:0 0 .5rem 0}
+            </style>
+          </head>
+          <body>
+            <div class="box">
+              <h1>Atualizando…</h1>
+              <p>Estamos publicando uma nova versão. Volte em instantes.</p>
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Take site offline (upload app_offline.htm)
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
+        run: |
+          curl --silent --show-error --fail --ssl-reqd \
+            --user "$FTP_USERNAME:$FTP_PASSWORD" \
+            -T offline/app_offline.htm \
+            "ftp://$FTP_SERVER/$FTP_REMOTE_DIR/"
+
+      - name: Sync published files via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./publish/
+          server-dir: ${{ secrets.FTP_REMOTE_DIR }}/
+          exclude: |
+            **/appsettings.Production.json
+            **/app_offline.htm
+            **/.git*
+            **/.git*/**
+          log-level: minimal
+
+      - name: Bring site online (remove app_offline.htm)
+        if: always()
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
+        run: |
+          curl --silent --show-error --fail --ssl-reqd \
+            --user "$FTP_USERNAME:$FTP_PASSWORD" \
+            "ftp://$FTP_SERVER/$FTP_REMOTE_DIR/" \
+            -Q "DELE app_offline.htm"
