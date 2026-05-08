@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MeuCatalogo.Application.DTOs.Requests;
 using MeuCatalogo.Application.DTOs.Responses;
 using MeuCatalogo.Application.Entities;
@@ -15,28 +16,28 @@ namespace MeuCatalogo.Application.Services;
 public sealed class ClienteService : IClienteService
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly ILogger<ClienteService> _logger;
 
-    public ClienteService(ApplicationDbContext dbContext)
+    public ClienteService(ApplicationDbContext dbContext, ILogger<ClienteService> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<ApiResponse<ClienteResponse>> CreateAsync(ClienteRequest request)
     {
         try
         {
-            // Validações de email e telefone
             if (!IsValidEmail(request.Email))
                 return ApiResponse<ClienteResponse>.Error("Email inválido");
 
             if (!IsValidTelefone(request.Telefone))
                 return ApiResponse<ClienteResponse>.Error("Telefone inválido. Deve conter DDD e número com 10 ou 11 dígitos");
 
-            // Verificar se já existe um cliente com o mesmo email
-            var clienteExistente = await _dbContext.Clientes
-                .FirstOrDefaultAsync(c => c.Email == request.Email);
+            var emailJaCadastrado = await _dbContext.Clientes
+                .AnyAsync(c => c.Email == request.Email);
 
-            if (clienteExistente != null)
+            if (emailJaCadastrado)
                 return ApiResponse<ClienteResponse>.Error("Já existe um cliente cadastrado com este email");
 
             var cliente = new Cliente
@@ -50,11 +51,17 @@ public sealed class ClienteService : IClienteService
             await _dbContext.Clientes.AddAsync(cliente);
             await _dbContext.SaveChangesAsync();
 
-            return ApiResponse<ClienteResponse>.Success(MapToResponse(cliente));
+            return ApiResponse<ClienteResponse>.Success(ResponseType.Created, MapToResponse(cliente));
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Falha ao persistir cliente {Email}.", request.Email);
+            return ApiResponse<ClienteResponse>.Error("Não foi possível salvar o cliente. Tente novamente.");
         }
         catch (Exception ex)
         {
-            return ApiResponse<ClienteResponse>.Error($"Erro ao criar cliente: {ex.Message}");
+            _logger.LogError(ex, "Erro inesperado ao criar cliente {Email}.", request.Email);
+            return ApiResponse<ClienteResponse>.Error("Erro inesperado ao criar cliente.");
         }
     }
 
@@ -65,13 +72,14 @@ public sealed class ClienteService : IClienteService
             var cliente = await _dbContext.Clientes.FindAsync(id);
 
             if (cliente == null)
-                return ApiResponse<ClienteResponse>.Error("Cliente não encontrado");
+                return ApiResponse<ClienteResponse>.Error(ResponseType.NotFound, "Cliente não encontrado");
 
             return ApiResponse<ClienteResponse>.Success(MapToResponse(cliente));
         }
         catch (Exception ex)
         {
-            return ApiResponse<ClienteResponse>.Error($"Erro ao buscar cliente: {ex.Message}");
+            _logger.LogError(ex, "Erro ao buscar cliente {ClienteId}.", id);
+            return ApiResponse<ClienteResponse>.Error("Erro ao buscar cliente.");
         }
     }
 
@@ -83,13 +91,14 @@ public sealed class ClienteService : IClienteService
                 .FirstOrDefaultAsync(c => c.Email == email);
 
             if (cliente == null)
-                return ApiResponse<ClienteResponse>.Error("Cliente não encontrado");
+                return ApiResponse<ClienteResponse>.Error(ResponseType.NotFound, "Cliente não encontrado");
 
             return ApiResponse<ClienteResponse>.Success(MapToResponse(cliente));
         }
         catch (Exception ex)
         {
-            return ApiResponse<ClienteResponse>.Error($"Erro ao buscar cliente por email: {ex.Message}");
+            _logger.LogError(ex, "Erro ao buscar cliente por email {Email}.", email);
+            return ApiResponse<ClienteResponse>.Error("Erro ao buscar cliente por email.");
         }
     }
 
@@ -104,7 +113,8 @@ public sealed class ClienteService : IClienteService
         }
         catch (Exception ex)
         {
-            return ApiResponse<List<ClienteResponse>>.Error($"Erro ao buscar clientes: {ex.Message}");
+            _logger.LogError(ex, "Erro ao buscar clientes.");
+            return ApiResponse<List<ClienteResponse>>.Error("Erro ao buscar clientes.");
         }
     }
 
@@ -121,7 +131,7 @@ public sealed class ClienteService : IClienteService
             var cliente = await _dbContext.Clientes.FindAsync(id);
 
             if (cliente == null)
-                return ApiResponse<ClienteResponse>.Error("Cliente não encontrado");
+                return ApiResponse<ClienteResponse>.Error(ResponseType.NotFound, "Cliente não encontrado");
 
             if (cliente.Email != request.Email)
             {
@@ -136,15 +146,21 @@ public sealed class ClienteService : IClienteService
             cliente.Email = request.Email;
             cliente.Telefone = request.Telefone;
             cliente.InformacoesAdicionais = request.InformacoesAdicionais;
+            cliente.DataAtualizacao = DateTime.UtcNow;
 
-            _dbContext.Clientes.Update(cliente);
             await _dbContext.SaveChangesAsync();
 
             return ApiResponse<ClienteResponse>.Success(MapToResponse(cliente));
         }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Falha ao atualizar cliente {ClienteId}.", id);
+            return ApiResponse<ClienteResponse>.Error("Não foi possível atualizar o cliente. Tente novamente.");
+        }
         catch (Exception ex)
         {
-            return ApiResponse<ClienteResponse>.Error($"Erro ao atualizar cliente: {ex.Message}");
+            _logger.LogError(ex, "Erro inesperado ao atualizar cliente {ClienteId}.", id);
+            return ApiResponse<ClienteResponse>.Error("Erro inesperado ao atualizar cliente.");
         }
     }
 
@@ -155,23 +171,28 @@ public sealed class ClienteService : IClienteService
             var cliente = await _dbContext.Clientes.FindAsync(id);
 
             if (cliente == null)
-                return ApiResponse<bool>.Error("Cliente não encontrado");
+                return ApiResponse<bool>.Error(ResponseType.NotFound, "Cliente não encontrado");
 
-            // Verificar se o cliente possui pedidos
             var clienteComPedidos = await _dbContext.Pedidos
                 .AnyAsync(p => p.ClienteId == id);
 
             if (clienteComPedidos)
-                return ApiResponse<bool>.Error("não u00e9 possu00edvel excluir o cliente pois ele possui pedidos");
+                return ApiResponse<bool>.Error("Não é possível excluir o cliente pois ele possui pedidos");
 
             _dbContext.Clientes.Remove(cliente);
             await _dbContext.SaveChangesAsync();
 
-            return ApiResponse<bool>.Success(true, "Cliente removido com sucesso");
+            return ApiResponse<bool>.Success(ResponseType.Deleted, true, "Cliente removido com sucesso");
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Falha ao remover cliente {ClienteId}.", id);
+            return ApiResponse<bool>.Error("Não foi possível remover o cliente. Tente novamente.");
         }
         catch (Exception ex)
         {
-            return ApiResponse<bool>.Error($"Erro ao remover cliente: {ex.Message}");
+            _logger.LogError(ex, "Erro inesperado ao remover cliente {ClienteId}.", id);
+            return ApiResponse<bool>.Error("Erro inesperado ao remover cliente.");
         }
     }
 
