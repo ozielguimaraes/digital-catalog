@@ -141,3 +141,21 @@ jobs:
             "ftp://$FTP_SERVER/" \
             -Q "DELE $FTP_REMOTE_DIR/app_offline.htm" \
             || echo "::warning::DELE app_offline.htm falhou (provavelmente já não existia no servidor). Site deve estar online."
+
+      - name: Smoke test (verify API responds)
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+        run: |
+          echo "Verificando $API_BASE_URL/health ..."
+          for attempt in 1 2 3 4 5 6; do
+            response=$(curl -sk -o /tmp/health.body -w "%{http_code}" "$API_BASE_URL/health" || echo "000")
+            body=$(cat /tmp/health.body 2>/dev/null || echo "")
+            if [ "$response" = "200" ] && [ "$body" = "Healthy" ]; then
+              echo "✓ API respondeu Healthy na tentativa $attempt"
+              exit 0
+            fi
+            echo "Tentativa $attempt: HTTP $response, body=\"$body\""
+            sleep 10
+          done
+          echo "::error::API não respondeu Healthy após 60s. Verifique logs do servidor."
+          exit 1

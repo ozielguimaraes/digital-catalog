@@ -329,8 +329,8 @@ try
     });
 
     // Add health checks
-    builder.Services.AddHealthChecks();
-        // .AddDbContext<ApplicationDbContext>();
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<ApplicationDbContext>("database");
 
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>
