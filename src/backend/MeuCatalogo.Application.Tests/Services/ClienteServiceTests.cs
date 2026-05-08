@@ -3,7 +3,6 @@ using MeuCatalogo.Application.DTOs.Requests;
 using MeuCatalogo.Application.Entities;
 using MeuCatalogo.Application.Services;
 using MeuCatalogo.Application.Tests.Helpers;
-using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace MeuCatalogo.Application.Tests.Services;
@@ -22,7 +21,7 @@ public class ClienteServiceTests
     public async Task CreateAsync_PersisteCliente()
     {
         await using var test = new TestDbContext();
-        var service = new ClienteService(test.Db, NullLogger<ClienteService>.Instance);
+        var service = new ClienteService(test.Db);
 
         var result = await service.CreateAsync(NovoRequest());
 
@@ -35,7 +34,7 @@ public class ClienteServiceTests
     public async Task CreateAsync_RetornaErro_QuandoEmailDuplicado()
     {
         await using var test = new TestDbContext();
-        var service = new ClienteService(test.Db, NullLogger<ClienteService>.Instance);
+        var service = new ClienteService(test.Db);
         await service.CreateAsync(NovoRequest("dup@x.com"));
 
         var result = await service.CreateAsync(NovoRequest("dup@x.com"));
@@ -53,7 +52,7 @@ public class ClienteServiceTests
         test.Db.Pedidos.Add(new Pedido(cliente.Id));
         await test.Db.SaveChangesAsync();
 
-        var service = new ClienteService(test.Db, NullLogger<ClienteService>.Instance);
+        var service = new ClienteService(test.Db);
         var result = await service.DeleteAsync(cliente.Id);
 
         result.IsSuccess.Should().BeFalse();
@@ -68,7 +67,7 @@ public class ClienteServiceTests
         test.Db.Clientes.Add(cliente);
         await test.Db.SaveChangesAsync();
 
-        var service = new ClienteService(test.Db, NullLogger<ClienteService>.Instance);
+        var service = new ClienteService(test.Db);
         var result = await service.DeleteAsync(cliente.Id);
 
         result.IsSuccess.Should().BeTrue();
@@ -79,7 +78,7 @@ public class ClienteServiceTests
     public async Task GetByEmailAsync_RetornaCliente_QuandoExiste()
     {
         await using var test = new TestDbContext();
-        var service = new ClienteService(test.Db, NullLogger<ClienteService>.Instance);
+        var service = new ClienteService(test.Db);
         await service.CreateAsync(NovoRequest("alvo@x.com"));
 
         var result = await service.GetByEmailAsync("alvo@x.com");
@@ -92,7 +91,7 @@ public class ClienteServiceTests
     public async Task GetByEmailAsync_RetornaErro_QuandoNaoExiste()
     {
         await using var test = new TestDbContext();
-        var service = new ClienteService(test.Db, NullLogger<ClienteService>.Instance);
+        var service = new ClienteService(test.Db);
 
         var result = await service.GetByEmailAsync("nao@existe.com");
 
@@ -103,7 +102,7 @@ public class ClienteServiceTests
     public async Task UpdateAsync_AtualizaCampos_QuandoEmailNaoMudou()
     {
         await using var test = new TestDbContext();
-        var service = new ClienteService(test.Db, NullLogger<ClienteService>.Instance);
+        var service = new ClienteService(test.Db);
         var created = await service.CreateAsync(NovoRequest("mesmo@x.com"));
 
         var result = await service.UpdateAsync(created.Data!.Id, new ClienteRequest
@@ -122,7 +121,7 @@ public class ClienteServiceTests
     public async Task UpdateAsync_RetornaErro_QuandoNovoEmailJaExiste()
     {
         await using var test = new TestDbContext();
-        var service = new ClienteService(test.Db, NullLogger<ClienteService>.Instance);
+        var service = new ClienteService(test.Db);
         await service.CreateAsync(NovoRequest("a@x.com"));
         var b = await service.CreateAsync(NovoRequest("b@x.com"));
 
@@ -142,7 +141,7 @@ public class ClienteServiceTests
     public async Task GetByIdAsync_RetornaErro_QuandoNaoExiste()
     {
         await using var test = new TestDbContext();
-        var service = new ClienteService(test.Db, NullLogger<ClienteService>.Instance);
+        var service = new ClienteService(test.Db);
 
         var result = await service.GetByIdAsync(Guid.NewGuid());
 
