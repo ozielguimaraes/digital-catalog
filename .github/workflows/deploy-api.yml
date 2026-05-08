@@ -95,6 +95,6 @@ jobs:
         run: |
           curl --silent --show-error --ssl-reqd --insecure \
             --user "$FTP_USERNAME:$FTP_PASSWORD" \
-            "ftp://$FTP_SERVER/$FTP_REMOTE_DIR/" \
-            -Q "DELE app_offline.htm" \
+            "ftp://$FTP_SERVER/" \
+            -Q "DELE $FTP_REMOTE_DIR/app_offline.htm" \
             || echo "::warning::DELE app_offline.htm falhou (provavelmente já não existia no servidor). Site deve estar online."
