@@ -1,0 +1,54 @@
+name: Deploy Frontend to HostAzul
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  FRONTEND_DIR: src/frontend
+  PUBLISH_DIR: src/frontend/dist/ng-tailadmin/browser
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-frontend-hostazul
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.FRONTEND_DIR }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: npm ci
+
+      - name: Build (production)
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: npm run build:publish
+
+      - name: Sync via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_FRONTEND_USERNAME }}
+          password: ${{ secrets.FTP_FRONTEND_PASSWORD }}
+          protocol: ftps
+          local-dir: ./${{ env.PUBLISH_DIR }}/
+          server-dir: ${{ secrets.FTP_FRONTEND_REMOTE_DIR }}/
+          exclude: |
+            **/.well-known/**
+            **/google*verification*.html
+            **/.git*
+            **/.git*/**
+          log-level: verbose

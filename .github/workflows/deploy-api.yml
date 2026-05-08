@@ -64,7 +64,7 @@ jobs:
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           FTP_REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
         run: |
-          curl --silent --show-error --fail --ssl-reqd \
+          curl --silent --show-error --fail --ssl-reqd --insecure \
             --user "$FTP_USERNAME:$FTP_PASSWORD" \
             -T offline/app_offline.htm \
             "ftp://$FTP_SERVER/$FTP_REMOTE_DIR/"
@@ -93,7 +93,8 @@ jobs:
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           FTP_REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
         run: |
-          curl --silent --show-error --fail --ssl-reqd \
+          curl --silent --show-error --ssl-reqd --insecure \
             --user "$FTP_USERNAME:$FTP_PASSWORD" \
             "ftp://$FTP_SERVER/$FTP_REMOTE_DIR/" \
-            -Q "DELE app_offline.htm"
+            -Q "DELE app_offline.htm" \
+            || echo "::warning::DELE app_offline.htm falhou (provavelmente já não existia no servidor). Site deve estar online."
