@@ -69,6 +69,11 @@ jobs:
             -T offline/app_offline.htm \
             "ftp://$FTP_SERVER/$FTP_REMOTE_DIR/"
 
+      - name: Wait for IIS to release file locks
+        run: |
+          echo "Aguardando IIS detectar app_offline.htm e encerrar o processo..."
+          sleep 20
+
       - name: Sync published files via FTPS (try 1)
         id: ftp1
         continue-on-error: true
