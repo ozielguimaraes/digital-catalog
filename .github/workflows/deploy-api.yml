@@ -69,7 +69,45 @@ jobs:
             -T offline/app_offline.htm \
             "ftp://$FTP_SERVER/$FTP_REMOTE_DIR/"
 
-      - name: Sync published files via FTPS
+      - name: Sync published files via FTPS (try 1)
+        id: ftp1
+        continue-on-error: true
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./publish/
+          server-dir: ${{ secrets.FTP_REMOTE_DIR }}/
+          exclude: |
+            **/appsettings.Production.json
+            **/app_offline.htm
+            **/.git*
+            **/.git*/**
+          log-level: minimal
+
+      - name: Sync published files via FTPS (try 2 — resume after ECONNRESET)
+        if: steps.ftp1.outcome == 'failure'
+        id: ftp2
+        continue-on-error: true
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./publish/
+          server-dir: ${{ secrets.FTP_REMOTE_DIR }}/
+          exclude: |
+            **/appsettings.Production.json
+            **/app_offline.htm
+            **/.git*
+            **/.git*/**
+          log-level: minimal
+
+      - name: Sync published files via FTPS (try 3 — final)
+        if: steps.ftp1.outcome == 'failure' && steps.ftp2.outcome == 'failure'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}

@@ -1,5 +1,7 @@
 # MeuCatalogo API
 
+[![Deploy API](https://github.com/ozielguimaraes/digital-catalog/actions/workflows/deploy-api.yml/badge.svg?branch=main)](https://github.com/ozielguimaraes/digital-catalog/actions/workflows/deploy-api.yml)
+
 Este é o backend da aplicação MeuCatalogo, uma API RESTful desenvolvida em ASP.NET Core.
 
 ## Requisitos
