@@ -18,8 +18,24 @@ public class ExceptionHandlingMiddleware
         _logger = logger;
     }
 
+    private const int MaxBodyCaptureBytes = 16 * 1024;
+
+    private static readonly HashSet<string> FullMaskKeys = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "password", "senha", "token", "refreshToken", "refresh_token",
+        "accessToken", "access_token", "secret", "authorization"
+    };
+
+    private static readonly HashSet<string> PartialMaskKeys = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "cpf", "email"
+    };
+
     public async Task Invoke(HttpContext context)
     {
+        if (HasJsonBody(context.Request))
+            context.Request.EnableBuffering();
+
         try
         {
             await _next(context);
@@ -30,15 +46,18 @@ public class ExceptionHandlingMiddleware
         }
     }
 
-    private Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         string correlationId = context.TraceIdentifier ?? Guid.NewGuid().ToString();
 
         context.Response.Headers["X-Correlation-ID"] = correlationId;
 
+        string? requestBody = HasJsonBody(context.Request)
+            ? await ReadAndMaskRequestBodyAsync(context.Request)
+            : null;
+
         using (LogContext.PushProperty("CorrelationId", correlationId))
         {
-            // Capture exception in Sentry with additional context
             SentrySdk.ConfigureScope(scope =>
             {
                 scope.SetTag("correlationId", correlationId);
@@ -52,6 +71,8 @@ public class ExceptionHandlingMiddleware
                     userAgent = context.Request.Headers.UserAgent.ToString(),
                     correlationId = correlationId
                 });
+                if (requestBody is not null)
+                    scope.SetExtra("requestBody", requestBody);
             });
             SentrySdk.CaptureException(exception);
 
@@ -124,7 +145,93 @@ public class ExceptionHandlingMiddleware
             _logger.LogError(exception, "Erro inesperado. CorrelationId: {CorrelationId}, Path: {Path}, Method: {Method}",
                 correlationId, context.Request.Path, context.Request.Method);
 
-            return context.Response.WriteAsync(payload);
+            await context.Response.WriteAsync(payload);
         }
+    }
+
+    private static bool HasJsonBody(HttpRequest request)
+    {
+        if (request.ContentLength is null or 0) return false;
+        var contentType = request.ContentType;
+        return contentType is not null && contentType.Contains("json", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static async Task<string?> ReadAndMaskRequestBodyAsync(HttpRequest request)
+    {
+        try
+        {
+            if (!request.Body.CanSeek) return null;
+            request.Body.Position = 0;
+
+            var buffer = new byte[MaxBodyCaptureBytes];
+            int read = await request.Body.ReadAsync(buffer);
+            request.Body.Position = 0;
+
+            if (read == 0) return null;
+
+            var raw = System.Text.Encoding.UTF8.GetString(buffer, 0, read);
+            var truncated = read == MaxBodyCaptureBytes;
+            var masked = MaskJson(raw) ?? raw;
+            return truncated ? masked + "...[truncated]" : masked;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string? MaskJson(string json)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            using var stream = new MemoryStream();
+            using (var writer = new Utf8JsonWriter(stream))
+            {
+                WriteMasked(document.RootElement, writer);
+            }
+            return System.Text.Encoding.UTF8.GetString(stream.ToArray());
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    private static void WriteMasked(JsonElement element, Utf8JsonWriter writer)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                writer.WriteStartObject();
+                foreach (var property in element.EnumerateObject())
+                {
+                    writer.WritePropertyName(property.Name);
+                    if (FullMaskKeys.Contains(property.Name))
+                        writer.WriteStringValue("***");
+                    else if (PartialMaskKeys.Contains(property.Name) && property.Value.ValueKind == JsonValueKind.String)
+                        writer.WriteStringValue(PartialMask(property.Value.GetString()));
+                    else
+                        WriteMasked(property.Value, writer);
+                }
+                writer.WriteEndObject();
+                break;
+            case JsonValueKind.Array:
+                writer.WriteStartArray();
+                foreach (var item in element.EnumerateArray())
+                    WriteMasked(item, writer);
+                writer.WriteEndArray();
+                break;
+            default:
+                element.WriteTo(writer);
+                break;
+        }
+    }
+
+    private static string PartialMask(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return "***";
+        if (value.Length <= 6) return "***";
+        return $"{value[..4]}***{value[^2..]}";
     }
 }
