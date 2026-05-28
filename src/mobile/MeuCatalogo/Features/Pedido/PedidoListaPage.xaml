@@ -21,7 +21,7 @@
             <ToolbarItem.IconImageSource>
                 <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
                                  Glyph="{x:Static fonts:FluentUI.add_24_regular}"
-                                 Color="{AppThemeBinding Light={StaticResource BrandCopperSany}, Dark={StaticResource BrandCopperZ}}" />
+                                 Color="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}" />
             </ToolbarItem.IconImageSource>
         </ToolbarItem>
     </ContentPage.ToolbarItems>

@@ -655,4 +655,106 @@
         <Setter Property="HeightRequest" Value="1" />
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource BorderSubtleColorLight}, Dark={StaticResource BorderSubtleColorDark}}" />
     </Style>
+
+
+    <!-- ════════════════════════════════════════════════════════════════
+         Coffee × Sany&Z — pílulas, search, banner, chips de categoria, preço
+         (referência: Coffee Shop Mobile Figma; tokens 100% Sany&Z)
+         ════════════════════════════════════════════════════════════════ -->
+
+    <!-- CTA principal pílula full-width (estilo Coffee Shop) -->
+    <Style TargetType="Button" x:Key="PrimaryButtonPill" BasedOn="{StaticResource PrimaryButton}">
+        <Setter Property="CornerRadius" Value="28" />
+        <Setter Property="MinimumHeightRequest" Value="56" />
+        <Setter Property="HorizontalOptions" Value="Fill" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="CharacterSpacing" Value="1" />
+    </Style>
+
+    <!-- Search host pílula (envolve uma Entry) -->
+    <Style TargetType="Border" x:Key="SearchPill" BasedOn="{StaticResource PillEntryHost}">
+        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="MinimumHeightRequest" Value="48" />
+        <Setter Property="StrokeShape">
+            <RoundRectangle CornerRadius="24" />
+        </Setter>
+    </Style>
+
+    <!-- Chip de categoria (scroll horizontal). Padding mais generoso que ChipBase. -->
+    <Style TargetType="Border" x:Key="CategoryChip">
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="Padding" Value="14,8" />
+        <Setter Property="StrokeShape">
+            <RoundRectangle CornerRadius="99" />
+        </Setter>
+    </Style>
+
+    <Style TargetType="Border" x:Key="CategoryChipDefault" BasedOn="{StaticResource CategoryChip}">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceColorLight}, Dark={StaticResource SurfaceColorDark}}" />
+        <Setter Property="Stroke" Value="{StaticResource BorderBrush}" />
+    </Style>
+
+    <Style TargetType="Border" x:Key="CategoryChipSelected" BasedOn="{StaticResource CategoryChip}">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}" />
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}" />
+    </Style>
+
+    <!-- Texto dentro do chip de categoria -->
+    <Style TargetType="Label" x:Key="CategoryChipTextDefault">
+        <Setter Property="FontFamily" Value="LatoBold" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="CharacterSpacing" Value="0.5" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextColorLight}, Dark={StaticResource TextColorDark}}" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="CategoryChipTextSelected" BasedOn="{StaticResource CategoryChipTextDefault}">
+        <Setter Property="TextColor" Value="{StaticResource OnPrimaryColor}" />
+    </Style>
+
+    <!-- Banner promocional (escuro, com sombra média). Use IsVisible para ocultar quando não houver contexto. -->
+    <Style TargetType="Border" x:Key="PromoBannerCard">
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource PromoBackgroundColorLight}, Dark={StaticResource PromoBackgroundColorDark}}" />
+        <Setter Property="Padding" Value="20" />
+        <Setter Property="StrokeShape">
+            <RoundRectangle CornerRadius="24" />
+        </Setter>
+        <Setter Property="Shadow">
+            <Shadow Brush="Black" Offset="0,8" Radius="20" Opacity="0.10" />
+        </Setter>
+    </Style>
+
+    <!-- Texto sobre banner escuro -->
+    <Style TargetType="Label" x:Key="PromoBannerTitle">
+        <Setter Property="FontFamily" Value="LoraMedium" />
+        <Setter Property="FontSize" Value="22" />
+        <Setter Property="LineHeight" Value="1.15" />
+        <Setter Property="TextColor" Value="{StaticResource OnPromoColor}" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="PromoBannerBody">
+        <Setter Property="FontFamily" Value="LatoRegular" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="TextColor" Value="{StaticResource OnPromoMutedColor}" />
+    </Style>
+
+    <!-- Preço em destaque (Lora 600 na cor primary — alinhado com brand.md §números financeiros) -->
+    <Style TargetType="Label" x:Key="PriceLargePrimary">
+        <Setter Property="FontFamily" Value="LoraSemiBold" />
+        <Setter Property="FontSize" Value="26" />
+        <Setter Property="CharacterSpacing" Value="-0.2" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="PriceMediumPrimary" BasedOn="{StaticResource PriceLargePrimary}">
+        <Setter Property="FontSize" Value="18" />
+    </Style>
+
+    <!-- Preço original riscado (acompanha PrecoComDesconto) -->
+    <Style TargetType="Label" x:Key="PriceStrikethrough">
+        <Setter Property="FontFamily" Value="LatoRegular" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextMutedColorLight}, Dark={StaticResource TextMutedColorDark}}" />
+        <Setter Property="TextDecorations" Value="Strikethrough" />
+    </Style>
 </ResourceDictionary>

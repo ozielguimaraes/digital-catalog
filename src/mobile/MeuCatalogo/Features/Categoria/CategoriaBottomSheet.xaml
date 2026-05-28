@@ -43,14 +43,14 @@
                             HeightRequest="44"
                             WidthRequest="44"
                             StrokeThickness="0"
-                            BackgroundColor="{AppThemeBinding Light={StaticResource BrandCopperSany}, Dark={StaticResource BrandCopperZ}}"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}"
                             VerticalOptions="Center">
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="22" />
                         </Border.StrokeShape>
                         <Border.Triggers>
                             <DataTrigger TargetType="Border" Binding="{Binding IsEditing}" Value="True">
-                                <Setter Property="BackgroundColor" Value="{StaticResource BrandCopperBrown}" />
+                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryHoverColorDark}}" />
                             </DataTrigger>
                         </Border.Triggers>
                         <Label HorizontalOptions="Center"
@@ -144,7 +144,7 @@
                                             <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource SurfaceMutedColorDark}}" />
                                             <Style.Triggers>
                                                 <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
-                                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource BrandCopperSany}, Dark={StaticResource BrandCopperZ}}" />
+                                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}" />
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>

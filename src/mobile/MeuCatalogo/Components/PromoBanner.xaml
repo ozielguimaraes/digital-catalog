@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MeuCatalogo.Components.PromoBanner"
+             x:Name="Root">
+    <Border Style="{StaticResource PromoBannerCard}">
+        <Border.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding TapCommand, Source={x:Reference Root}}"
+                                  CommandParameter="{Binding TapCommandParameter, Source={x:Reference Root}}" />
+        </Border.GestureRecognizers>
+        <VerticalStackLayout Spacing="10">
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}"
+                    StrokeThickness="0"
+                    Padding="10,4"
+                    HorizontalOptions="Start"
+                    IsVisible="{Binding HasBadge, Source={x:Reference Root}}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="99" />
+                </Border.StrokeShape>
+                <Label Text="{Binding BadgeText, Source={x:Reference Root}}"
+                       FontFamily="LatoBold"
+                       FontSize="11"
+                       CharacterSpacing="1.5"
+                       TextColor="{StaticResource OnPrimaryColor}" />
+            </Border>
+
+            <Label Style="{StaticResource PromoBannerTitle}"
+                   Text="{Binding Title, Source={x:Reference Root}}" />
+
+            <Label Style="{StaticResource PromoBannerBody}"
+                   Text="{Binding Body, Source={x:Reference Root}}"
+                   IsVisible="{Binding HasBody, Source={x:Reference Root}}" />
+        </VerticalStackLayout>
+    </Border>
+</ContentView>

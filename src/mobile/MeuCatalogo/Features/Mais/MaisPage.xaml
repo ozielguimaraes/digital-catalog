@@ -30,7 +30,7 @@
                     <Grid Grid.Row="1" ColumnDefinitions="64,*" ColumnSpacing="14" VerticalOptions="End">
                         <Border Grid.Column="0"
                                 StrokeThickness="0"
-                                BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource BrandAlabaster}}"
+                                BackgroundColor="{StaticResource OnPrimaryColor}"
                                 HeightRequest="64"
                                 WidthRequest="64">
                             <Border.StrokeShape>

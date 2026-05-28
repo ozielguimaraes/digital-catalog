@@ -6,6 +6,8 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using MeuCatalogo.Domain.Enums;
 using MeuCatalogo.Features.Catalogo;
+using MeuCatalogo.Features.Categoria.Domain;
+using MeuCatalogo.Features.Categoria.UseCases;
 using MeuCatalogo.Features.Produto.Data.Local;
 using MeuCatalogo.Features.Produto.Domain;
 using MeuCatalogo.Features.Produto.Presentation;
@@ -19,11 +21,18 @@ namespace MeuCatalogo.Features.Produto;
 
 public partial class ProdutoListaPageViewModel : BasePageViewModel
 {
+    private static readonly CategoriaInfo CategoriaTodas = new()
+    {
+        Id = Guid.Empty,
+        Nome = "Todas"
+    };
+
     private readonly ILogger<ProdutoListaPageViewModel> _logger;
     private readonly IProdutoLocalRepository _produtoLocalRepository;
     private readonly SyncProdutosByCatalogoUseCase _syncProdutosByCatalogoUseCase;
     private readonly GetProdutoForEditOfflineFirstUseCase _getProdutoForEditOfflineFirstUseCase;
     private readonly DeleteProdutoOfflineFirstUseCase _deleteProdutoOfflineFirstUseCase;
+    private readonly GetCategoriasByCatalogoUseCase _getCategoriasByCatalogoUseCase;
     private readonly ISettingsService _settingsService;
     private readonly INavigationService _navigationService;
     private bool _backgroundSyncStarted;
@@ -35,6 +44,7 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
         SyncProdutosByCatalogoUseCase syncProdutosByCatalogoUseCase,
         GetProdutoForEditOfflineFirstUseCase getProdutoForEditOfflineFirstUseCase,
         DeleteProdutoOfflineFirstUseCase deleteProdutoOfflineFirstUseCase,
+        GetCategoriasByCatalogoUseCase getCategoriasByCatalogoUseCase,
         ISettingsService settingsService,
         INavigationService navigationService)
     {
@@ -43,8 +53,12 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
         _syncProdutosByCatalogoUseCase = syncProdutosByCatalogoUseCase;
         _getProdutoForEditOfflineFirstUseCase = getProdutoForEditOfflineFirstUseCase;
         _deleteProdutoOfflineFirstUseCase = deleteProdutoOfflineFirstUseCase;
+        _getCategoriasByCatalogoUseCase = getCategoriasByCatalogoUseCase;
         _settingsService = settingsService;
         _navigationService = navigationService;
+
+        Categorias.Add(CategoriaTodas);
+        CategoriaSelecionada = CategoriaTodas;
 
         WeakReferenceMessenger.Default.Register<ProdutoUpsertedMessage>(this, async (_, message) =>
         {
@@ -60,10 +74,65 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
     }
 
     [ObservableProperty] private ObservableCollection<ProdutoEntity> _produtos = [];
+    [ObservableProperty] private ObservableCollection<ProdutoEntity> _produtosFiltrados = [];
+    [ObservableProperty] private ObservableCollection<CategoriaInfo> _categorias = [];
+    [ObservableProperty] private CategoriaInfo? _categoriaSelecionada;
+    [ObservableProperty] private string _searchText = string.Empty;
     [ObservableProperty] private bool _isRefreshing;
     [ObservableProperty] private bool _hasProdutos;
     [ObservableProperty] private bool _showEmptyState;
     [ObservableProperty] private bool _isSyncing;
+
+    partial void OnSearchTextChanged(string value) => ApplyFilter();
+    partial void OnCategoriaSelecionadaChanged(CategoriaInfo? value) => ApplyFilter();
+
+    private void ApplyFilter()
+    {
+        IEnumerable<ProdutoEntity> filtered = Produtos;
+
+        if (CategoriaSelecionada is { } cat && cat.Id != Guid.Empty)
+        {
+            var catId = cat.Id.ToString();
+            filtered = filtered.Where(p => string.Equals(p.CategoriaId, catId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            var query = SearchText.Trim();
+            filtered = filtered.Where(p =>
+                !string.IsNullOrEmpty(p.Nome) &&
+                p.Nome.Contains(query, StringComparison.OrdinalIgnoreCase));
+        }
+
+        ProdutosFiltrados.Clear();
+        foreach (var p in filtered)
+            ProdutosFiltrados.Add(p);
+    }
+
+    private async Task CarregarCategoriasAsync(Guid catalogoId)
+    {
+        try
+        {
+            var response = await _getCategoriasByCatalogoUseCase.ExecuteAsync(catalogoId);
+            if (response.RetornouComSucesso && response.Dados is not null)
+            {
+                Categorias.Clear();
+                Categorias.Add(CategoriaTodas);
+                foreach (var cat in response.Dados)
+                    Categorias.Add(cat);
+
+                if (CategoriaSelecionada is null ||
+                    !Categorias.Any(c => c.Id == CategoriaSelecionada.Id))
+                {
+                    CategoriaSelecionada = CategoriaTodas;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao carregar categorias para filtro de produtos");
+        }
+    }
 
     [RelayCommand]
     private async Task CarregarDados()
@@ -91,6 +160,9 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
             HasProdutos = Produtos.Count > 0;
             ShowEmptyState = !HasProdutos;
             IsSyncing = false;
+            ApplyFilter();
+
+            _ = CarregarCategoriasAsync(catalogo.Id);
         }
         catch (Exception ex)
         {
@@ -150,6 +222,7 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
                         HasProdutos = Produtos.Count > 0;
                         IsSyncing = false;
                         ShowEmptyState = !HasProdutos;
+                        ApplyFilter();
                     });
                 }
                 catch (Exception ex)
@@ -255,12 +328,15 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
             if (existing == null)
             {
                 Produtos.Insert(0, entity);
-                return;
+            }
+            else
+            {
+                var index = Produtos.IndexOf(existing);
+                if (index >= 0)
+                    Produtos[index] = entity;
             }
 
-            var index = Produtos.IndexOf(existing);
-            if (index >= 0)
-                Produtos[index] = entity;
+            ApplyFilter();
         });
     }
 
@@ -279,6 +355,7 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
             if (response.RetornouComSucesso)
             {
                 Produtos.Remove(produto);
+                ApplyFilter();
                 if (hadInternet)
                     await Application.Current.MainPage.DisplayAlert("Sucesso", "Produto removido com sucesso.", "OK");
                 else

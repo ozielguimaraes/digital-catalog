@@ -93,6 +93,12 @@
     <Color x:Key="WarningSoftColor">#f2e6c6</Color>
     <Color x:Key="DangerSoftColor">#f2dada</Color>
 
+    <!-- Promo banner — sempre escuro (Coffee Shop style) -->
+    <Color x:Key="PromoBackgroundColorLight">#332a27</Color>
+    <Color x:Key="PromoBackgroundColorDark">#121212</Color>
+    <Color x:Key="OnPromoColor">#f5efe8</Color>
+    <Color x:Key="OnPromoMutedColor">#dfd5ce</Color>
+
 
     <!--
     ════════════════════════════════════════════════════════════════════════
@@ -137,6 +143,11 @@
     <SolidColorBrush x:Key="SuccessSoftBrush" Color="{StaticResource SuccessSoftColor}" />
     <SolidColorBrush x:Key="WarningSoftBrush" Color="{StaticResource WarningSoftColor}" />
     <SolidColorBrush x:Key="DangerSoftBrush" Color="{StaticResource DangerSoftColor}" />
+
+    <SolidColorBrush x:Key="PromoBackgroundBrush"
+                     Color="{AppThemeBinding Light={StaticResource PromoBackgroundColorLight}, Dark={StaticResource PromoBackgroundColorDark}}" />
+    <SolidColorBrush x:Key="OnPromoBrush" Color="{StaticResource OnPromoColor}" />
+    <SolidColorBrush x:Key="OnPromoMutedBrush" Color="{StaticResource OnPromoMutedColor}" />
 
 
     <!--

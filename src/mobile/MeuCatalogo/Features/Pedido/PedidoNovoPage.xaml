@@ -84,7 +84,7 @@
                                        VerticalOptions="Center"
                                        FontFamily="{x:Static fonts:FluentUI.FontFamily}"
                                        FontSize="20"
-                                       TextColor="{AppThemeBinding Light={StaticResource BrandCopperSany}, Dark={StaticResource BrandCopperZ}}"
+                                       TextColor="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}"
                                        Text="{x:Static fonts:FluentUI.chevron_right_24_regular}" />
                             </Grid>
                         </Border>

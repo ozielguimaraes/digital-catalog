@@ -14,9 +14,9 @@
     x:DataType="vm:AppShellViewModel"
     Title="SanyZ"
     Shell.TabBarBackgroundColor="{AppThemeBinding Light={StaticResource SurfaceColorLight}, Dark={StaticResource SurfaceColorDark}}"
-    Shell.TabBarTitleColor="{AppThemeBinding Light={StaticResource BrandCopperSany}, Dark={StaticResource BrandCopperZ}}"
+    Shell.TabBarTitleColor="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}"
     Shell.TabBarUnselectedColor="{AppThemeBinding Light={StaticResource TextMutedColorLight}, Dark={StaticResource TextMutedColorDark}}"
-    Shell.TabBarForegroundColor="{AppThemeBinding Light={StaticResource BrandCopperSany}, Dark={StaticResource BrandCopperZ}}">
+    Shell.TabBarForegroundColor="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}">
 
     <TabBar>
         <ShellContent Title="Início"
