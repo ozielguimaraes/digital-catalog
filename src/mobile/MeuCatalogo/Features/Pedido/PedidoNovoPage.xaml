@@ -234,7 +234,7 @@
             <Border.Shadow>
                 <Shadow Brush="Black" Offset="0,-4" Radius="12" Opacity="0.06" />
             </Border.Shadow>
-            <Button Style="{StaticResource PrimaryButton}"
+            <Button Style="{StaticResource PrimaryButtonPill}"
                     Text="SALVAR PEDIDO"
                     IsEnabled="{Binding IsSaving, Converter={toolkit:InvertedBoolConverter}}"
                     Command="{Binding SalvarCommand}" />

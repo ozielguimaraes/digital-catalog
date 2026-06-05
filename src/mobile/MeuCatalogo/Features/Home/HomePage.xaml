@@ -5,6 +5,7 @@
              xmlns:home="clr-namespace:MeuCatalogo.Features.Home"
              xmlns:catalogo="clr-namespace:MeuCatalogo.Features.Catalogo"
              xmlns:domain="clr-namespace:MeuCatalogo.Features.Produto.Domain"
+             xmlns:components="clr-namespace:MeuCatalogo.Components"
              x:Class="MeuCatalogo.Features.Home.HomePage"
              x:Name="HomePageRoot"
              x:DataType="home:HomePageViewModel">
@@ -89,6 +90,13 @@
                         </Border>
                     </Grid>
 
+                    <!-- Promo contextual (D7): aparece quando há produtos recentes -->
+                    <components:PromoBanner BadgeText="NO ATELIÊ"
+                                            Title="Você tem novidades em estoque"
+                                            Body="Toque para revisar seus produtos mais recentes."
+                                            TapCommand="{Binding VerProdutosCommand}"
+                                            IsVisible="{Binding TemProdutosRecentes}" />
+
                     <!-- Quick actions -->
                     <Border Style="{StaticResource Card}" Padding="20">
                         <VerticalStackLayout Spacing="12">
@@ -97,10 +105,9 @@
 
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                 <Button Grid.Column="0"
-                                        Style="{StaticResource PrimaryButton}"
+                                        Style="{StaticResource PrimaryButtonPill}"
                                         Text="NOVO PRODUTO"
                                         FontSize="12"
-                                        Padding="14,12"
                                         Command="{Binding NovoProdutoCommand}" />
                                 <Button Grid.Column="1"
                                         Style="{StaticResource SecondaryButton}"
@@ -114,55 +121,25 @@
 
                     <!-- Produtos recentes -->
                     <VerticalStackLayout Spacing="10" IsVisible="{Binding TemProdutosRecentes}">
-                        <Grid ColumnDefinitions="*,Auto" Margin="4,8,4,0">
-                            <Label Grid.Column="0" Style="{StaticResource Caps}" Text="RECENTES" VerticalOptions="Center" />
-                            <Label Grid.Column="1"
-                                   Text="VER TODOS"
-                                   Style="{StaticResource CapsPrimary}"
-                                   VerticalOptions="Center">
-                                <Label.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding VerProdutosCommand}" />
-                                </Label.GestureRecognizers>
-                            </Label>
-                        </Grid>
+                        <components:SectionHeader Title="Recentes"
+                                                  ActionText="VER TODOS"
+                                                  ActionCommand="{Binding VerProdutosCommand}" />
                         <CollectionView ItemsSource="{Binding ProdutosRecentes}"
-                                        HeightRequest="220"
-                                        SelectionMode="None">
+                                        HeightRequest="240"
+                                        SelectionMode="None"
+                                        ItemsUpdatingScrollMode="KeepItemsInView">
                             <CollectionView.ItemsLayout>
                                 <LinearItemsLayout Orientation="Horizontal" ItemSpacing="12" />
                             </CollectionView.ItemsLayout>
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="domain:ProdutoEntity">
-                                    <Border Style="{StaticResource CardElevated}"
-                                            Padding="0"
-                                            WidthRequest="160">
-                                        <VerticalStackLayout Spacing="0">
-                                            <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceMutedColorLight}, Dark={StaticResource SurfaceMutedColorDark}}"
-                                                    StrokeThickness="0"
-                                                    HeightRequest="120">
-                                                <Border.StrokeShape>
-                                                    <RoundRectangle CornerRadius="18,18,0,0" />
-                                                </Border.StrokeShape>
-                                                <Image Aspect="AspectFill"
-                                                       IsVisible="{Binding ThumbnailUrl, Converter={x:Static catalogo:NotNullOrEmptyConverter.Instance}}">
-                                                    <Image.Source>
-                                                        <UriImageSource Uri="{Binding ThumbnailUrl}" CacheValidity="1.00:00:00" />
-                                                    </Image.Source>
-                                                </Image>
-                                            </Border>
-                                            <VerticalStackLayout Padding="12,10" Spacing="4">
-                                                <Label Style="{StaticResource SerifH3}"
-                                                       FontSize="15"
-                                                       Text="{Binding Nome}"
-                                                       LineBreakMode="TailTruncation"
-                                                       MaxLines="2" />
-                                                <Label Text="{Binding Preco, StringFormat='{0:C}'}"
-                                                       FontFamily="LatoBold"
-                                                       FontSize="13"
-                                                       TextColor="{AppThemeBinding Light={StaticResource PrimaryHoverColorLight}, Dark={StaticResource PrimaryColorDark}}" />
-                                            </VerticalStackLayout>
-                                        </VerticalStackLayout>
-                                    </Border>
+                                    <components:ProductGridCard
+                                        WidthRequest="172"
+                                        ThumbnailSource="{Binding ThumbnailUrl}"
+                                        Nome="{Binding Nome}"
+                                        Preco="{Binding Preco}"
+                                        PrecoComDesconto="{Binding PrecoComDesconto}"
+                                        SubtitleText="{Binding CategoriaNome}" />
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
                         </CollectionView>

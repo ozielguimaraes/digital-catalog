@@ -78,17 +78,20 @@
                     <Label Style="{StaticResource BodyMuted}"
                            HorizontalTextAlignment="Center"
                            Text="Os clientes aparecem aqui assim que forem cadastrados." />
-                    <Button Style="{StaticResource PrimaryButton}"
+                    <Button Style="{StaticResource PrimaryButtonPill}"
                             Text="ADICIONAR CLIENTE"
                             HorizontalOptions="Center"
                             Margin="0,8,0,0"
-                            Padding="32,14"
+                            WidthRequest="240"
                             Command="{Binding AdicionarCommand}" />
                 </VerticalStackLayout>
 
-                <CollectionView Grid.Row="1"
-                                ItemsSource="{Binding Clientes}"
-                                SelectionMode="None">
+                <RefreshView Grid.Row="1"
+                             Command="{Binding CarregarCommand}"
+                             IsRefreshing="{Binding IsRefreshing, Mode=TwoWay}">
+                <CollectionView ItemsSource="{Binding Clientes}"
+                                SelectionMode="None"
+                                ItemsUpdatingScrollMode="KeepItemsInView">
                     <CollectionView.ItemsLayout>
                         <LinearItemsLayout Orientation="Vertical" ItemSpacing="12" />
                     </CollectionView.ItemsLayout>
@@ -165,6 +168,7 @@
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
+                </RefreshView>
             </Grid>
         </ScrollView>
     </Grid>

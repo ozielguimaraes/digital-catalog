@@ -265,6 +265,9 @@ public sealed partial class ProdutoAdicionarPageViewModel(
                 { BottomSheetParameters.Categorias, categoriasResponse.Dados! }
             };
 
+            if (Categoria != null)
+                parametros.Add(BottomSheetParameters.CategoriaSelectionada, Categoria);
+
             await bottomSheetNavigationService.NavigateToAsync<CategoriaBottomSheetViewModel>(
                 BottomSheetKeys.ListaCategoria, parametros);
         }

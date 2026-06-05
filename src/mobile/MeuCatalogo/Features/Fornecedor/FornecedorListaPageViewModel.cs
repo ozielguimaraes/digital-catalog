@@ -19,6 +19,7 @@ public sealed partial class FornecedorListaPageViewModel(
     [ObservableProperty] private bool _hasFornecedores;
     [ObservableProperty] private bool _showEmptyState;
     [ObservableProperty] private bool _isLoading;
+    [ObservableProperty] private bool _isRefreshing;
 
     [RelayCommand]
     private async Task Carregar()
@@ -58,6 +59,7 @@ public sealed partial class FornecedorListaPageViewModel(
         finally
         {
             IsLoading = false;
+            IsRefreshing = false;
         }
     }
 

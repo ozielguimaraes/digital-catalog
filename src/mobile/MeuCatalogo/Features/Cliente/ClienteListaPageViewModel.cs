@@ -20,6 +20,7 @@ public sealed partial class ClienteListaPageViewModel(
     [ObservableProperty] private bool _hasClientes;
     [ObservableProperty] private bool _showEmptyState;
     [ObservableProperty] private bool _isLoading;
+    [ObservableProperty] private bool _isRefreshing;
 
     [RelayCommand]
     private async Task Carregar()
@@ -59,6 +60,7 @@ public sealed partial class ClienteListaPageViewModel(
         finally
         {
             IsLoading = false;
+            IsRefreshing = false;
         }
     }
 

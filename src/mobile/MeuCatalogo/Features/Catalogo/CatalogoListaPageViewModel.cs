@@ -45,6 +45,7 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
     [ObservableProperty] private bool _hasCatalogos;
     [ObservableProperty] private bool _showEmptyState;
     [ObservableProperty] private bool _isSyncing;
+    [ObservableProperty] private bool _isRefreshing;
 
     [RelayCommand]
     private async Task CarregarCatalogos()
@@ -116,6 +117,7 @@ public sealed partial class CatalogoListaPageViewModel : BasePageViewModel
         finally
         {
             _isLoading = false;
+            IsRefreshing = false;
         }
     }
 

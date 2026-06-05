@@ -82,9 +82,12 @@
                            Text="Quando seus clientes fizerem pedidos, eles aparecem aqui." />
                 </VerticalStackLayout>
 
-                <CollectionView Grid.Row="1"
-                                ItemsSource="{Binding Pedidos}"
-                                SelectionMode="None">
+                <RefreshView Grid.Row="1"
+                             Command="{Binding CarregarCommand}"
+                             IsRefreshing="{Binding IsRefreshing, Mode=TwoWay}">
+                <CollectionView ItemsSource="{Binding Pedidos}"
+                                SelectionMode="None"
+                                ItemsUpdatingScrollMode="KeepItemsInView">
                     <CollectionView.ItemsLayout>
                         <LinearItemsLayout Orientation="Vertical" ItemSpacing="14" />
                     </CollectionView.ItemsLayout>
@@ -125,6 +128,7 @@
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
+                </RefreshView>
             </Grid>
         </ScrollView>
     </Grid>

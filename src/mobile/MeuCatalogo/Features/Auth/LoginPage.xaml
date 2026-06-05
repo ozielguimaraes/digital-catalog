@@ -83,7 +83,7 @@
                         </VerticalStackLayout>
 
                         <Button x:Name="loginButton"
-                                Style="{StaticResource PrimaryButton}"
+                                Style="{StaticResource PrimaryButtonPill}"
                                 Text="ENTRAR"
                                 IsEnabled="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}"
                                 Command="{Binding LoginCommand}" />

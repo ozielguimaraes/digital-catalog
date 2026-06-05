@@ -25,6 +25,7 @@ public partial class CategoriaBottomSheetViewModel(
     [ObservableProperty] private string _novaCategoria;
     [ObservableProperty] private string _novaCategoriaErrorMessage;
     [ObservableProperty] private bool _isEditing;
+    [ObservableProperty] private bool _podeCancelar;
     private CategoriaModel? _categoriaEmEdicao;
 
     partial void OnNovaCategoriaChanged(string value)
@@ -76,7 +77,7 @@ public partial class CategoriaBottomSheetViewModel(
             }
 
             var updated = ToModel(response.Dados!);
-            
+
             var index = Categorias.IndexOf(_categoriaEmEdicao);
             if (index >= 0)
             {
@@ -137,7 +138,9 @@ public partial class CategoriaBottomSheetViewModel(
             return false;
         }
 
-        if (Categorias.Any(c => c.Nome.Equals(NovaCategoria, StringComparison.OrdinalIgnoreCase)))
+        if (Categorias.Any(c =>
+                (_categoriaEmEdicao == null || c.Id != _categoriaEmEdicao.Id) &&
+                c.Nome.Equals(NovaCategoria, StringComparison.OrdinalIgnoreCase)))
         {
             NovaCategoriaErrorMessage = "Já existe uma categoria com esse nome.";
             return false;
@@ -151,12 +154,12 @@ public partial class CategoriaBottomSheetViewModel(
     {
         var categorias = new List<CategoriaModel>();
 
-        if (parameters.TryGetValue(BottomSheetParameters.Categorias, out object? items) && items is List<CategoriaModel> lista)
+        if (parameters.TryGetValue(BottomSheetParameters.Categorias, out var items) && items is List<CategoriaModel> lista)
         {
             categorias = lista;
         }
 
-        if (parameters.TryGetValue(BottomSheetParameters.CategoriaSelectionada, out object? selecionadoObj) && selecionadoObj is CategoriaModel selecionado)
+        if (parameters.TryGetValue(BottomSheetParameters.CategoriaSelectionada, out var selecionadoObj) && selecionadoObj is CategoriaModel selecionado)
         {
             var naLista = categorias.FirstOrDefault(c => c.Id == selecionado.Id);
             if (naLista != null)
@@ -167,6 +170,7 @@ public partial class CategoriaBottomSheetViewModel(
         }
 
         Categorias = new ObservableCollection<CategoriaModel>(categorias);
+        PodeCancelar = _itemSelecionado != null;
     }
 
     public void OnNavigatedFrom(IBottomSheetNavigationParameters parameters)

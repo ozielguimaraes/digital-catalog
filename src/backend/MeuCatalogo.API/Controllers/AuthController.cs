@@ -56,13 +56,6 @@ public class AuthController : BaseApiController
         _logger = logger;
     }
 
-    [HttpGet("test")]
-    [AllowAnonymous]
-    public async Task<IActionResult> Test()
-    {
-        return Ok();
-    }
-
     /// <summary>
     /// Registra um novo usuário no sistema
     /// </summary>

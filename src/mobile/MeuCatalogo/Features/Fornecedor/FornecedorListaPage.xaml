@@ -58,9 +58,12 @@
                     <Label Style="{StaticResource BodyMuted}" HorizontalTextAlignment="Center" Text="Cadastre fornecedores pra registrar contatos e contas a pagar." />
                 </VerticalStackLayout>
 
-                <CollectionView Grid.Row="1"
-                                ItemsSource="{Binding Fornecedores}"
-                                SelectionMode="None">
+                <RefreshView Grid.Row="1"
+                             Command="{Binding CarregarCommand}"
+                             IsRefreshing="{Binding IsRefreshing, Mode=TwoWay}">
+                <CollectionView ItemsSource="{Binding Fornecedores}"
+                                SelectionMode="None"
+                                ItemsUpdatingScrollMode="KeepItemsInView">
                     <CollectionView.ItemsLayout>
                         <LinearItemsLayout Orientation="Vertical" ItemSpacing="12" />
                     </CollectionView.ItemsLayout>
@@ -79,6 +82,7 @@
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
+                </RefreshView>
             </Grid>
         </ScrollView>
     </Grid>

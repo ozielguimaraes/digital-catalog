@@ -242,7 +242,7 @@
             </Border.Shadow>
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                 <Button Grid.Column="0"
-                        Style="{StaticResource PrimaryButton}"
+                        Style="{StaticResource PrimaryButtonPill}"
                         Text="SALVAR"
                         IsEnabled="True"
                         Command="{Binding SalvarCommand}">
