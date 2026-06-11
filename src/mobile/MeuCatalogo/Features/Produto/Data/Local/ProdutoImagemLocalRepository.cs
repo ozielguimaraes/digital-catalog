@@ -1,3 +1,4 @@
+using MeuCatalogo.Domain.Enums;
 using MeuCatalogo.Features.Produto.Domain;
 using MeuCatalogo.Infrastructure.Database;
 
@@ -21,8 +22,17 @@ public sealed class ProdutoImagemLocalRepository(AppDbContext dbContext) : IProd
         var list = imagens.ToList();
         await dbContext.Database.RunInTransactionAsync(database =>
         {
-            database.Execute("DELETE FROM ProdutoImagens WHERE CatalogoId = ?", catalogoId);
-            database.InsertAll(list);
+            // Preserva imagens adicionadas offline (ainda não sincronizadas) ao puxar do servidor.
+            var pendentesIds = database.Query<ProdutoImagemEntity>(
+                    "SELECT Id FROM ProdutoImagens WHERE CatalogoId = ? AND SyncStatus <> ?",
+                    catalogoId, (int)SyncStatus.Completed)
+                .Select(i => i.Id)
+                .ToHashSet();
+
+            database.Execute("DELETE FROM ProdutoImagens WHERE CatalogoId = ? AND SyncStatus = ?",
+                catalogoId, (int)SyncStatus.Completed);
+
+            database.InsertAll(list.Where(i => !pendentesIds.Contains(i.Id)));
         });
     }
 
