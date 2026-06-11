@@ -92,6 +92,10 @@ public sealed partial class ProdutoDetalhePageViewModel : BasePageViewModel, IQu
         if (Entity is null) return;
 
         var response = _produtoCarregado ?? await _getProdutoForEditOfflineFirstUseCase.ExecuteAsync(Entity);
+
+        // Substitui o Detalhe na pilha (pop antes de push) em vez de empilhar:
+        // duas rotas globais empilhadas (Detalhe + Editar) travam o back no Shell.
+        await _navigationService.PopAsync();
         await Shell.Current.GoToAsync(nameof(ProdutoAdicionarPage), true,
             new Dictionary<string, object> { { "Produto", response } });
     }
