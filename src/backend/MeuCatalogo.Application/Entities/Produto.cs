@@ -15,12 +15,14 @@ public class Produto : BaseEntity
     public string? InformacoesAdicionais { get; set; }
     public Estoque? Estoque { get; set; }
     public ICollection<Variacao> Variacoes { get; set; }
+    public ICollection<ProdutoVariacao> ProdutoVariacoes { get; set; }
     public ICollection<ItemPedido> ItensPedido { get; set; }
     public ICollection<ProdutoImagem> Imagens { get; set; }
 
     public Produto()
     {
         Variacoes = new List<Variacao>();
+        ProdutoVariacoes = new List<ProdutoVariacao>();
         ItensPedido = new List<ItemPedido>();
         Imagens = new List<ProdutoImagem>();
     }
@@ -34,6 +36,7 @@ public class Produto : BaseEntity
         PrecoComDesconto = precoComDesconto;
         InformacoesAdicionais = informacoesAdicionais;
         Variacoes = new List<Variacao>();
+        ProdutoVariacoes = new List<ProdutoVariacao>();
         ItensPedido = new List<ItemPedido>();
     }
 

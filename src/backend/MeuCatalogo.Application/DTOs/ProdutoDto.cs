@@ -30,7 +30,7 @@ public class ProdutoDto
     public decimal? PrecoComDesconto { get; set; }
     public string? InformacoesAdicionais { get; set; }
     public EstoqueDto Estoque { get; set; }
-    public ICollection<VariacaoDto> Variacoes { get; set; }
+    public ICollection<ProdutoVariacaoDto> Variacoes { get; set; } = new List<ProdutoVariacaoDto>();
     public ICollection<ProdutoImagemDto> Imagens { get; set; } = new List<ProdutoImagemDto>();
     public DateTime DataCriacao { get; set; }
     public DateTime? DataAtualizacao { get; set; }
@@ -45,6 +45,7 @@ public class ProdutoCreateDto
     public decimal? PrecoComDesconto { get; set; }
     public string? InformacoesAdicionais { get; set; }
     public EstoqueCreateDto? Estoque { get; set; }
+    public ICollection<ProdutoVariacaoCreateDto> Variacoes { get; set; } = new List<ProdutoVariacaoCreateDto>();
 }
 
 public class ProdutoUpdateDto
@@ -56,4 +57,5 @@ public class ProdutoUpdateDto
     public string? InformacoesAdicionais { get; set; }
     public EstoqueUpdateDto? Estoque { get; set; }
     public ICollection<ProdutoImagemDto> Imagens { get; set; } = new List<ProdutoImagemDto>();
+    public ICollection<ProdutoVariacaoCreateDto> Variacoes { get; set; } = new List<ProdutoVariacaoCreateDto>();
 }

@@ -116,6 +116,19 @@ public class ProdutosController : BaseApiController
         return HandleApiResponse(response);
     }
 
+    [HttpGet("variacoes/sugestoes")]
+    [SwaggerOperation(
+        Summary = "Sugestões de variação",
+        Description = "Cores e tamanhos já usados no catálogo, para reuso/autocomplete no cadastro."
+    )]
+    [SwaggerResponse(200, "Sugestões obtidas", typeof(VariacaoSugestoesDto))]
+    public async Task<IActionResult> ObterSugestoesVariacao([FromQuery] Guid catalogoId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var response = await _produtoService.ObterSugestoesVariacaoAsync(catalogoId, userId);
+        return HandleApiResponse(response);
+    }
+
     /// <summary>
     /// Atualiza um produto existente
     /// </summary>

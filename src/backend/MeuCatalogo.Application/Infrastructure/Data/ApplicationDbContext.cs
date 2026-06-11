@@ -16,6 +16,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Produto> Produtos { get; set; }
     public DbSet<ProdutoImagem> ProdutoImagens { get; set; }
     public DbSet<Variacao> Variacoes { get; set; }
+    public DbSet<ProdutoVariacao> ProdutoVariacoes { get; set; }
     public DbSet<Estoque> Estoques { get; set; }
     public DbSet<Cliente> Clientes { get; set; }
     public DbSet<Pedido> Pedidos { get; set; }

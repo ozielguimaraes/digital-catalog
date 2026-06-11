@@ -123,16 +123,14 @@ public sealed class CatalogoService : ICatalogoService
                         Ordem = img.Ordem
                     };
                 }).OrderBy(i => i.Ordem).ToList() ?? new List<ProdutoImagemDto>(),
-                Variacoes = p.Variacoes?.Select(v => new VariacaoDto
+                Variacoes = p.ProdutoVariacoes?.Select(v => new ProdutoVariacaoDto
                 {
                     Id = v.Id,
-                    ProdutoId = v.ProdutoId,
-                    TipoVariacaoId = v.TipoVariacaoId,
-                    TipoNome = v.TipoVariacao?.Nome ?? "N/A",
-                    OpcaoVariacaoId = v.OpcaoVariacaoId,
-                    Valor = v.OpcaoVariacao?.Valor ?? "N/A",
-                    DataCriacao = v.DataCriacao
-                }).ToList() ?? new List<VariacaoDto>()
+                    Cor = v.Cor,
+                    Tamanho = v.Tamanho,
+                    Preco = v.Preco,
+                    Quantidade = v.Quantidade
+                }).ToList() ?? new List<ProdutoVariacaoDto>()
             }).ToList()
         });
     }

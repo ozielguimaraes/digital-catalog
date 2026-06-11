@@ -22,6 +22,8 @@ public static class CatalogoRepositoryExtensions
             .ThenInclude(p => p.Categoria)
             .Include(c => c.Produtos)
             .ThenInclude(p => p.Estoque)
+            .Include(c => c.Produtos)
+            .ThenInclude(p => p.ProdutoVariacoes)
             .FirstOrDefaultAsync(c => c.Id == id);
     }
 

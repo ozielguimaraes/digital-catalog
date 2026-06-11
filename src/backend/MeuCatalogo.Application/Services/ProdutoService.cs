@@ -114,7 +114,15 @@ public sealed class ProdutoService : IProdutoService
                 QuantidadeMinima = dto.Estoque.QuantidadeMinima,
                 QuantidadeMaxima = dto.Estoque.QuantidadeMaxima,
                 Disponivel = dto.Estoque.Disponivel
-            } : null
+            } : null,
+            ProdutoVariacoes = (dto.Variacoes ?? new List<ProdutoVariacaoCreateDto>())
+                .Select(v => new ProdutoVariacao
+                {
+                    Cor = v.Cor,
+                    Tamanho = v.Tamanho,
+                    Preco = v.Preco,
+                    Quantidade = v.Quantidade
+                }).ToList()
         };
          var user = await _dbContext.Users
             .Include(u => u.Assinaturas)
@@ -201,7 +209,30 @@ public sealed class ProdutoService : IProdutoService
             }
         }
 
+        // Variações: replace-all. Espelha o padrão de imagens (ops explícitas no
+        // DbSet + limpar a coleção do grafo no-tracked antes do Update p/ evitar
+        // conflito de instâncias com a mesma chave no change tracker).
+        var variacoesExistentes = await _dbContext.ProdutoVariacoes
+            .Where(v => v.ProdutoId == id)
+            .ToListAsync();
+        _dbContext.ProdutoVariacoes.RemoveRange(variacoesExistentes);
+
+        var novasVariacoes = (dto.Variacoes ?? new List<ProdutoVariacaoCreateDto>())
+            .Select(v => new ProdutoVariacao
+            {
+                ProdutoId = id,
+                Cor = v.Cor,
+                Tamanho = v.Tamanho,
+                Preco = v.Preco,
+                Quantidade = v.Quantidade
+            }).ToList();
+        await _dbContext.ProdutoVariacoes.AddRangeAsync(novasVariacoes);
+
+        produto.ProdutoVariacoes = new List<ProdutoVariacao>();
+
         await _dbContext.AtualizarProdutoAsync(produto);
+
+        produto.ProdutoVariacoes = novasVariacoes;
         return ApiResponse<ProdutoDto>.Success(MapProdutoToDto(produto));
     }
 
@@ -218,6 +249,36 @@ public sealed class ProdutoService : IProdutoService
         await _dbContext.RemoverProdutoAsync(id);
         await RemoverImagensDoProdutoAsync(produto.CatalogoId, id);
         return ApiResponse<bool>.Success(true);
+    }
+
+    public async Task<ApiResponse<VariacaoSugestoesDto>> ObterSugestoesVariacaoAsync(Guid catalogoId, string userId)
+    {
+        var catalogo = await _dbContext.ObterCatalogoPorIdAsync(catalogoId);
+        if (catalogo?.UserId != userId)
+            return ApiResponse<VariacaoSugestoesDto>.Error(ResponseType.Forbidden, "Acesso negado.");
+
+        var variacoes = _dbContext.ProdutoVariacoes
+            .Where(v => v.Produto.CatalogoId == catalogoId);
+
+        var cores = await variacoes
+            .Where(v => v.Cor != null && v.Cor != "")
+            .Select(v => v.Cor!)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToListAsync();
+
+        var tamanhos = await variacoes
+            .Where(v => v.Tamanho != null && v.Tamanho != "")
+            .Select(v => v.Tamanho!)
+            .Distinct()
+            .OrderBy(t => t)
+            .ToListAsync();
+
+        return ApiResponse<VariacaoSugestoesDto>.Success(new VariacaoSugestoesDto
+        {
+            Cores = cores,
+            Tamanhos = tamanhos
+        });
     }
 
     #endregion
@@ -426,16 +487,14 @@ public sealed class ProdutoService : IProdutoService
                     Ordem = img.Ordem
                 };
             }).OrderBy(i => i.Ordem).ToList() ?? new List<ProdutoImagemDto>(),
-            Variacoes = p.Variacoes?.Select(v => new VariacaoDto
+            Variacoes = p.ProdutoVariacoes?.Select(v => new ProdutoVariacaoDto
             {
                 Id = v.Id,
-                ProdutoId = v.ProdutoId,
-                TipoVariacaoId = v.TipoVariacaoId,
-                TipoNome = v.TipoVariacao?.Nome ?? "N/A",
-                OpcaoVariacaoId = v.OpcaoVariacaoId,
-                Valor = v.OpcaoVariacao?.Valor ?? "N/A",
-                DataCriacao = v.DataCriacao
-            }).ToList() ?? new List<VariacaoDto>()
+                Cor = v.Cor,
+                Tamanho = v.Tamanho,
+                Preco = v.Preco,
+                Quantidade = v.Quantidade
+            }).ToList() ?? new List<ProdutoVariacaoDto>()
         };
         return dto;
     }

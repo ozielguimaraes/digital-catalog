@@ -71,16 +71,14 @@ public static class ProdutoMapper
                     Ordem = img.Ordem
                 };
             }).OrderBy(i => i.Ordem).ToList() ?? new List<ProdutoImagemDto>(),
-            Variacoes = produto.Variacoes?.Select(v => new VariacaoDto
+            Variacoes = produto.ProdutoVariacoes?.Select(v => new ProdutoVariacaoDto
             {
                 Id = v.Id,
-                ProdutoId = v.ProdutoId,
-                TipoVariacaoId = v.TipoVariacaoId,
-                TipoNome = v.TipoVariacao?.Nome ?? "N/A",
-                OpcaoVariacaoId = v.OpcaoVariacaoId,
-                Valor = v.OpcaoVariacao?.Valor ?? "N/A",
-                DataCriacao = v.DataCriacao
-            }).ToList() ?? new List<VariacaoDto>()
+                Cor = v.Cor,
+                Tamanho = v.Tamanho,
+                Preco = v.Preco,
+                Quantidade = v.Quantidade
+            }).ToList() ?? new List<ProdutoVariacaoDto>()
         };
     }
 }
