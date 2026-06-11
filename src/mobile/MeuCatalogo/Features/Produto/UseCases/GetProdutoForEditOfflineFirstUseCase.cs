@@ -97,7 +97,10 @@ public sealed class GetProdutoForEditOfflineFirstUseCase : IUseCase<ProdutoEntit
             CatalogoId = catalogoId,
             Estoque = null,
             Imagens = imagensResponse,
-            SyncStatus = SyncStatus.Completed
+            // Preserva o status real: a tela de edição usa isso para decidir se um
+            // produto criado offline (Pending) continua sendo Create na fila de sync
+            // em vez de virar Update de algo que o servidor ainda não conhece.
+            SyncStatus = request.SyncStatus
         };
     }
 }
