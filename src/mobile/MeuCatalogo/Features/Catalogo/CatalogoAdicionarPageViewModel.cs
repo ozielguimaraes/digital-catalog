@@ -15,7 +15,7 @@ public sealed partial class CatalogoAdicionarPageViewModel(
     CreateCatalogoUseCase createCatalogoUseCase,
     ISettingsService settingsService,
     INavigationService navigationService)
-    : BasePageViewModel
+    : FormPageViewModel
 {
     private bool _nomeCurtoEditadoManualmente;
     private bool _atualizandoNomeCurtoAutomaticamente;
@@ -31,6 +31,10 @@ public sealed partial class CatalogoAdicionarPageViewModel(
 
     [ObservableProperty] private string _numeroWhatsapp;
     [ObservableProperty] private string _numeroWhatsappErrorMessage;
+
+    partial void OnEmailChanged(string value) => MarcarAlterado();
+
+    partial void OnNumeroWhatsappChanged(string value) => MarcarAlterado();
 
     [RelayCommand]
     private async Task Salvar()
@@ -83,6 +87,7 @@ public sealed partial class CatalogoAdicionarPageViewModel(
 
             settingsService.CatalogoEmUso ??= response.Dados;
 
+            LimparAlteracoes();
             await navigationService.NavigateToAsync($"//{nameof(CatalogoListaPage)}");
         }
         catch (Exception ex)
@@ -93,6 +98,7 @@ public sealed partial class CatalogoAdicionarPageViewModel(
 
     partial void OnNomeChanged(string value)
     {
+        MarcarAlterado();
         if (_nomeCurtoEditadoManualmente) return;
         _atualizandoNomeCurtoAutomaticamente = true;
         NomeCurto = Slugify(value);
@@ -101,6 +107,7 @@ public sealed partial class CatalogoAdicionarPageViewModel(
 
     partial void OnNomeCurtoChanged(string value)
     {
+        MarcarAlterado();
         if (!_atualizandoNomeCurtoAutomaticamente)
             _nomeCurtoEditadoManualmente = !string.IsNullOrEmpty(value);
 

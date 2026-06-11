@@ -1,3 +1,4 @@
+using MeuCatalogo.Core.Abstractions;
 using MeuCatalogo.Features.Auth;
 using MeuCatalogo.Features.Catalogo;
 using MeuCatalogo.Features.Cliente;
@@ -33,6 +34,37 @@ public partial class AppShell : Shell
         catch (Exception)
         {
             throw;
+        }
+    }
+
+    // Guarda central de "alterações não salvas": qualquer saída de uma tela de
+    // formulário (back do navbar, back físico ou troca de aba) passa por aqui.
+    protected override async void OnNavigating(ShellNavigatingEventArgs args)
+    {
+        base.OnNavigating(args);
+
+        if (!args.CanCancel ||
+            CurrentPage?.BindingContext is not IDirtyAware dirty ||
+            !dirty.TemAlteracoesNaoSalvas)
+        {
+            return;
+        }
+
+        ShellNavigatingDeferral deferral = args.GetDeferral();
+        try
+        {
+            bool descartar = await CurrentPage.DisplayAlert(
+                "Descartar alterações?",
+                "Você tem alterações não salvas nesta tela. Deseja sair e descartá-las?",
+                "Descartar",
+                "Continuar editando");
+
+            if (!descartar)
+                args.Cancel();
+        }
+        finally
+        {
+            deferral.Complete();
         }
     }
 

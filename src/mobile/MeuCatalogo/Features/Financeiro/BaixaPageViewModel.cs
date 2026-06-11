@@ -15,7 +15,7 @@ public sealed partial class BaixaPageViewModel(
     ILogger<BaixaPageViewModel> logger,
     GetContasUseCase getContasUseCase,
     RegistrarBaixaUseCase registrarBaixaUseCase,
-    INavigationService navigationService) : BasePageViewModel, IQueryAttributable
+    INavigationService navigationService) : FormPageViewModel, IQueryAttributable
 {
     [ObservableProperty] private string _lancamentoDescricao = string.Empty;
     [ObservableProperty] private decimal _valorEmAberto;
@@ -38,11 +38,22 @@ public sealed partial class BaixaPageViewModel(
         var resp = await getContasUseCase.ExecuteAsync();
         if (!resp.RetornouComErro && resp.Dados is not null)
         {
-            Contas.Clear();
-            foreach (var c in resp.Dados.Where(x => !x.EhCartaoCredito)) Contas.Add(c);
-            ContaSelecionada = Contas.FirstOrDefault();
+            CarregarSemMarcar(() =>
+            {
+                Contas.Clear();
+                foreach (var c in resp.Dados.Where(x => !x.EhCartaoCredito)) Contas.Add(c);
+                ContaSelecionada = Contas.FirstOrDefault();
+            });
         }
     }
+
+    partial void OnValorChanged(string value) => MarcarAlterado();
+
+    partial void OnDataChanged(DateTime value) => MarcarAlterado();
+
+    partial void OnObservacoesChanged(string value) => MarcarAlterado();
+
+    partial void OnContaSelecionadaChanged(ContaInfo? value) => MarcarAlterado();
 
     [RelayCommand]
     private async Task Salvar()
@@ -71,6 +82,7 @@ public sealed partial class BaixaPageViewModel(
             return;
         }
         await Toast.Make("Baixa registrada", ToastDuration.Short).Show();
+        LimparAlteracoes();
         await navigationService.PopAsync();
     }
 }

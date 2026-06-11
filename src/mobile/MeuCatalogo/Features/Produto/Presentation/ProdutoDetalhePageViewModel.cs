@@ -14,6 +14,7 @@ public sealed partial class ProdutoDetalhePageViewModel : BasePageViewModel, IQu
     private readonly ILogger<ProdutoDetalhePageViewModel> _logger;
     private readonly GetProdutoForEditOfflineFirstUseCase _getProdutoForEditOfflineFirstUseCase;
     private readonly INavigationService _navigationService;
+    private ProdutoResponse? _produtoCarregado;
 
     public ProdutoDetalhePageViewModel(
         ILogger<ProdutoDetalhePageViewModel> logger,
@@ -52,6 +53,8 @@ public sealed partial class ProdutoDetalhePageViewModel : BasePageViewModel, IQu
             TemCategoria = !string.IsNullOrWhiteSpace(entity.CategoriaNome);
             TemDesconto = entity.PrecoComDesconto is > 0 && entity.PrecoComDesconto < entity.Preco;
             CapaUrl = entity.ThumbnailUrl;
+            InformacoesAdicionais = entity.InformacoesAdicionais;
+            TemInformacoes = !string.IsNullOrWhiteSpace(entity.InformacoesAdicionais);
             _ = LoadImagensAsync(entity);
         }
     }
@@ -62,13 +65,12 @@ public sealed partial class ProdutoDetalhePageViewModel : BasePageViewModel, IQu
         {
             IsLoading = true;
             var response = await _getProdutoForEditOfflineFirstUseCase.ExecuteAsync(entity);
+            _produtoCarregado = response;
             Imagens.Clear();
             foreach (var img in response.Imagens.OrderBy(i => i.Ordem))
                 Imagens.Add(img);
 
             TemGaleria = Imagens.Count > 0;
-            InformacoesAdicionais = response.InformacoesAdicionais;
-            TemInformacoes = !string.IsNullOrWhiteSpace(InformacoesAdicionais);
 
             var principal = Imagens.FirstOrDefault(i => i.IsPrincipal) ?? Imagens.FirstOrDefault();
             if (principal is not null)
@@ -89,7 +91,7 @@ public sealed partial class ProdutoDetalhePageViewModel : BasePageViewModel, IQu
     {
         if (Entity is null) return;
 
-        var response = await _getProdutoForEditOfflineFirstUseCase.ExecuteAsync(Entity);
+        var response = _produtoCarregado ?? await _getProdutoForEditOfflineFirstUseCase.ExecuteAsync(Entity);
         await Shell.Current.GoToAsync(nameof(ProdutoAdicionarPage), true,
             new Dictionary<string, object> { { "Produto", response } });
     }

@@ -15,7 +15,7 @@ public sealed partial class TransferenciaPageViewModel(
     ILogger<TransferenciaPageViewModel> logger,
     GetContasUseCase getContasUseCase,
     CriarTransferenciaUseCase criarTransferenciaUseCase,
-    INavigationService navigationService) : BasePageViewModel
+    INavigationService navigationService) : FormPageViewModel
 {
     [ObservableProperty] private ObservableCollection<ContaInfo> _contasOrigem = [];
     [ObservableProperty] private ObservableCollection<ContaInfo> _contasDestino = [];
@@ -24,6 +24,12 @@ public sealed partial class TransferenciaPageViewModel(
     [ObservableProperty] private string _valor = string.Empty;
     [ObservableProperty] private DateTime _data = DateTime.Today;
     [ObservableProperty] private string _descricao = string.Empty;
+
+    partial void OnContaOrigemChanged(ContaInfo? value) => MarcarAlterado();
+    partial void OnContaDestinoChanged(ContaInfo? value) => MarcarAlterado();
+    partial void OnValorChanged(string value) => MarcarAlterado();
+    partial void OnDataChanged(DateTime value) => MarcarAlterado();
+    partial void OnDescricaoChanged(string value) => MarcarAlterado();
 
     [RelayCommand]
     private async Task CarregarContas()
@@ -70,6 +76,7 @@ public sealed partial class TransferenciaPageViewModel(
             return;
         }
         await Toast.Make("Transferência registrada", ToastDuration.Short).Show();
+        LimparAlteracoes();
         await navigationService.PopAsync();
     }
 }

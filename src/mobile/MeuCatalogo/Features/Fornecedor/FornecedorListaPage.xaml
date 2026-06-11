@@ -24,11 +24,9 @@
 
     <Grid RowDefinitions="*">
 
-        <ScrollView Grid.Row="0">
-            <Grid Padding="24,16,24,32" RowDefinitions="Auto,Auto">
+        <Grid Grid.Row="0" Padding="24,16,24,32">
 
-                <VerticalStackLayout Grid.Row="0"
-                                     IsVisible="{Binding IsLoading}"
+                <VerticalStackLayout IsVisible="{Binding IsLoading}"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Center"
                                      Padding="0,48"
@@ -37,8 +35,7 @@
                     <Label Style="{StaticResource BodyMuted}" HorizontalTextAlignment="Center" Text="Carregando fornecedores…" />
                 </VerticalStackLayout>
 
-                <VerticalStackLayout Grid.Row="0"
-                                     IsVisible="{Binding ShowEmptyState}"
+                <VerticalStackLayout IsVisible="{Binding ShowEmptyState}"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Center"
                                      Padding="0,48"
@@ -58,8 +55,7 @@
                     <Label Style="{StaticResource BodyMuted}" HorizontalTextAlignment="Center" Text="Cadastre fornecedores pra registrar contatos e contas a pagar." />
                 </VerticalStackLayout>
 
-                <RefreshView Grid.Row="1"
-                             Command="{Binding CarregarCommand}"
+                <RefreshView Command="{Binding CarregarCommand}"
                              IsRefreshing="{Binding IsRefreshing, Mode=TwoWay}">
                 <CollectionView ItemsSource="{Binding Fornecedores}"
                                 SelectionMode="None"
@@ -84,6 +80,5 @@
                 </CollectionView>
                 </RefreshView>
             </Grid>
-        </ScrollView>
     </Grid>
 </ContentPage>

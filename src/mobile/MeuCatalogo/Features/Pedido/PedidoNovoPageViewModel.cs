@@ -22,7 +22,7 @@ public sealed partial class PedidoNovoPageViewModel(
     CreatePedidoUseCase createPedidoUseCase,
     ISettingsService settingsService,
     INavigationService navigationService,
-    IBottomSheetNavigationService bottomSheetNavigationService) : BasePageViewModel, INavigationAware
+    IBottomSheetNavigationService bottomSheetNavigationService) : FormPageViewModel, INavigationAware
 {
     [ObservableProperty] private ClienteInfo? _clienteSelecionado;
     [ObservableProperty] private ObservableCollection<PedidoNovoItemModel> _itens = [];
@@ -32,6 +32,8 @@ public sealed partial class PedidoNovoPageViewModel(
     [ObservableProperty] private string? _erro;
 
     public string CatalogoEmUsoNome => settingsService.CatalogoEmUso?.Nome ?? "—";
+
+    partial void OnClienteSelecionadoChanged(ClienteInfo? value) => MarcarAlterado();
 
     [RelayCommand]
     private async Task Inicializar()
@@ -125,6 +127,7 @@ public sealed partial class PedidoNovoPageViewModel(
                 return;
             }
 
+            LimparAlteracoes();
             await navigationService.PopAsync();
         }
         catch (Exception ex)
@@ -176,5 +179,6 @@ public sealed partial class PedidoNovoPageViewModel(
     {
         Total = Itens.Sum(i => i.Subtotal);
         HasItens = Itens.Count > 0;
+        MarcarAlterado();
     }
 }

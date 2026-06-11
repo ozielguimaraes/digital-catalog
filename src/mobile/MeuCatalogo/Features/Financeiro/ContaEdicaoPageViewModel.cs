@@ -13,7 +13,7 @@ namespace MeuCatalogo.Features.Financeiro;
 public sealed partial class ContaEdicaoPageViewModel(
     ILogger<ContaEdicaoPageViewModel> logger,
     CriarContaUseCase criarContaUseCase,
-    INavigationService navigationService) : BasePageViewModel
+    INavigationService navigationService) : FormPageViewModel
 {
     [ObservableProperty] private string _nome = string.Empty;
     [ObservableProperty] private string _cor = "#3F51B5";
@@ -32,8 +32,16 @@ public sealed partial class ContaEdicaoPageViewModel(
     public bool IsCartao => TipoSelecionado == "Cartão de Crédito";
     public bool IsContaSaldo => !IsCartao;
 
+    partial void OnNomeChanged(string value) => MarcarAlterado();
+    partial void OnCorChanged(string value) => MarcarAlterado();
+    partial void OnDiaFechamentoChanged(string value) => MarcarAlterado();
+    partial void OnDiaVencimentoChanged(string value) => MarcarAlterado();
+    partial void OnLimiteChanged(string value) => MarcarAlterado();
+    partial void OnSaldoInicialChanged(string value) => MarcarAlterado();
+
     partial void OnTipoSelecionadoChanged(string value)
     {
+        MarcarAlterado();
         OnPropertyChanged(nameof(IsCartao));
         OnPropertyChanged(nameof(IsContaSaldo));
     }
@@ -71,6 +79,7 @@ public sealed partial class ContaEdicaoPageViewModel(
         }
 
         await Toast.Make("Conta criada", ToastDuration.Short).Show();
+        LimparAlteracoes();
         await navigationService.PopAsync();
     }
 

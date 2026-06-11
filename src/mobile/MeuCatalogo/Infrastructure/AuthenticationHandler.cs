@@ -11,6 +11,11 @@ namespace MeuCatalogo.Infrastructure;
 public class AuthenticationHandler(IServiceProvider serviceProvider, ILogger<AuthenticationHandler> logger)
     : DelegatingHandler
 {
+    // Serializa o refresh entre requisições concorrentes. O refresh token do backend é one-time use
+    // (revogado a cada renovação), então dois refresh em paralelo fariam o segundo usar um token já
+    // revogado e cair no logout. Estático porque o handler é registrado como Transient.
+    private static readonly SemaphoreSlim _refreshLock = new(1, 1);
+
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         if (request.RequestUri?.AbsolutePath.Contains("/auth/login") == true ||
@@ -21,55 +26,77 @@ public class AuthenticationHandler(IServiceProvider serviceProvider, ILogger<Aut
         }
 
         var authLocal = serviceProvider.GetService<IAuthLocalDataSource>();
-        var token = authLocal != null ? await authLocal.GetAccessTokenAsync(cancellationToken) : null;
-        if (!string.IsNullOrEmpty(token))
+        var tokenUsado = authLocal != null ? await authLocal.GetAccessTokenAsync(cancellationToken) : null;
+        if (!string.IsNullOrEmpty(tokenUsado))
         {
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenUsado);
         }
 
         var response = await base.SendAsync(request, cancellationToken);
 
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        if (response.StatusCode != HttpStatusCode.Unauthorized)
         {
-            logger.LogWarning("Recebido 401 Unauthorized. Tentando refresh token...");
-
-            try
-            {
-                var authRepository = serviceProvider.GetRequiredService<IAuthRepository>();
-                var refreshed = await authRepository.RefreshTokenAsync(cancellationToken);
-
-                if (refreshed)
-                {
-                    logger.LogInformation("Token atualizado com sucesso. Reenviando requisição original.");
-                    
-                    var newToken = authLocal != null ? await authLocal.GetAccessTokenAsync(cancellationToken) : null;
-                    if (string.IsNullOrEmpty(newToken))
-                    {
-                        logger.LogWarning("Token atualizado mas não encontrado no storage. Redirecionando para login.");
-                        await NavigateToLogin();
-                        return response;
-                    }
-                    
-                    // Clona a requisição para reenvio
-                    var newRequest = await CloneHttpRequestMessageAsync(request);
-                    newRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newToken);
-                    
-                    return await base.SendAsync(newRequest, cancellationToken);
-                }
-                else
-                {
-                    logger.LogWarning("Refresh token falhou. Redirecionando para login.");
-                    await NavigateToLogin();
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Erro ao tentar refresh token.");
-                await NavigateToLogin();
-            }
+            return response;
         }
 
-        return response;
+        logger.LogWarning("Recebido 401 Unauthorized. Tentando refresh token...");
+
+        try
+        {
+            var novoToken = await EnsureTokenRefreshedAsync(authLocal, tokenUsado, cancellationToken);
+
+            if (string.IsNullOrEmpty(novoToken))
+            {
+                logger.LogWarning("Refresh token falhou. Redirecionando para login.");
+                await NavigateToLogin();
+                return response;
+            }
+
+            logger.LogInformation("Token disponível após refresh. Reenviando requisição original.");
+
+            var newRequest = await CloneHttpRequestMessageAsync(request);
+            newRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", novoToken);
+
+            response.Dispose();
+            return await base.SendAsync(newRequest, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Erro ao tentar refresh token.");
+            await NavigateToLogin();
+            return response;
+        }
+    }
+
+    // Garante um único refresh por janela de expiração. Se outra requisição concorrente já renovou o
+    // token enquanto esperávamos o lock, reaproveita o novo token em vez de chamar refresh de novo.
+    private async Task<string?> EnsureTokenRefreshedAsync(
+        IAuthLocalDataSource? authLocal,
+        string? tokenUsado,
+        CancellationToken cancellationToken)
+    {
+        await _refreshLock.WaitAsync(cancellationToken);
+        try
+        {
+            var tokenAtual = authLocal != null ? await authLocal.GetAccessTokenAsync(cancellationToken) : null;
+            if (!string.IsNullOrEmpty(tokenAtual) && tokenAtual != tokenUsado)
+            {
+                return tokenAtual;
+            }
+
+            var authRepository = serviceProvider.GetRequiredService<IAuthRepository>();
+            var refreshed = await authRepository.RefreshTokenAsync(cancellationToken);
+            if (!refreshed)
+            {
+                return null;
+            }
+
+            return authLocal != null ? await authLocal.GetAccessTokenAsync(cancellationToken) : null;
+        }
+        finally
+        {
+            _refreshLock.Release();
+        }
     }
 
     private Task NavigateToLogin()

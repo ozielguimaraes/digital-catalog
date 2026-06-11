@@ -5,5 +5,6 @@ public enum SyncStatus
     Pending,
     InProgress,
     Completed,
-    Failed
+    Failed,
+    DeadLetter
 }

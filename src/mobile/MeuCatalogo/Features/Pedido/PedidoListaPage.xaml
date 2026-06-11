@@ -35,12 +35,10 @@
 
     <Grid RowDefinitions="*">
 
-        <ScrollView Grid.Row="0">
-            <Grid Padding="24,16,24,32" RowDefinitions="Auto,Auto">
+        <Grid Grid.Row="0" Padding="24,16,24,32">
 
                 <!-- Loading -->
-                <VerticalStackLayout Grid.Row="0"
-                                     IsVisible="{Binding IsLoading}"
+                <VerticalStackLayout IsVisible="{Binding IsLoading}"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Center"
                                      Padding="0,48"
@@ -54,8 +52,7 @@
                 </VerticalStackLayout>
 
                 <!-- Empty -->
-                <VerticalStackLayout Grid.Row="0"
-                                     IsVisible="{Binding ShowEmptyState}"
+                <VerticalStackLayout IsVisible="{Binding ShowEmptyState}"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Center"
                                      Padding="0,48"
@@ -82,8 +79,7 @@
                            Text="Quando seus clientes fizerem pedidos, eles aparecem aqui." />
                 </VerticalStackLayout>
 
-                <RefreshView Grid.Row="1"
-                             Command="{Binding CarregarCommand}"
+                <RefreshView Command="{Binding CarregarCommand}"
                              IsRefreshing="{Binding IsRefreshing, Mode=TwoWay}">
                 <CollectionView ItemsSource="{Binding Pedidos}"
                                 SelectionMode="None"
@@ -130,6 +126,5 @@
                 </CollectionView>
                 </RefreshView>
             </Grid>
-        </ScrollView>
     </Grid>
 </ContentPage>

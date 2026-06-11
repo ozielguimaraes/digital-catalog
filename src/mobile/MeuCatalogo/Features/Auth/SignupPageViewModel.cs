@@ -14,11 +14,15 @@ public partial class SignupPageViewModel(
     ILogger<SignupPageViewModel> logger,
     SignupUseCase signupUseCase,
     INavigationService navigationService)
-    : BasePageViewModel
+    : FormPageViewModel
 {
     [ObservableProperty]private string _nome;
     [ObservableProperty]private string _email;
     [ObservableProperty]private string _password;
+
+    partial void OnNomeChanged(string value) => MarcarAlterado();
+    partial void OnEmailChanged(string value) => MarcarAlterado();
+    partial void OnPasswordChanged(string value) => MarcarAlterado();
 
     [RelayCommand]
     private async Task CreateAccount()
@@ -48,6 +52,7 @@ public partial class SignupPageViewModel(
                 return;
             }
 
+            LimparAlteracoes();
             await navigationService.NavigateToAsync($"//{nameof(CatalogoListaPage)}");
         }
         catch (Exception ex)

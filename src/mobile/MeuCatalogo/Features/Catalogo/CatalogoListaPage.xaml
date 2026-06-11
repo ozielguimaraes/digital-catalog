@@ -25,12 +25,10 @@
         </ToolbarItem>
     </ContentPage.ToolbarItems>
 
-    <ScrollView>
-        <Grid Padding="24,16,24,32" RowDefinitions="Auto,Auto">
+    <Grid Padding="24,16,24,32">
 
                 <!-- Loading -->
-                <VerticalStackLayout Grid.Row="0"
-                                     IsVisible="{Binding IsSyncing}"
+                <VerticalStackLayout IsVisible="{Binding IsSyncing}"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Center"
                                      Padding="0,48"
@@ -44,8 +42,7 @@
                 </VerticalStackLayout>
 
                 <!-- Empty state -->
-                <VerticalStackLayout Grid.Row="0"
-                                     IsVisible="{Binding ShowEmptyState}"
+                <VerticalStackLayout IsVisible="{Binding ShowEmptyState}"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Center"
                                      Padding="0,48"
@@ -81,8 +78,7 @@
                 </VerticalStackLayout>
 
                 <!-- Catalog list -->
-                <RefreshView Grid.Row="1"
-                             Command="{Binding CarregarCatalogosCommand}"
+                <RefreshView Command="{Binding CarregarCatalogosCommand}"
                              IsRefreshing="{Binding IsRefreshing, Mode=TwoWay}">
                 <CollectionView ItemsSource="{Binding Catalogos}"
                                 SelectionMode="None"
@@ -187,5 +183,4 @@
                 </CollectionView>
                 </RefreshView>
         </Grid>
-    </ScrollView>
 </ContentPage>

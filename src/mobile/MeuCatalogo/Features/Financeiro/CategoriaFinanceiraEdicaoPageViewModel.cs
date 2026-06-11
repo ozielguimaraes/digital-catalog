@@ -14,7 +14,7 @@ namespace MeuCatalogo.Features.Financeiro;
 public sealed partial class CategoriaFinanceiraEdicaoPageViewModel(
     ILogger<CategoriaFinanceiraEdicaoPageViewModel> logger,
     CriarCategoriaFinanceiraUseCase criarUseCase,
-    INavigationService navigationService) : BasePageViewModel
+    INavigationService navigationService) : FormPageViewModel
 {
     [ObservableProperty] private string _nome = string.Empty;
     [ObservableProperty] private string _iconeNome = "tag";
@@ -23,6 +23,11 @@ public sealed partial class CategoriaFinanceiraEdicaoPageViewModel(
 
     public IReadOnlyList<string> Tipos { get; } = new[] { "Receita", "Despesa" };
     public IReadOnlyList<string> Icones => IconCatalog.AvailableNames.ToList();
+
+    partial void OnNomeChanged(string value) => MarcarAlterado();
+    partial void OnIconeNomeChanged(string value) => MarcarAlterado();
+    partial void OnCorChanged(string value) => MarcarAlterado();
+    partial void OnTipoSelecionadoChanged(string value) => MarcarAlterado();
 
     [RelayCommand]
     private async Task Salvar()
@@ -46,6 +51,7 @@ public sealed partial class CategoriaFinanceiraEdicaoPageViewModel(
             return;
         }
         await Toast.Make("Categoria criada", ToastDuration.Short).Show();
+        LimparAlteracoes();
         await navigationService.PopAsync();
     }
 }

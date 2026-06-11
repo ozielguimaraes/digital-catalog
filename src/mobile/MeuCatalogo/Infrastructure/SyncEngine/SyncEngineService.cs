@@ -16,6 +16,9 @@ public sealed class SyncEngineService(
 {
     private readonly IReadOnlyList<ISyncHandler> _handlers = handlers.ToList();
 
+    // D5 do redesign-mobile-2026-05: após 10 tentativas o item vai para dead-letter
+    private const int MaxRetryCount = 10;
+
     private static readonly SemaphoreSlim _syncLock = new(1, 1);
 
     public async Task QueueSyncAsync(
@@ -140,14 +143,30 @@ public sealed class SyncEngineService(
 
     private async Task MarkAsFailedAsync(SyncQueue item, string error)
     {
-        item.Status = SyncStatus.Failed;
         item.RetryCount++;
         item.LastError = error;
 
-        // Backoff exponencial (máx 5 min)
-        var delaySeconds = Math.Min(Math.Pow(2, item.RetryCount), 300);
+        if (item.RetryCount >= MaxRetryCount)
+        {
+            item.Status = SyncStatus.DeadLetter;
 
-        item.NextRetryAt = DateTime.UtcNow.AddSeconds(delaySeconds);
+            logger.LogWarning(
+                "Sync item {Id} ({EntityType}/{Operation}) movido para dead-letter após {Retries} tentativas: {Error}",
+                item.Id,
+                item.EntityType,
+                item.Operation,
+                item.RetryCount,
+                error);
+        }
+        else
+        {
+            item.Status = SyncStatus.Failed;
+
+            // Backoff exponencial (máx 5 min)
+            var delaySeconds = Math.Min(Math.Pow(2, item.RetryCount), 300);
+
+            item.NextRetryAt = DateTime.UtcNow.AddSeconds(delaySeconds);
+        }
 
         await dbContext.Database.UpdateAsync(item);
     }

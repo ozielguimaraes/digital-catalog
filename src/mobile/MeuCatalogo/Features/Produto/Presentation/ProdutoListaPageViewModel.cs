@@ -121,11 +121,9 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
                 foreach (var cat in response.Dados)
                     Categorias.Add(cat);
 
-                if (CategoriaSelecionada is null ||
-                    !Categorias.Any(c => c.Id == CategoriaSelecionada.Id))
-                {
-                    CategoriaSelecionada = CategoriaTodas;
-                }
+                // Re-seleciona pela lista nova: cobre categoria removida e instância stale
+                CategoriaSelecionada =
+                    Categorias.FirstOrDefault(c => c.Id == CategoriaSelecionada?.Id) ?? CategoriaTodas;
             }
         }
         catch (Exception ex)
@@ -162,7 +160,7 @@ public partial class ProdutoListaPageViewModel : BasePageViewModel
             IsSyncing = false;
             ApplyFilter();
 
-            _ = CarregarCategoriasAsync(catalogo.Id);
+            await CarregarCategoriasAsync(catalogo.Id);
         }
         catch (Exception ex)
         {

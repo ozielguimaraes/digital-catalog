@@ -293,7 +293,7 @@ public class ProdutosController : BaseApiController
 
         var absoluteUrl = ObterUrlAbsoluta(response.Data.Url);
         response.Data.Url = absoluteUrl;
-        response.Data.Images = CriarLinksImagem(absoluteUrl);
+        response.Data.Images = EnriquecerLinksImagem(response.Data.Images, absoluteUrl);
     }
 
     private void EnriquecerProduto(ProdutoDto produto)
@@ -302,8 +302,23 @@ public class ProdutosController : BaseApiController
         {
             var absoluteUrl = ObterUrlAbsoluta(imagem.Url);
             imagem.Url = absoluteUrl;
-            imagem.Images = CriarLinksImagem(absoluteUrl);
+            imagem.Images = EnriquecerLinksImagem(imagem.Images, absoluteUrl);
         }
+    }
+
+    // Preserva as variantes distintas geradas pelo service (thumb/medium/full);
+    // sobrescrever tudo com a URL full fazia os clientes baixarem imagem full-size em listas.
+    private ImageLinksDto EnriquecerLinksImagem(ImageLinksDto? links, string fallbackAbsoluteUrl)
+    {
+        if (links is null)
+            return CriarLinksImagem(fallbackAbsoluteUrl);
+
+        return new ImageLinksDto
+        {
+            Thumbnail = string.IsNullOrWhiteSpace(links.Thumbnail) ? fallbackAbsoluteUrl : ObterUrlAbsoluta(links.Thumbnail),
+            Medium = string.IsNullOrWhiteSpace(links.Medium) ? fallbackAbsoluteUrl : ObterUrlAbsoluta(links.Medium),
+            Full = string.IsNullOrWhiteSpace(links.Full) ? fallbackAbsoluteUrl : ObterUrlAbsoluta(links.Full)
+        };
     }
 
     private string ObterUrlAbsoluta(string? url)

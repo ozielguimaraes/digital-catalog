@@ -21,7 +21,7 @@
 
                 <!-- Cover hero (fundo escuro, imagem AspectFill por cima, badge PROMO opcional) -->
                 <Grid HeightRequest="340">
-                    <Border BackgroundColor="{StaticResource PromoBackgroundBrush}"
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource PromoBackgroundColorLight}, Dark={StaticResource PromoBackgroundColorDark}}"
                             StrokeThickness="0">
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="0,0,32,32" />

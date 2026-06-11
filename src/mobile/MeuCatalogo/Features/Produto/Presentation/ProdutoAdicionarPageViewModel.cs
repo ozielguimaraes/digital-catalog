@@ -30,7 +30,7 @@ public sealed partial class ProdutoAdicionarPageViewModel(
     IBottomSheetNavigationService bottomSheetNavigationService,
     IServiceProvider serviceProvider,
     INavigationService navigationService)
-    : BasePageViewModel, INavigationAware, IQueryAttributable
+    : FormPageViewModel, INavigationAware, IQueryAttributable
 {
     private CancellationTokenSource? _ctsCategorias;
     private Task<ApiResponse<List<CategoriaModel>>>? _taskCarregaCategorias;
@@ -107,6 +107,8 @@ public sealed partial class ProdutoAdicionarPageViewModel(
 
             if (Produto != null)
                 Produto.Imagens = lista;
+
+            MarcarAlterado();
         }
 
         _imagemSendoArrastada = null;
@@ -117,40 +119,54 @@ public sealed partial class ProdutoAdicionarPageViewModel(
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        if (query.TryGetValue("Produto", out object? produtoObj) && produtoObj is ProdutoResponse produto)
+        CarregarSemMarcar(() =>
         {
-            Produto = produto;
-            Nome = produto.Nome;
-            InformacoesAdicionais = produto.InformacoesAdicionais;
-            Categoria = new CategoriaModel(produto.CategoriaNome, string.Empty, produto.CatalogoId) { Id = produto.CategoriaId };
-            Preco = produto.Preco;
-            Estoque = produto.Estoque?.Quantidade;
-            Imagens = new ObservableCollection<ProdutoImagemResponse>(produto.Imagens);
-            PrecoString = produto.Preco.ToString("N2");
-            PrecoComDescontoString = produto.PrecoComDesconto?.ToString("N2") ?? string.Empty;
-            Titulo = "Editar produto";
-        }
-        else
-        {
-            Produto = null;
-            Nome = string.Empty;
-            PrecoString = string.Empty;
-            PrecoComDescontoString = string.Empty;
-            InformacoesAdicionais = string.Empty;
-            Categoria = null;
-            Preco = 0;
-            _precoComDesconto = null;
-            Estoque = null;
-            Imagens = [];
-            Titulo = "Novo produto";
-        }
+            if (query.TryGetValue("Produto", out object? produtoObj) && produtoObj is ProdutoResponse produto)
+            {
+                Produto = produto;
+                Nome = produto.Nome;
+                InformacoesAdicionais = produto.InformacoesAdicionais;
+                Categoria = new CategoriaModel(produto.CategoriaNome, string.Empty, produto.CatalogoId) { Id = produto.CategoriaId };
+                Preco = produto.Preco;
+                Estoque = produto.Estoque?.Quantidade;
+                Imagens = new ObservableCollection<ProdutoImagemResponse>(produto.Imagens);
+                PrecoString = produto.Preco.ToString("N2");
+                PrecoComDescontoString = produto.PrecoComDesconto?.ToString("N2") ?? string.Empty;
+                Titulo = "Editar produto";
+            }
+            else
+            {
+                Produto = null;
+                Nome = string.Empty;
+                PrecoString = string.Empty;
+                PrecoComDescontoString = string.Empty;
+                InformacoesAdicionais = string.Empty;
+                Categoria = null;
+                Preco = 0;
+                _precoComDesconto = null;
+                Estoque = null;
+                Imagens = [];
+                Titulo = "Novo produto";
+            }
+        });
     }
 
     #region Conversão Preços
-    partial void OnNomeChanged(string value) => ValidateFields(nameof(UpsertProdutoOfflineFirstRequest.Nome));
+    partial void OnNomeChanged(string value)
+    {
+        MarcarAlterado();
+        ValidateFields(nameof(UpsertProdutoOfflineFirstRequest.Nome));
+    }
+
+    partial void OnInformacoesAdicionaisChanged(string? value) => MarcarAlterado();
+
+    partial void OnCategoriaChanged(CategoriaModel? value) => MarcarAlterado();
+
+    partial void OnEstoqueChanged(int? value) => MarcarAlterado();
 
     partial void OnPrecoStringChanged(string value)
     {
+        MarcarAlterado();
         if (string.IsNullOrWhiteSpace(value))
         {
             Preco = 0;
@@ -164,6 +180,7 @@ public sealed partial class ProdutoAdicionarPageViewModel(
 
     partial void OnPrecoComDescontoStringChanged(string value)
     {
+        MarcarAlterado();
         if (string.IsNullOrWhiteSpace(value))
         {
             _precoComDesconto = null;
@@ -395,6 +412,7 @@ public sealed partial class ProdutoAdicionarPageViewModel(
             {
                 var imagemLocal = await CriarImagemLocalAsync(result);
                 Imagens.Add(imagemLocal);
+                MarcarAlterado();
             }
         }
         catch (FeatureNotSupportedException ex)
@@ -458,6 +476,7 @@ public sealed partial class ProdutoAdicionarPageViewModel(
             }
 
             CancelarCarregamentoCategorias();
+            LimparAlteracoes();
             if (Produto is not null)
                 WeakReferenceMessenger.Default.Send(new ProdutoUpsertedMessage(Produto.Id.ToString()));
             await NavigationService.NavigateToAsync($"//{nameof(ProdutoListaPage)}");
@@ -591,6 +610,8 @@ public sealed partial class ProdutoAdicionarPageViewModel(
 
         if (Produto != null)
             Produto.Imagens = lista;
+
+        MarcarAlterado();
     }
     #endregion
 }

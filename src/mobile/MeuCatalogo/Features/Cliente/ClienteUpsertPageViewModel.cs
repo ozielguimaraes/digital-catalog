@@ -13,7 +13,7 @@ namespace MeuCatalogo.Features.Cliente;
 public sealed partial class ClienteUpsertPageViewModel(
     ILogger<ClienteUpsertPageViewModel> logger,
     UpsertClienteUseCase upsertClienteUseCase,
-    INavigationService navigationService) : BasePageViewModel, IQueryAttributable
+    INavigationService navigationService) : FormPageViewModel, IQueryAttributable
 {
     [ObservableProperty] private Guid? _id;
     [ObservableProperty] private string _titulo = "Novo cliente";
@@ -33,19 +33,32 @@ public sealed partial class ClienteUpsertPageViewModel(
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         if (!query.TryGetValue("Cliente", out var v) || v is not ClienteInfo c) return;
-        Id = c.Id;
-        Nome = c.Nome;
-        Email = c.Email;
-        Telefone = c.Telefone;
-        InformacoesAdicionais = c.InformacoesAdicionais;
-        Titulo = "Editar cliente";
+        CarregarSemMarcar(() =>
+        {
+            Id = c.Id;
+            Nome = c.Nome;
+            Email = c.Email;
+            Telefone = c.Telefone;
+            InformacoesAdicionais = c.InformacoesAdicionais;
+            Titulo = "Editar cliente";
+        });
     }
 
     partial void OnNomeChanged(string value)
-        => NomeErrorMessage = string.IsNullOrWhiteSpace(value) ? "Informe o nome" : null;
+    {
+        MarcarAlterado();
+        NomeErrorMessage = string.IsNullOrWhiteSpace(value) ? "Informe o nome" : null;
+    }
 
     partial void OnEmailChanged(string? value)
-        => EmailErrorMessage = IsValidEmail(value) ? null : "E-mail inválido";
+    {
+        MarcarAlterado();
+        EmailErrorMessage = IsValidEmail(value) ? null : "E-mail inválido";
+    }
+
+    partial void OnTelefoneChanged(string? value) => MarcarAlterado();
+
+    partial void OnInformacoesAdicionaisChanged(string? value) => MarcarAlterado();
 
     [RelayCommand]
     private async Task Salvar()
@@ -81,6 +94,7 @@ public sealed partial class ClienteUpsertPageViewModel(
                 return;
             }
 
+            LimparAlteracoes();
             await navigationService.PopAsync();
         }
         catch (Exception ex)
