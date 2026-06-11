@@ -14,6 +14,17 @@ public sealed record ProdutoResponse
     public Guid CatalogoId { get; init; }
     public EstoqueResponse? Estoque { get; init; }
     public List<ProdutoImagemResponse> Imagens { get; set; } = [];
+    public List<ProdutoVariacaoResponse> Variacoes { get; set; } = [];
+    public SyncStatus SyncStatus { get; set; } = SyncStatus.Completed;
+}
+
+public sealed record ProdutoVariacaoResponse
+{
+    public Guid Id { get; init; }
+    public string? Cor { get; init; }
+    public string? Tamanho { get; init; }
+    public decimal? Preco { get; init; }
+    public int Quantidade { get; init; }
     public SyncStatus SyncStatus { get; set; } = SyncStatus.Completed;
 }
 

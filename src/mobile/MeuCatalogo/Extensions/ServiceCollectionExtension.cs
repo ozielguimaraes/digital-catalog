@@ -193,6 +193,7 @@ public static class ServiceCollectionExtension
         builder.Services.AddTransient<IProdutoRepository, ProdutoRepository>();
         builder.Services.AddTransient<IProdutoLocalRepository, ProdutoLocalRepository>();
         builder.Services.AddTransient<IProdutoImagemLocalRepository, ProdutoImagemLocalRepository>();
+        builder.Services.AddTransient<IProdutoVariacaoLocalRepository, ProdutoVariacaoLocalRepository>();
         builder.Services.AddTransient<GetProdutosByCatalogoIdUseCase>();
         builder.Services.AddTransient<GetProdutoByIdUseCase>();
         builder.Services.AddTransient<GetProdutoForEditOfflineFirstUseCase>();

@@ -1,4 +1,5 @@
 using Flunt.Validations;
+using MeuCatalogo.Features.Produto.Data.Remote.Contracts.Responses;
 using MeuCatalogo.Features.Produto.UseCases;
 
 namespace MeuCatalogo.Features.Produto;
@@ -21,6 +22,7 @@ public sealed partial class ProdutoAdicionarPageViewModel
             PrecoComDesconto: _precoComDesconto,
             InformacoesAdicionais: InformacoesAdicionais,
             Imagens: Imagens.ToList(),
+            Variacoes: Array.Empty<ProdutoVariacaoResponse>(),
             CurrentSyncStatus: Produto?.SyncStatus);
 
         var validator = new Validators.UpsertProdutoValidator(request);

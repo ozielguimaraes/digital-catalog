@@ -14,7 +14,8 @@ public sealed class ProdutoPullSyncHandler(
     ILogger<ProdutoPullSyncHandler> logger,
     IProdutoRepository remoteRepository,
     IProdutoLocalRepository localRepository,
-    IProdutoImagemLocalRepository imagemLocalRepository)
+    IProdutoImagemLocalRepository imagemLocalRepository,
+    IProdutoVariacaoLocalRepository variacaoLocalRepository)
     : ISyncHandler
 {
     public bool CanHandle(SyncQueue item)
@@ -67,6 +68,23 @@ public sealed class ProdutoPullSyncHandler(
             .ToList();
 
         await imagemLocalRepository.ReplaceByCatalogoIdAsync(payload.CatalogoId, imagens);
+
+        var variacoes = response.Dados
+            .SelectMany(p => p.Variacoes.Select(v => new ProdutoVariacaoEntity
+            {
+                Id = v.Id.ToString(),
+                ProdutoId = p.Id.ToString(),
+                CatalogoId = p.CatalogoId.ToString(),
+                Cor = v.Cor,
+                Tamanho = v.Tamanho,
+                Preco = v.Preco,
+                Quantidade = v.Quantidade,
+                SyncStatus = SyncStatus.Completed,
+                LastModified = now
+            }))
+            .ToList();
+
+        await variacaoLocalRepository.ReplaceByCatalogoIdAsync(payload.CatalogoId, variacoes);
         logger.LogInformation("Produtos sincronizados para catálogo {CatalogoId}: {Count}", payload.CatalogoId, entities.Count);
     }
 

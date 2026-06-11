@@ -10,5 +10,6 @@ public sealed record ProdutoUpdateRequest
     public decimal? PrecoComDesconto { get; init; }
     public string? InformacoesAdicionais { get; init; }
     public ICollection<ProdutoImagemResponse> Imagens { get; init; } = new List<ProdutoImagemResponse>();
+    public ICollection<ProdutoVariacaoCreateRequest> Variacoes { get; init; } = new List<ProdutoVariacaoCreateRequest>();
 }
 

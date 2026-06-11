@@ -14,17 +14,20 @@ public sealed class GetProdutoForEditOfflineFirstUseCase : IUseCase<ProdutoEntit
     private readonly IConnectivity _connectivity;
     private readonly IProdutoLocalRepository _produtoLocalRepository;
     private readonly IProdutoImagemLocalRepository _produtoImagemLocalRepository;
+    private readonly IProdutoVariacaoLocalRepository _produtoVariacaoLocalRepository;
     private readonly GetProdutoByIdUseCase _getProdutoByIdUseCase;
 
     public GetProdutoForEditOfflineFirstUseCase(
         IConnectivity connectivity,
         IProdutoLocalRepository produtoLocalRepository,
         IProdutoImagemLocalRepository produtoImagemLocalRepository,
+        IProdutoVariacaoLocalRepository produtoVariacaoLocalRepository,
         GetProdutoByIdUseCase getProdutoByIdUseCase)
     {
         _connectivity = connectivity;
         _produtoLocalRepository = produtoLocalRepository;
         _produtoImagemLocalRepository = produtoImagemLocalRepository;
+        _produtoVariacaoLocalRepository = produtoVariacaoLocalRepository;
         _getProdutoByIdUseCase = getProdutoByIdUseCase;
     }
 
@@ -85,6 +88,17 @@ public sealed class GetProdutoForEditOfflineFirstUseCase : IUseCase<ProdutoEntit
             SyncStatus = i.SyncStatus
         }).ToList();
 
+        var variacoes = await _produtoVariacaoLocalRepository.GetByProdutoIdAsync(request.Id);
+        var variacoesResponse = variacoes.Select(v => new ProdutoVariacaoResponse
+        {
+            Id = Guid.TryParse(v.Id, out var variacaoId) ? variacaoId : Guid.Empty,
+            Cor = v.Cor,
+            Tamanho = v.Tamanho,
+            Preco = v.Preco,
+            Quantidade = v.Quantidade,
+            SyncStatus = v.SyncStatus
+        }).ToList();
+
         return new ProdutoResponse
         {
             Id = produtoId,
@@ -97,6 +111,7 @@ public sealed class GetProdutoForEditOfflineFirstUseCase : IUseCase<ProdutoEntit
             CatalogoId = catalogoId,
             Estoque = null,
             Imagens = imagensResponse,
+            Variacoes = variacoesResponse,
             // Preserva o status real: a tela de edição usa isso para decidir se um
             // produto criado offline (Pending) continua sendo Create na fila de sync
             // em vez de virar Update de algo que o servidor ainda não conhece.

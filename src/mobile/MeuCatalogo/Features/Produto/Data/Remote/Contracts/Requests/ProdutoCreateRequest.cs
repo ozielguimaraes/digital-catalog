@@ -9,11 +9,20 @@ public sealed record ProdutoCreateRequest
     public decimal? PrecoComDesconto { get; init; }
     public string? InformacoesAdicionais { get; init; }
     public EstoqueCreateRequest? Estoque { get; init; }
+    public ICollection<ProdutoVariacaoCreateRequest> Variacoes { get; init; } = new List<ProdutoVariacaoCreateRequest>();
 }
 
 public sealed record EstoqueCreateRequest
 {
     public int QuantidadeInicial { get; init; }
     public int? QuantidadeMinima { get; init; }
+}
+
+public sealed record ProdutoVariacaoCreateRequest
+{
+    public string? Cor { get; init; }
+    public string? Tamanho { get; init; }
+    public decimal? Preco { get; init; }
+    public int Quantidade { get; init; }
 }
 

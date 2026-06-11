@@ -81,6 +81,7 @@ public class AppDbContext
         await _database.CreateTableAsync<CategoriaEntity>();
         await _database.CreateTableAsync<ProdutoEntity>();
         await _database.CreateTableAsync<ProdutoImagemEntity>();
+        await _database.CreateTableAsync<ProdutoVariacaoEntity>();
     }
 
     private async Task CreateIndexesAsync()

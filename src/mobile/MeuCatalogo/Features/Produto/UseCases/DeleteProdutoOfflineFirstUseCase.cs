@@ -73,6 +73,7 @@ public sealed class DeleteProdutoOfflineFirstUseCase : IUseCase<Guid, ApiRespons
         {
             database.Execute("DELETE FROM Produtos WHERE Id = ?", id);
             database.Execute("DELETE FROM ProdutoImagens WHERE ProdutoId = ?", id);
+            database.Execute("DELETE FROM ProdutoVariacoes WHERE ProdutoId = ?", id);
         });
     }
 

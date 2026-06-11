@@ -24,5 +24,6 @@ public partial class ProdutoAdicionarPage : ContentPage
         base.OnAppearing();
         _logger.LogInformation("ProdutoAdicionarPage OnAppearing em {ElapsedMs}ms", sw.ElapsedMilliseconds);
         _ = _viewModel.CarregarCategoriasCommand.ExecuteAsync(null);
+        _ = _viewModel.CarregarSugestoesVariacaoCommand.ExecuteAsync(null);
     }
 }

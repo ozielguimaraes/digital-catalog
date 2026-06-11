@@ -28,6 +28,17 @@ public sealed class ProdutoUpsertSyncHandler(
 
         await dbContext.InitializeAsync();
 
+        var variacoesLocais = await dbContext.Database.Table<ProdutoVariacaoEntity>()
+            .Where(v => v.ProdutoId == entity.Id)
+            .ToListAsync();
+        var variacoesRequest = variacoesLocais.Select(v => new ProdutoVariacaoCreateRequest
+        {
+            Cor = v.Cor,
+            Tamanho = v.Tamanho,
+            Preco = v.Preco,
+            Quantidade = v.Quantidade
+        }).ToList();
+
         if (item.Operation == SyncOperation.Create)
         {
             var create = new ProdutoCreateRequest
@@ -37,7 +48,8 @@ public sealed class ProdutoUpsertSyncHandler(
                 CatalogoId = Guid.Parse(entity.CatalogoId ?? Guid.Empty.ToString()),
                 Preco = entity.Preco,
                 PrecoComDesconto = entity.PrecoComDesconto,
-                InformacoesAdicionais = entity.InformacoesAdicionais
+                InformacoesAdicionais = entity.InformacoesAdicionais,
+                Variacoes = variacoesRequest
             };
 
             var response = await createRemoteUseCase.ExecuteAsync(create);
@@ -62,12 +74,15 @@ public sealed class ProdutoUpsertSyncHandler(
             local.SyncStatus = SyncStatus.Completed;
             local.LastModified = DateTime.UtcNow;
 
+            var completed = (int)SyncStatus.Completed;
             if (remoteId != localId)
             {
                 await dbContext.Database.RunInTransactionAsync(database =>
                 {
                     database.Execute("UPDATE ProdutoImagens SET ProdutoId = ? WHERE ProdutoId = ?", remoteId, localId);
                     database.Execute("UPDATE ProdutoImagens SET CatalogoId = ? WHERE ProdutoId = ?", local.CatalogoId, remoteId);
+                    database.Execute("UPDATE ProdutoVariacoes SET ProdutoId = ? WHERE ProdutoId = ?", remoteId, localId);
+                    database.Execute("UPDATE ProdutoVariacoes SET CatalogoId = ?, SyncStatus = ? WHERE ProdutoId = ?", local.CatalogoId, completed, remoteId);
                     database.Delete<ProdutoEntity>(localId);
                     local.Id = remoteId;
                     database.Insert(local);
@@ -76,6 +91,7 @@ public sealed class ProdutoUpsertSyncHandler(
             else
             {
                 await dbContext.Database.UpdateAsync(local);
+                await dbContext.Database.ExecuteAsync("UPDATE ProdutoVariacoes SET SyncStatus = ? WHERE ProdutoId = ?", completed, remoteId);
             }
 
             logger.LogInformation("Produto sincronizado (create). LocalId={LocalId} RemoteId={RemoteId}", localId, remoteId);
@@ -89,7 +105,8 @@ public sealed class ProdutoUpsertSyncHandler(
             CategoriaId = Guid.Parse(entity.CategoriaId ?? Guid.Empty.ToString()),
             Preco = entity.Preco,
             PrecoComDesconto = entity.PrecoComDesconto,
-            InformacoesAdicionais = entity.InformacoesAdicionais
+            InformacoesAdicionais = entity.InformacoesAdicionais,
+            Variacoes = variacoesRequest
         };
 
         var updateResponse = await updateRemoteUseCase.ExecuteAsync((updateId, update));
@@ -111,6 +128,7 @@ public sealed class ProdutoUpsertSyncHandler(
         existing.LastModified = DateTime.UtcNow;
 
         await dbContext.Database.UpdateAsync(existing);
+        await dbContext.Database.ExecuteAsync("UPDATE ProdutoVariacoes SET SyncStatus = ? WHERE ProdutoId = ?", (int)SyncStatus.Completed, entity.Id);
         logger.LogInformation("Produto sincronizado (update). Id={Id}", entity.Id);
     }
 }

@@ -29,6 +29,7 @@ public sealed partial class ProdutoAdicionarPageViewModel(
     ISettingsService settingsService,
     IBottomSheetNavigationService bottomSheetNavigationService,
     IServiceProvider serviceProvider,
+    Data.Local.IProdutoVariacaoLocalRepository produtoVariacaoLocalRepository,
     INavigationService navigationService)
     : FormPageViewModel, INavigationAware, IQueryAttributable
 {
@@ -71,6 +72,94 @@ public sealed partial class ProdutoAdicionarPageViewModel(
 
     [ObservableProperty] private ObservableCollection<ProdutoImagemResponse> _imagens = [];
     [ObservableProperty] private bool _isProcessandoImagem;
+
+    [ObservableProperty] private ObservableCollection<Models.ProdutoVariacaoModel> _variacoes = [];
+    [ObservableProperty] private bool _temVariacoes;
+    [ObservableProperty] private string? _coresUsadas;
+    [ObservableProperty] private string? _tamanhosUsados;
+    [ObservableProperty] private bool _temSugestoesVariacao;
+
+    [RelayCommand]
+    private void AdicionarVariacao()
+    {
+        var model = new Models.ProdutoVariacaoModel();
+        model.PropertyChanged += (_, _) => MarcarAlterado();
+        Variacoes.Add(model);
+        TemVariacoes = Variacoes.Count > 0;
+        MarcarAlterado();
+    }
+
+    [RelayCommand]
+    private void RemoverVariacao(Models.ProdutoVariacaoModel model)
+    {
+        Variacoes.Remove(model);
+        TemVariacoes = Variacoes.Count > 0;
+        MarcarAlterado();
+    }
+
+    [RelayCommand]
+    private async Task CarregarSugestoesVariacao()
+    {
+        try
+        {
+            var catalogoId = settingsService.CatalogoEmUso?.Id;
+            if (catalogoId is null)
+                return;
+
+            var todas = await produtoVariacaoLocalRepository.GetByCatalogoIdAsync(catalogoId.Value.ToString());
+
+            var cores = todas
+                .Select(v => v.Cor)
+                .Where(c => !string.IsNullOrWhiteSpace(c))
+                .Select(c => c!.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(c => c)
+                .ToList();
+
+            var tamanhos = todas
+                .Select(v => v.Tamanho)
+                .Where(t => !string.IsNullOrWhiteSpace(t))
+                .Select(t => t!.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(t => t)
+                .ToList();
+
+            CoresUsadas = cores.Count > 0 ? string.Join(", ", cores) : null;
+            TamanhosUsados = tamanhos.Count > 0 ? string.Join(", ", tamanhos) : null;
+            TemSugestoesVariacao = cores.Count > 0 || tamanhos.Count > 0;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Falha ao carregar sugestões de variação.");
+        }
+    }
+
+    private Models.ProdutoVariacaoModel CriarVariacaoModel(ProdutoVariacaoResponse v)
+    {
+        var model = new Models.ProdutoVariacaoModel
+        {
+            Id = v.Id,
+            Cor = v.Cor,
+            Tamanho = v.Tamanho,
+            PrecoString = v.Preco?.ToString("N2") ?? string.Empty,
+            QuantidadeString = v.Quantidade.ToString()
+        };
+        model.PropertyChanged += (_, _) => MarcarAlterado();
+        return model;
+    }
+
+    private List<ProdutoVariacaoResponse> ConstruirVariacoes()
+        => Variacoes
+            .Where(v => !string.IsNullOrWhiteSpace(v.Cor) || !string.IsNullOrWhiteSpace(v.Tamanho))
+            .Select(v => new ProdutoVariacaoResponse
+            {
+                Id = v.Id,
+                Cor = string.IsNullOrWhiteSpace(v.Cor) ? null : v.Cor!.Trim(),
+                Tamanho = string.IsNullOrWhiteSpace(v.Tamanho) ? null : v.Tamanho!.Trim(),
+                Preco = TentarConverterPreco(v.PrecoString, out var preco) ? preco : null,
+                Quantidade = int.TryParse(v.QuantidadeString?.Trim(), out var qtd) ? qtd : 0
+            })
+            .ToList();
 
     private ProdutoImagemResponse? _imagemSendoArrastada;
 
@@ -130,6 +219,8 @@ public sealed partial class ProdutoAdicionarPageViewModel(
                 Preco = produto.Preco;
                 Estoque = produto.Estoque?.Quantidade;
                 Imagens = new ObservableCollection<ProdutoImagemResponse>(produto.Imagens);
+                Variacoes = new ObservableCollection<Models.ProdutoVariacaoModel>(produto.Variacoes.Select(CriarVariacaoModel));
+                TemVariacoes = Variacoes.Count > 0;
                 PrecoString = produto.Preco.ToString("N2");
                 PrecoComDescontoString = produto.PrecoComDesconto?.ToString("N2") ?? string.Empty;
                 Titulo = "Editar produto";
@@ -146,6 +237,8 @@ public sealed partial class ProdutoAdicionarPageViewModel(
                 _precoComDesconto = null;
                 Estoque = null;
                 Imagens = [];
+                Variacoes = [];
+                TemVariacoes = false;
                 Titulo = "Novo produto";
             }
         });
@@ -453,6 +546,7 @@ public sealed partial class ProdutoAdicionarPageViewModel(
                 PrecoComDesconto: _precoComDesconto,
                 InformacoesAdicionais: InformacoesAdicionais,
                 Imagens: Imagens.ToList(),
+                Variacoes: ConstruirVariacoes(),
                 CurrentSyncStatus: Produto?.SyncStatus);
 
             var response = await upsertProdutoOfflineFirstUseCase.ExecuteAsync(upsertRequest);

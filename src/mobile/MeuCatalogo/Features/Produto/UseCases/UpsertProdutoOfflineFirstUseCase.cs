@@ -23,6 +23,7 @@ public sealed record UpsertProdutoOfflineFirstRequest(
     decimal? PrecoComDesconto,
     string? InformacoesAdicionais,
     IReadOnlyList<ProdutoImagemResponse> Imagens,
+    IReadOnlyList<ProdutoVariacaoResponse> Variacoes,
     SyncStatus? CurrentSyncStatus = null);
 
 public sealed class UpsertProdutoOfflineFirstUseCase(
@@ -32,6 +33,7 @@ public sealed class UpsertProdutoOfflineFirstUseCase(
     ISyncEngine syncEngine,
     IProdutoLocalRepository produtoLocalRepository,
     IProdutoImagemLocalRepository produtoImagemLocalRepository,
+    IProdutoVariacaoLocalRepository produtoVariacaoLocalRepository,
     CreateProdutoRemoteUseCase createRemoteUseCase,
     UpdateProdutoRemoteUseCase updateRemoteUseCase)
     : IUseCase<UpsertProdutoOfflineFirstRequest, ApiResponse<ProdutoResponse>>
@@ -76,7 +78,8 @@ public sealed class UpsertProdutoOfflineFirstUseCase(
                 CatalogoId = catalogoId,
                 Preco = request.Preco,
                 PrecoComDesconto = request.PrecoComDesconto,
-                InformacoesAdicionais = request.InformacoesAdicionais
+                InformacoesAdicionais = request.InformacoesAdicionais,
+                Variacoes = MapToCreateRequests(request.Variacoes)
             };
 
             response = await createRemoteUseCase.ExecuteAsync(create);
@@ -90,7 +93,8 @@ public sealed class UpsertProdutoOfflineFirstUseCase(
                 Preco = request.Preco,
                 PrecoComDesconto = request.PrecoComDesconto,
                 InformacoesAdicionais = request.InformacoesAdicionais,
-                Imagens = request.Imagens.ToList()
+                Imagens = request.Imagens.ToList(),
+                Variacoes = MapToCreateRequests(request.Variacoes)
             };
 
             response = await updateRemoteUseCase.ExecuteAsync((request.ProdutoId.Value, update));
@@ -147,6 +151,21 @@ public sealed class UpsertProdutoOfflineFirstUseCase(
 
         await produtoImagemLocalRepository.ReplaceByProdutoIdAsync(localId, imagensEntity);
 
+        var variacoesEntity = request.Variacoes.Select(v => new ProdutoVariacaoEntity
+        {
+            Id = v.Id != Guid.Empty ? v.Id.ToString() : Guid.NewGuid().ToString(),
+            ProdutoId = localId,
+            CatalogoId = catalogoId.ToString(),
+            Cor = v.Cor,
+            Tamanho = v.Tamanho,
+            Preco = v.Preco,
+            Quantidade = v.Quantidade,
+            SyncStatus = SyncStatus.Pending,
+            LastModified = now
+        }).ToList();
+
+        await produtoVariacaoLocalRepository.ReplaceByProdutoIdAsync(localId, variacoesEntity);
+
         var operation = request.ProdutoId is null ? SyncOperation.Create : SyncOperation.Update;
 
         if (request.CurrentSyncStatus is SyncStatus.Pending)
@@ -172,6 +191,7 @@ public sealed class UpsertProdutoOfflineFirstUseCase(
             CatalogoId = catalogoId,
             Estoque = null,
             Imagens = request.Imagens.ToList(),
+            Variacoes = request.Variacoes.ToList(),
             SyncStatus = SyncStatus.Pending
         };
 
@@ -220,7 +240,31 @@ public sealed class UpsertProdutoOfflineFirstUseCase(
         }).ToList();
 
         await produtoImagemLocalRepository.ReplaceByProdutoIdAsync(id, imagens);
+
+        var variacoes = produto.Variacoes.Select(v => new ProdutoVariacaoEntity
+        {
+            Id = v.Id != Guid.Empty ? v.Id.ToString() : Guid.NewGuid().ToString(),
+            ProdutoId = id,
+            CatalogoId = produto.CatalogoId.ToString(),
+            Cor = v.Cor,
+            Tamanho = v.Tamanho,
+            Preco = v.Preco,
+            Quantidade = v.Quantidade,
+            SyncStatus = SyncStatus.Completed,
+            LastModified = now
+        }).ToList();
+
+        await produtoVariacaoLocalRepository.ReplaceByProdutoIdAsync(id, variacoes);
     }
+
+    private static List<ProdutoVariacaoCreateRequest> MapToCreateRequests(IReadOnlyList<ProdutoVariacaoResponse> variacoes)
+        => variacoes.Select(v => new ProdutoVariacaoCreateRequest
+        {
+            Cor = v.Cor,
+            Tamanho = v.Tamanho,
+            Preco = v.Preco,
+            Quantidade = v.Quantidade
+        }).ToList();
 
     private async Task UpsertQueuedCreateAsync(string entityId, ProdutoEntity entity)
     {
