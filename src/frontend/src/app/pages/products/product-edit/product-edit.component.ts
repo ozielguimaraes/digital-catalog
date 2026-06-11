@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { Product, ProductUpdateRequest, Category } from '../../../core/models/product.model';
+import { Product, ProductUpdateRequest, Category, ProdutoVariacaoCreateDto, ProdutoVariacaoDto } from '../../../core/models/product.model';
 import { ProductService } from '../../../core/services/product.service';
 import { CatalogService, Catalog } from '../../../core/services/catalog.service';
 import { CategoryService } from '../../../core/services/category.service';
@@ -34,6 +34,8 @@ export class ProductEditComponent implements OnInit {
   uploadedImages: ImageUploadData[] = [];
   productId: string = '';
   stockType: 'limited' | 'unlimited' | 'out' = 'limited';
+  coresSugeridas: string[] = [];
+  tamanhosSugeridos: string[] = [];
 
   constructor(
     private productService: ProductService,
@@ -57,8 +59,58 @@ export class ProductEditComponent implements OnInit {
         quantidadeMaxima: [null, [Validators.min(0)]],
         disponivel: [true],
         ehIlimitado: [false]
-      })
+      }),
+      variacoes: this.fb.array([])
     });
+  }
+
+  get variacoes(): FormArray {
+    return this.productForm.get('variacoes') as FormArray;
+  }
+
+  private createVariacaoGroup(v?: ProdutoVariacaoDto): FormGroup {
+    return this.fb.group({
+      cor: [v?.cor ?? ''],
+      tamanho: [v?.tamanho ?? ''],
+      preco: [v?.preco ?? null, [Validators.min(0.01)]],
+      quantidade: [v?.quantidade ?? 0, [Validators.required, Validators.min(0)]]
+    });
+  }
+
+  addVariacao() {
+    this.variacoes.push(this.createVariacaoGroup());
+  }
+
+  removeVariacao(index: number) {
+    this.variacoes.removeAt(index);
+  }
+
+  private loadSugestoesVariacao() {
+    const catalogoId = this.product?.catalogoId;
+    if (!catalogoId) {
+      return;
+    }
+    this.productService.getVariacoesSugestoes(catalogoId).subscribe({
+      next: (sugestoes) => {
+        this.coresSugeridas = sugestoes?.cores ?? [];
+        this.tamanhosSugeridos = sugestoes?.tamanhos ?? [];
+      },
+      error: () => {
+        this.coresSugeridas = [];
+        this.tamanhosSugeridos = [];
+      }
+    });
+  }
+
+  private buildVariacoes(): ProdutoVariacaoCreateDto[] {
+    return (this.variacoes.value as any[])
+      .filter(v => (v.cor && v.cor.trim()) || (v.tamanho && v.tamanho.trim()))
+      .map(v => ({
+        cor: v.cor?.trim() || undefined,
+        tamanho: v.tamanho?.trim() || undefined,
+        preco: v.preco != null && v.preco !== '' ? Number(v.preco) : undefined,
+        quantidade: v.quantidade != null && v.quantidade !== '' ? Number(v.quantidade) : 0
+      }));
   }
 
   ngOnInit() {
@@ -80,6 +132,7 @@ export class ProductEditComponent implements OnInit {
         this.populateForm(response.data);
         // Load categories after product is loaded
         this.loadCategories();
+        this.loadSugestoesVariacao();
         this.loading = false;
       },
       error: (error) => {
@@ -105,6 +158,10 @@ export class ProductEditComponent implements OnInit {
         ehIlimitado: product.estoque?.ehIlimitado ?? false
       }
     });
+
+    // Popula as variações existentes (modelo SKU cor × tamanho)
+    this.variacoes.clear();
+    (product.variacoes ?? []).forEach(v => this.variacoes.push(this.createVariacaoGroup(v)));
 
     // Determine stock type based on product data
     if (product.estoque) {
@@ -262,7 +319,8 @@ export class ProductEditComponent implements OnInit {
         quantidadeMaxima: formValue.estoque.quantidadeMaxima || null,
         disponivel: formValue.estoque.disponivel,
         ehIlimitado: formValue.estoque.ehIlimitado
-      }
+      },
+      variacoes: this.buildVariacoes()
     };
 
     // First update the product

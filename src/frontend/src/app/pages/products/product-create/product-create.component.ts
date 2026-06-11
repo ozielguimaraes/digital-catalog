@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { ProductCreateRequest, Category } from '../../../core/models/product.model';
+import { ProductCreateRequest, Category, ProdutoVariacaoCreateDto } from '../../../core/models/product.model';
 import { ProductService } from '../../../core/services/product.service';
 import { CatalogService, Catalog } from '../../../core/services/catalog.service';
 import { CategoryService } from '../../../core/services/category.service';
@@ -32,6 +32,8 @@ export class ProductCreateComponent implements OnInit {
   productForm: FormGroup;
   uploadedImages: ImageUploadData[] = [];
   stockType: 'limited' | 'unlimited' | 'out' = 'limited';
+  coresSugeridas: string[] = [];
+  tamanhosSugeridos: string[] = [];
 
   constructor(
     private productService: ProductService,
@@ -54,8 +56,57 @@ export class ProductCreateComponent implements OnInit {
         quantidadeMaxima: [null, [Validators.min(0)]],
         disponivel: [true],
         ehIlimitado: [false]
-      })
+      }),
+      variacoes: this.fb.array([])
     });
+  }
+
+  get variacoes(): FormArray {
+    return this.productForm.get('variacoes') as FormArray;
+  }
+
+  private createVariacaoGroup(): FormGroup {
+    return this.fb.group({
+      cor: [''],
+      tamanho: [''],
+      preco: [null, [Validators.min(0.01)]],
+      quantidade: [0, [Validators.required, Validators.min(0)]]
+    });
+  }
+
+  addVariacao() {
+    this.variacoes.push(this.createVariacaoGroup());
+  }
+
+  removeVariacao(index: number) {
+    this.variacoes.removeAt(index);
+  }
+
+  private loadSugestoesVariacao() {
+    if (!this.selectedCatalogId) {
+      return;
+    }
+    this.productService.getVariacoesSugestoes(this.selectedCatalogId).subscribe({
+      next: (sugestoes) => {
+        this.coresSugeridas = sugestoes?.cores ?? [];
+        this.tamanhosSugeridos = sugestoes?.tamanhos ?? [];
+      },
+      error: () => {
+        this.coresSugeridas = [];
+        this.tamanhosSugeridos = [];
+      }
+    });
+  }
+
+  private buildVariacoes(): ProdutoVariacaoCreateDto[] {
+    return (this.variacoes.value as any[])
+      .filter(v => (v.cor && v.cor.trim()) || (v.tamanho && v.tamanho.trim()))
+      .map(v => ({
+        cor: v.cor?.trim() || undefined,
+        tamanho: v.tamanho?.trim() || undefined,
+        preco: v.preco != null && v.preco !== '' ? Number(v.preco) : undefined,
+        quantidade: v.quantidade != null && v.quantidade !== '' ? Number(v.quantidade) : 0
+      }));
   }
 
   ngOnInit() {
@@ -84,6 +135,7 @@ export class ProductCreateComponent implements OnInit {
         // Load categories for the selected catalog
         if (this.selectedCatalogId) {
           this.loadCategories();
+          this.loadSugestoesVariacao();
         }
       },
       error: (error) => {
@@ -127,7 +179,9 @@ export class ProductCreateComponent implements OnInit {
     });
     this.uploadedImages = [];
     this.stockType = 'limited';
+    this.variacoes.clear();
     this.loadCategories();
+    this.loadSugestoesVariacao();
   }
 
   onImagesUploaded(images: ImageUploadData[]) {
@@ -227,7 +281,8 @@ export class ProductCreateComponent implements OnInit {
         quantidadeMaxima: formValue.estoque.quantidadeMaxima || null,
         disponivel: formValue.estoque.disponivel,
         ehIlimitado: formValue.estoque.ehIlimitado
-      }
+      },
+      variacoes: this.buildVariacoes()
     };
 
     // First create the product

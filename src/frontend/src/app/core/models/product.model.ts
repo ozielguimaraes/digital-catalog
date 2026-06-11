@@ -8,7 +8,7 @@ export interface Product {
   precoComDesconto?: number;
   informacoesAdicionais?: string;
   estoque: Estoque;
-  variacoes: Variacao[];
+  variacoes: ProdutoVariacaoDto[];
   imagens?: ProdutoImagem[];
   dataCriacao: string;
   dataAtualizacao?: string;
@@ -48,6 +48,27 @@ export interface OpcaoVariacao {
   valor: string;
 }
 
+// Modelo SKU atual: combinação cor × tamanho com quantidade e preço opcional.
+export interface ProdutoVariacaoDto {
+  id: string;
+  cor?: string;
+  tamanho?: string;
+  preco?: number;
+  quantidade: number;
+}
+
+export interface ProdutoVariacaoCreateDto {
+  cor?: string;
+  tamanho?: string;
+  preco?: number;
+  quantidade: number;
+}
+
+export interface VariacaoSugestoes {
+  cores: string[];
+  tamanhos: string[];
+}
+
 export interface Category {
   id: string;
   nome: string;
@@ -65,6 +86,7 @@ export interface ProductCreateRequest {
   precoComDesconto?: number;
   informacoesAdicionais?: string;
   estoque?: EstoqueCreateRequest;
+  variacoes?: ProdutoVariacaoCreateDto[];
 }
 
 export interface ProductUpdateRequest {
@@ -74,6 +96,7 @@ export interface ProductUpdateRequest {
   precoComDesconto?: number;
   informacoesAdicionais?: string;
   estoque?: EstoqueUpdateRequest;
+  variacoes?: ProdutoVariacaoCreateDto[];
 }
 
 export interface EstoqueCreateRequest {

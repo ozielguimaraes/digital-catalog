@@ -13,7 +13,8 @@ import {
   Category, 
   CategoryResponse,
   EstoqueUpdateRequest,
-  Estoque
+  Estoque,
+  VariacaoSugestoes
 } from '../models/product.model';
 
 @Injectable({
@@ -105,6 +106,20 @@ export class ProductService {
           console.error('Error creating product:', error);
           const errorMessage = extractErrorMessage(error, 'Erro ao criar produto');
           return throwError(() => new Error(errorMessage));
+        })
+      );
+  }
+
+  /**
+   * Cores e tamanhos já usados no catálogo, para reuso/autocomplete no cadastro.
+   */
+  getVariacoesSugestoes(catalogoId: string): Observable<VariacaoSugestoes> {
+    const params = new HttpParams().set('catalogoId', catalogoId);
+    return this.http.get<VariacaoSugestoes>(`${this.API_URL}/produtos/variacoes/sugestoes`, { params })
+      .pipe(
+        catchError(error => {
+          console.error('Error fetching variation suggestions:', error);
+          return throwError(() => new Error(extractErrorMessage(error, 'Erro ao carregar sugestões de variação')));
         })
       );
   }
