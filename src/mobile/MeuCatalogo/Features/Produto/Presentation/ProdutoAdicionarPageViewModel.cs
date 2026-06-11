@@ -309,7 +309,7 @@ public sealed partial class ProdutoAdicionarPageViewModel(
             await Application.Current.MainPage.DisplayAlert("Erro",
                 "Nenhum catálogo em uso. Por favor, selecione um catálogo.", "OK");
 
-            await NavigationService.NavigateToAsync(nameof(CatalogoListaPage));
+            await NavigationService.NavigateToAsync($"//{nameof(CatalogoListaPage)}");
             return;
         }
 

@@ -70,19 +70,18 @@ public partial class AppShell : Shell
 
     private static void RegisterRoutes()
     {
-        Routing.RegisterRoute(nameof(HomePage), typeof(HomePage));
-        Routing.RegisterRoute(nameof(MaisPage), typeof(MaisPage));
+        // As 5 páginas-aba (HomePage, ProdutoListaPage, CatalogoListaPage,
+        // PedidoListaPage, MaisPage) NÃO são registradas aqui: já são rotas via
+        // ShellContent Route="..." no AppShell.xaml. Registrá-las também como rota
+        // global criava ambiguidade que travava o back ao empilhar páginas sobre elas.
 
-        Routing.RegisterRoute(nameof(CatalogoListaPage), typeof(CatalogoListaPage));
         Routing.RegisterRoute(nameof(CatalogoAdicionarPage), typeof(CatalogoAdicionarPage));
         Routing.RegisterRoute(nameof(CatalogoDetalhePage), typeof(CatalogoDetalhePage));
         Routing.RegisterRoute(nameof(CatalogoPublicaPage), typeof(CatalogoPublicaPage));
 
-        Routing.RegisterRoute(nameof(ProdutoListaPage), typeof(ProdutoListaPage));
         Routing.RegisterRoute(nameof(ProdutoAdicionarPage), typeof(ProdutoAdicionarPage));
         Routing.RegisterRoute(nameof(ProdutoDetalhePage), typeof(ProdutoDetalhePage));
 
-        Routing.RegisterRoute(nameof(PedidoListaPage), typeof(PedidoListaPage));
         Routing.RegisterRoute(nameof(PedidoNovoPage), typeof(PedidoNovoPage));
         Routing.RegisterRoute(nameof(ClienteListaPage), typeof(ClienteListaPage));
         Routing.RegisterRoute(nameof(ClienteUpsertPage), typeof(ClienteUpsertPage));
