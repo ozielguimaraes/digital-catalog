@@ -312,7 +312,8 @@ try
             var allowedOrigins = builder.Configuration.GetSection("AllowedCorsOrigins").Get<string[]>() ?? new[]
             {
                 "http://localhost:4200",
-                "https://localhost:4200"
+                "https://localhost:4200",
+                "https://catalogo.sanyz.com.br"
             };
 
             policy.WithOrigins(allowedOrigins)
