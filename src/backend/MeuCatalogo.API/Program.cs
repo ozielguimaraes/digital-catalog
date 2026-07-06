@@ -66,18 +66,14 @@ try
         }
         else
         {
-            // Production logging configuration - simpler approach
-            string logPath = Path.Combine(AppContext.BaseDirectory, "logs");
-            if (!Directory.Exists(logPath))
-            {
-                Directory.CreateDirectory(logPath);
-            }
-
+            // Produção roda em container: stdout é retido pelo Coolify; arquivo
+            // em disco seria efêmero (some a cada redeploy), então só Console.
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Warning()
+                .MinimumLevel.Information()
+                .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+                .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
-                .WriteTo.File("logs/error-log-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 14, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error)
                 .CreateLogger();
         }
 
@@ -127,7 +123,7 @@ try
     // No hosting compartilhado as tabelas vivem no schema do usuário (não dbo);
     // sem apontar a history para esse schema o EF acha que nada foi aplicado
     // e o MigrateAsync tenta recriar o banco inteiro.
-    string? migrationsHistorySchema = builder.Configuration["Database:MigrationsHistorySchema"];
+    var migrationsHistorySchema = builder.Configuration["Database:MigrationsHistorySchema"];
 
     builder.Services.AddDbContextPool<ApplicationDbContext>(options =>
     {
@@ -453,6 +449,17 @@ try
     {
         FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
         RequestPath = "/uploads"
+    });
+
+    app.UseSerilogRequestLogging(options =>
+    {
+        // Health check pinga a cada poucos segundos — só aparece no log se falhar.
+        options.GetLevel = (httpContext, _, ex) =>
+            ex != null || httpContext.Response.StatusCode >= 500
+                ? Serilog.Events.LogEventLevel.Error
+                : httpContext.Request.Path.StartsWithSegments("/health")
+                    ? Serilog.Events.LogEventLevel.Verbose
+                    : Serilog.Events.LogEventLevel.Information;
     });
 
     app.UseHttpsRedirection();
