@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+**/logs/
+**/Uploads/
+.idea/
+.config/
+.pipelines/
+MeuCatalogo.Application.Tests/
+README.md
