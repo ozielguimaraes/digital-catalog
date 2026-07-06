@@ -3,7 +3,7 @@ namespace MeuCatalogo.Infrastructure;
 public static class ApiConstants
 {
     public static string BaseUrl =>
-        "http://catalogo-api.sanyz.com.br/api/v1";
+        "https://catalogo-api.sanyz.com.br/api/v1";
 //
 // #if RELEASE
 //         "http://catalogo-api.sanyz.com.br/api/v1";
