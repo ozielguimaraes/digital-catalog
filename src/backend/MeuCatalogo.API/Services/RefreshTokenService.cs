@@ -15,11 +15,17 @@ namespace MeuCatalogo.API.Services;
 
 public class RefreshTokenService : IRefreshTokenService
 {
+    // Reuso de um token já rotacionado dentro desta janela é tratado como retry
+    // de rede (mobile + Polly reenviam o refresh após timeout), não como roubo.
+    private static readonly TimeSpan ReuseGracePeriod = TimeSpan.FromSeconds(30);
+
     private static readonly JwtSecurityTokenHandler TokenHandler = new();
     private readonly ApplicationDbContext _context;
     private readonly SymmetricSecurityKey _jwtSigningKey;
     private readonly string _jwtIssuer;
     private readonly string _jwtAudience;
+    private readonly int _accessTokenMinutes;
+    private readonly int _refreshTokenDays;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<RefreshTokenService> _logger;
 
@@ -33,28 +39,23 @@ public class RefreshTokenService : IRefreshTokenService
         _jwtSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:Key"]!));
         _jwtIssuer = configuration["JwtSettings:Issuer"]!;
         _jwtAudience = configuration["JwtSettings:Audience"]!;
+        _accessTokenMinutes = configuration.GetValue<int?>("JwtSettings:AccessTokenMinutes") ?? 15;
+        _refreshTokenDays = configuration.GetValue<int?>("JwtSettings:RefreshTokenDays") ?? 30;
         _userManager = userManager;
         _logger = logger;
     }
 
     public async Task<RefreshToken> GenerateRefreshTokenAsync(string userId)
     {
-        var existingToken = await _context.RefreshTokens
-            .AsNoTracking()
-            .Where(rt => rt.UserId == userId && !rt.IsRevoked && rt.ExpiresAt > DateTime.UtcNow)
-            .OrderByDescending(rt => rt.ExpiresAt)
-            .FirstOrDefaultAsync();
-
-        if (existingToken != null)
-        {
-            return existingToken;
-        }
-
+        // Sempre cria um token novo: cada login/sessão (device) tem o seu.
+        // Reaproveitar um token existente fazia dois devices compartilharem a
+        // mesma sessão — a rotação de um derrubava o outro e inviabilizava
+        // detectar reuso malicioso.
         var refreshToken = new RefreshToken
         {
             Token = GenerateRandomToken(),
             UserId = userId,
-            ExpiresAt = DateTime.UtcNow.AddDays(30),
+            ExpiresAt = DateTime.UtcNow.AddDays(_refreshTokenDays),
             IsRevoked = false
         };
 
@@ -112,8 +113,28 @@ public class RefreshTokenService : IRefreshTokenService
     public async Task<SigninResponse> RefreshAccessTokenAsync(string refreshToken)
     {
         var token = await GetRefreshTokenAsync(refreshToken);
-        
-        if (token == null || !await IsRefreshTokenValidAsync(token))
+
+        if (token == null)
+        {
+            throw new UnauthorizedAccessException("Refresh token inválido ou expirado");
+        }
+
+        if (token.IsRevoked)
+        {
+            // Token rotacionado sendo apresentado de novo: fora da janela de
+            // graça isso indica vazamento — revoga todas as sessões do usuário.
+            if (token.RevokedAt is { } revokedAt && DateTime.UtcNow - revokedAt > ReuseGracePeriod)
+            {
+                _logger.LogWarning(
+                    "Reuso de refresh token revogado detectado para usuário {UserId}; revogando todas as sessões.",
+                    token.UserId);
+                await RevokeAllRefreshTokensAsync(token.UserId);
+            }
+
+            throw new UnauthorizedAccessException("Refresh token inválido ou expirado");
+        }
+
+        if (token.ExpiresAt < DateTime.UtcNow)
         {
             throw new UnauthorizedAccessException("Refresh token inválido ou expirado");
         }
@@ -124,14 +145,22 @@ public class RefreshTokenService : IRefreshTokenService
             throw new UnauthorizedAccessException("Usuário não encontrado");
         }
 
-        // Revogar o refresh token atual
-        await RevokeRefreshTokenAsync(refreshToken);
+        // Rotação: revoga o token atual e emite um novo que herda o ExpiresAt,
+        // impondo um teto absoluto de sessão (renovar não estende o prazo).
+        token.IsRevoked = true;
+        token.RevokedAt = DateTime.UtcNow;
 
-        // Gerar novo access token
         var newAccessToken = GenerateJwtToken(user);
 
-        // Gerar novo refresh token
-        var newRefreshToken = await GenerateRefreshTokenAsync(user.Id);
+        var newRefreshToken = new RefreshToken
+        {
+            Token = GenerateRandomToken(),
+            UserId = user.Id,
+            ExpiresAt = token.ExpiresAt,
+            IsRevoked = false
+        };
+        _context.RefreshTokens.Add(newRefreshToken);
+        await _context.SaveChangesAsync();
 
         var userDto = new UserDto
         {
@@ -170,7 +199,7 @@ public class RefreshTokenService : IRefreshTokenService
             _jwtIssuer,
             _jwtAudience,
             claims,
-            expires: DateTime.UtcNow.AddMinutes(15),
+            expires: DateTime.UtcNow.AddMinutes(_accessTokenMinutes),
             signingCredentials: creds);
 
         return TokenHandler.WriteToken(token);
