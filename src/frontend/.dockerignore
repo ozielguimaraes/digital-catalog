@@ -1,0 +1,13 @@
+node_modules
+dist
+.angular
+.git
+*.md
+deploy-*
+DEPLOY-*
+package-release.sh
+check-zip.sh
+diagnose-ftp.py
+test-ftp*.py
+firebase.json
+.firebaserc
