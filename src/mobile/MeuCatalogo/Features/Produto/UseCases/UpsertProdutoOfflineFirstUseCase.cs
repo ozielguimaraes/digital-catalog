@@ -83,6 +83,11 @@ public sealed class UpsertProdutoOfflineFirstUseCase(
             };
 
             response = await createRemoteUseCase.ExecuteAsync(create);
+
+            // Create remoto falhou (API fora/erro): não perde o produto —
+            // salva local com SyncStatus.Pending e enfileira o Create.
+            if (response.RetornouComErro || response.Dados is null)
+                return await UpsertOfflineAsync(request, catalogoId);
         }
         else
         {

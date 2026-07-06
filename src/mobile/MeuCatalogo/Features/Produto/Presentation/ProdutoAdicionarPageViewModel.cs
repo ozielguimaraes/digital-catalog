@@ -554,7 +554,7 @@ public sealed partial class ProdutoAdicionarPageViewModel(
             if (response.RetornouComErro)
             {
                 string mensagemErro = string.Join("\n", ObterErros(response));
-                await Application.Current.MainPage.DisplayAlert(response.ProblemDetails!.Title, mensagemErro, "OK");
+                await Application.Current.MainPage.DisplayAlert(response.ProblemDetails?.Title ?? "Erro", mensagemErro, "OK");
                 return;
             }
 

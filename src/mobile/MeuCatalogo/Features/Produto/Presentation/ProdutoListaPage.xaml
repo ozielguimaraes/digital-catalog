@@ -85,7 +85,35 @@
                            Text="Carregando produtos…" />
                 </VerticalStackLayout>
 
-                <!-- Vazio -->
+                <!-- Grid 2-col de produtos -->
+                <RefreshView Command="{Binding CarregarDadosCommand}"
+                             IsRefreshing="{Binding IsRefreshing}">
+                    <CollectionView ItemsSource="{Binding ProdutosFiltrados}"
+                                    SelectionMode="None"
+                                    ItemsUpdatingScrollMode="KeepItemsInView">
+                        <CollectionView.ItemsLayout>
+                            <GridItemsLayout Orientation="Vertical"
+                                             Span="2"
+                                             VerticalItemSpacing="14"
+                                             HorizontalItemSpacing="12" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="domain:ProdutoEntity">
+                                <components:ProductGridCard
+                                    ThumbnailSource="{Binding ThumbnailUrl}"
+                                    Nome="{Binding Nome}"
+                                    Preco="{Binding Preco}"
+                                    PrecoComDesconto="{Binding PrecoComDesconto}"
+                                    SubtitleText="{Binding CategoriaNome}"
+                                    TapCommand="{Binding Source={RelativeSource AncestorType={x:Type produto:ProdutoListaPageViewModel}}, Path=VerDetalheCommand}"
+                                    TapCommandParameter="{Binding .}" />
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </RefreshView>
+
+                <!-- Vazio: depois da RefreshView para ficar acima na ordem de
+                     desenho — atrás dela o botão não recebia toques no Android -->
                 <VerticalStackLayout IsVisible="{Binding ShowEmptyState}"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Center"
@@ -121,33 +149,6 @@
                             IsEnabled="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}"
                             Command="{Binding AdicionarCommand}" />
                 </VerticalStackLayout>
-
-                <!-- Grid 2-col de produtos -->
-                <RefreshView Command="{Binding CarregarDadosCommand}"
-                             IsRefreshing="{Binding IsRefreshing}">
-                    <CollectionView ItemsSource="{Binding ProdutosFiltrados}"
-                                    SelectionMode="None"
-                                    ItemsUpdatingScrollMode="KeepItemsInView">
-                        <CollectionView.ItemsLayout>
-                            <GridItemsLayout Orientation="Vertical"
-                                             Span="2"
-                                             VerticalItemSpacing="14"
-                                             HorizontalItemSpacing="12" />
-                        </CollectionView.ItemsLayout>
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="domain:ProdutoEntity">
-                                <components:ProductGridCard
-                                    ThumbnailSource="{Binding ThumbnailUrl}"
-                                    Nome="{Binding Nome}"
-                                    Preco="{Binding Preco}"
-                                    PrecoComDesconto="{Binding PrecoComDesconto}"
-                                    SubtitleText="{Binding CategoriaNome}"
-                                    TapCommand="{Binding Source={RelativeSource AncestorType={x:Type produto:ProdutoListaPageViewModel}}, Path=VerDetalheCommand}"
-                                    TapCommandParameter="{Binding .}" />
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </RefreshView>
 
             </Grid>
         </Grid>

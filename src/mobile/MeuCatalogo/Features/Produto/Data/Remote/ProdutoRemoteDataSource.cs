@@ -69,15 +69,17 @@ public sealed class ProdutoRemoteDataSource(
         }
         catch (ApiException apiEx)
         {
+            // Não devolver "sucesso" com produto fake aqui: o sync handler
+            // confia em RetornouComErro para manter o item na fila; um falso
+            // sucesso remapeava o Id local para um Guid inventado e marcava
+            // Completed sem nada existir no servidor.
             logger.LogWarning(apiEx, "Erro ao criar produto.");
-            var offlineProduto = BuildOfflineProduto(request, SyncStatus.Pending);
-            return ApiResponse<ProdutoResponse>.Success(offlineProduto);
+            return ApiResponse<ProdutoResponse>.Error("Erro ao criar produto.", GetProblemDetails(apiEx));
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Erro inesperado ao criar produto.");
-            var offlineProduto = BuildOfflineProduto(request, SyncStatus.Pending);
-            return ApiResponse<ProdutoResponse>.Success(offlineProduto);
+            return ApiResponse<ProdutoResponse>.Error("Erro inesperado ao criar produto.");
         }
     }
 
@@ -179,24 +181,6 @@ public sealed class ProdutoRemoteDataSource(
             var offlineImage = await BuildOfflineImageAsync(produtoId, file, isPrincipal, ordem);
             return ApiResponse<ProdutoImagemResponse>.Success(offlineImage);
         }
-    }
-
-    private static ProdutoResponse BuildOfflineProduto(ProdutoCreateRequest request, SyncStatus syncStatus)
-    {
-        return new ProdutoResponse
-        {
-            Id = Guid.NewGuid(),
-            Nome = request.Nome,
-            CategoriaId = request.CategoriaId,
-            CategoriaNome = "Pendente de sincronização",
-            CatalogoId = request.CatalogoId,
-            Preco = request.Preco,
-            PrecoComDesconto = request.PrecoComDesconto,
-            InformacoesAdicionais = request.InformacoesAdicionais,
-            Estoque = null,
-            Imagens = [],
-            SyncStatus = syncStatus
-        };
     }
 
     private async Task<ProdutoImagemResponse> BuildOfflineImageAsync(Guid produtoId, FileResult file, bool isPrincipal, int ordem)

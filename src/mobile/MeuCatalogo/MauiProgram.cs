@@ -80,7 +80,7 @@ public static class MauiProgram
 #if DEBUG
         builder.Logging.AddDebug();
         // builder.Services.AddLogging(configure => configure.AddDebug());
-        //builder.Logging.AddConsole();
+        builder.Logging.AddConsole();
 #endif
         builder.Services.AddSingleton<IAppInfo>(AppInfo.Current);
 

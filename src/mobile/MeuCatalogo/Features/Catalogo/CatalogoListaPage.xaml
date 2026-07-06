@@ -41,42 +41,6 @@
                            Text="Carregando seus catálogos…" />
                 </VerticalStackLayout>
 
-                <!-- Empty state -->
-                <VerticalStackLayout IsVisible="{Binding ShowEmptyState}"
-                                     VerticalOptions="Center"
-                                     HorizontalOptions="Center"
-                                     Padding="0,48"
-                                     Spacing="12">
-                    <Border Style="{StaticResource IconCircleSurface}"
-                            HeightRequest="92"
-                            WidthRequest="92"
-                            HorizontalOptions="Center">
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="46" />
-                        </Border.StrokeShape>
-                        <Image Source="ic_x_mark_circle_thin.png"
-                               HeightRequest="44"
-                               Aspect="AspectFit">
-                            <Image.Behaviors>
-                                <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}" />
-                            </Image.Behaviors>
-                        </Image>
-                    </Border>
-
-                    <Label Style="{StaticResource SerifH2}"
-                           HorizontalTextAlignment="Center"
-                           Text="Nenhum catálogo ainda" />
-                    <Label Style="{StaticResource BodyMuted}"
-                           HorizontalTextAlignment="Center"
-                           Text="Crie seu primeiro catálogo para começar a organizar produtos." />
-                    <Button Style="{StaticResource PrimaryButtonPill}"
-                            Text="CRIAR CATÁLOGO"
-                            HorizontalOptions="Center"
-                            Margin="0,8,0,0"
-                            WidthRequest="240"
-                            Command="{Binding AdicionarCommand}" />
-                </VerticalStackLayout>
-
                 <!-- Catalog list -->
                 <RefreshView Command="{Binding CarregarCatalogosCommand}"
                              IsRefreshing="{Binding IsRefreshing, Mode=TwoWay}">
@@ -182,5 +146,42 @@
                     </CollectionView.ItemTemplate>
                 </CollectionView>
                 </RefreshView>
+
+                <!-- Empty state: depois da RefreshView para ficar acima na ordem
+                     de desenho — atrás dela o botão não recebia toques no Android -->
+                <VerticalStackLayout IsVisible="{Binding ShowEmptyState}"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Center"
+                                     Padding="0,48"
+                                     Spacing="12">
+                    <Border Style="{StaticResource IconCircleSurface}"
+                            HeightRequest="92"
+                            WidthRequest="92"
+                            HorizontalOptions="Center">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="46" />
+                        </Border.StrokeShape>
+                        <Image Source="ic_x_mark_circle_thin.png"
+                               HeightRequest="44"
+                               Aspect="AspectFit">
+                            <Image.Behaviors>
+                                <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Light={StaticResource PrimaryColorLight}, Dark={StaticResource PrimaryColorDark}}" />
+                            </Image.Behaviors>
+                        </Image>
+                    </Border>
+
+                    <Label Style="{StaticResource SerifH2}"
+                           HorizontalTextAlignment="Center"
+                           Text="Nenhum catálogo ainda" />
+                    <Label Style="{StaticResource BodyMuted}"
+                           HorizontalTextAlignment="Center"
+                           Text="Crie seu primeiro catálogo para começar a organizar produtos." />
+                    <Button Style="{StaticResource PrimaryButtonPill}"
+                            Text="CRIAR CATÁLOGO"
+                            HorizontalOptions="Center"
+                            Margin="0,8,0,0"
+                            WidthRequest="240"
+                            Command="{Binding AdicionarCommand}" />
+                </VerticalStackLayout>
         </Grid>
 </ContentPage>
