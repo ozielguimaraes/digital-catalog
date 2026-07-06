@@ -91,7 +91,6 @@ try
         Console.WriteLine("Continuing with built-in logging...");
     }
 
-    builder.Configuration.AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true);
 
     builder.Services.AddControllers()
         .AddJsonOptions(options =>
@@ -125,11 +124,18 @@ try
 
     Console.WriteLine("✓ Connection string configured successfully.");
     Log.Information("Connection string configured successfully.");
+    // No hosting compartilhado as tabelas vivem no schema do usuário (não dbo);
+    // sem apontar a history para esse schema o EF acha que nada foi aplicado
+    // e o MigrateAsync tenta recriar o banco inteiro.
+    string? migrationsHistorySchema = builder.Configuration["Database:MigrationsHistorySchema"];
+
     builder.Services.AddDbContextPool<ApplicationDbContext>(options =>
     {
         options.UseSqlServer(connectionString, b =>
         {
             b.MigrationsAssembly("MeuCatalogo.API");
+            if (!string.IsNullOrWhiteSpace(migrationsHistorySchema))
+                b.MigrationsHistoryTable("__EFMigrationsHistory", migrationsHistorySchema);
             b.EnableRetryOnFailure(3, TimeSpan.FromSeconds(2), null);
             b.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
         });
@@ -180,9 +186,9 @@ try
 
     // Validate JWT configuration
     Console.WriteLine("Validating JWT configuration...");
-    string? jwtKey = builder.Configuration["JwtSettings:Key"];
-    string? jwtIssuer = builder.Configuration["JwtSettings:Issuer"];
-    string? jwtAudience = builder.Configuration["JwtSettings:Audience"];
+    var jwtKey = builder.Configuration["JwtSettings:Key"];
+    var jwtIssuer = builder.Configuration["JwtSettings:Issuer"];
+    var jwtAudience = builder.Configuration["JwtSettings:Audience"];
 
     if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
     {
@@ -317,7 +323,6 @@ try
             };
 
             policy.WithOrigins(allowedOrigins)
-                .SetIsOriginAllowed(origin => true) // Allow any origin in development/production if needed (use with caution)
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
@@ -389,12 +394,19 @@ try
         {
             var context = services.GetRequiredService<ApplicationDbContext>();
 
-            // Always run migrations in production to ensure database is up to date
-            Console.WriteLine("Running database migration...");
-            Log.Information("Starting database migration...");
-            // await context.Database.MigrateAsync();
-            Console.WriteLine("✓ Database migration completed successfully.");
-            Log.Information("Database migration completed successfully.");
+            var pendingMigrations = (await context.Database.GetPendingMigrationsAsync()).ToList();
+            if (pendingMigrations.Count > 0)
+            {
+                Console.WriteLine($"Applying {pendingMigrations.Count} pending migration(s): {string.Join(", ", pendingMigrations)}");
+                Log.Information("Applying {Count} pending migration(s): {Migrations}", pendingMigrations.Count, pendingMigrations);
+                await context.Database.MigrateAsync();
+                Console.WriteLine("✓ Database migration completed successfully.");
+                Log.Information("Database migration completed successfully.");
+            }
+            else
+            {
+                Console.WriteLine("✓ Database schema up to date — no pending migrations.");
+            }
 
             // Only run database initialization in development
             if (env.IsDevelopment())

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MeuCatalogo.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260427080854_Inicial")]
+    [Migration("20260706191425_Inicial")]
     partial class Inicial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1124,6 +1124,46 @@ namespace MeuCatalogo.API.Migrations
                     b.ToTable("ProdutoImagens", (string)null);
                 });
 
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.ProdutoVariacao", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Cor")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("DataAtualizacao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("Preco")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("ProdutoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tamanho")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProdutoId");
+
+                    b.ToTable("ProdutoVariacoes", (string)null);
+                });
+
             modelBuilder.Entity("MeuCatalogo.Application.Entities.Recorrencia", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1802,6 +1842,17 @@ namespace MeuCatalogo.API.Migrations
                     b.Navigation("Produto");
                 });
 
+            modelBuilder.Entity("MeuCatalogo.Application.Entities.ProdutoVariacao", b =>
+                {
+                    b.HasOne("MeuCatalogo.Application.Entities.Produto", "Produto")
+                        .WithMany("ProdutoVariacoes")
+                        .HasForeignKey("ProdutoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Produto");
+                });
+
             modelBuilder.Entity("MeuCatalogo.Application.Entities.Recorrencia", b =>
                 {
                     b.HasOne("MeuCatalogo.Application.Entities.CategoriaFinanceira", "CategoriaFinanceira")
@@ -1990,6 +2041,8 @@ namespace MeuCatalogo.API.Migrations
                     b.Navigation("Imagens");
 
                     b.Navigation("ItensPedido");
+
+                    b.Navigation("ProdutoVariacoes");
 
                     b.Navigation("Variacoes");
                 });
